@@ -3,7 +3,9 @@
 #include <netinet/in.h>
 #include <unistd.h>
 #include <iostream>
-#define PORT 81
+#include <fstream>
+#include <sstream>
+#define PORT 82
 
 Socket::Socket() {
 	int server_fd;
@@ -21,7 +23,8 @@ Socket::Socket() {
 		perror("In socket");
 		exit(EXIT_FAILURE);
 	}
-
+	int on = 1;
+	setsockopt (server_fd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof (on));
 	if (bind(server_fd, (struct sockaddr *)&address, sizeof(address)) < 0)
 	{
 		perror("In bind");
@@ -38,6 +41,16 @@ Socket::Socket() {
 	read( _this_socket , read_buffer, 30000);
 	_buffer = read_buffer;
 	std::cout << _buffer << std::endl;
-	write(_this_socket, "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello world!", 73);
+	std::ifstream html_file("../index.html");
+	std::stringstream	str_stream;
+	str_stream << html_file.rdbuf();
+	std::string output("HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length: ");
+	output += std::to_string(str_stream.str().size());
+	output += "\n";
+	write(_this_socket, output.data(), output.size());
+	output = str_stream.str();
+	//std::cout << output;
+	write(_this_socket, output.data(), output.size());
 	close(server_fd);
+	close(_this_socket);
 }

@@ -3,7 +3,7 @@ NAME	= webserv
 SRC_DIR	= src/
 SRC		= main.cpp Socket.cpp Connection.cpp
 
-#HDR	=  vector.hpp iterator.hpp
+#HDR	=  Connection.hpp Socket.hpp
 
 OBJ_DIR	= obj/
 OBJ		= $(addprefix $(OBJ_DIR), $(SRC:.cpp=.o))
@@ -18,7 +18,7 @@ $(OBJ_DIR):
 $(NAME) : $(OBJ)
 	c++ $(FLAGS) $(OBJ) -o $(NAME)
 
-$(OBJ_DIR)%.o : $(SRC_DIR)%.cpp
+$(OBJ_DIR)%.o : $(SRC_DIR)%.cpp $(HDR)
 	c++ $(FLAGS) -c $< -o $@
 
 re : fclean all

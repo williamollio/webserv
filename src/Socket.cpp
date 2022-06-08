@@ -5,7 +5,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
-#define PORT 82
+#define PORT 80
 
 Socket::Socket() {
 	int server_fd;
@@ -36,21 +36,27 @@ Socket::Socket() {
 		exit(EXIT_FAILURE);
 	}
 
-	_this_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen);
-	char*	read_buffer = new char[30001];
-	read( _this_socket , read_buffer, 30000);
-	_buffer = read_buffer;
-	std::cout << _buffer << std::endl;
-	std::ifstream html_file("../index.html");
-	std::stringstream	str_stream;
-	str_stream << html_file.rdbuf();
-	std::string output("HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length: ");
-	output += std::to_string(str_stream.str().size());
-	output += "\n";
-	write(_this_socket, output.data(), output.size());
-	output = str_stream.str();
-	//std::cout << output;
-	write(_this_socket, output.data(), output.size());
-	close(server_fd);
-	close(_this_socket);
+		while (1) {
+
+		if ((_this_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen)) < 0)
+			std::cout << "message not accepted\n";
+		char*	read_buffer = new char[30001];
+		u_long	amount = 0;
+		amount = read( _this_socket, read_buffer, 30000);
+		_buffer = read_buffer;
+		std::cout << _buffer;
+		std::ifstream html_file("index.html");
+		std::stringstream	str_stream;
+		str_stream << html_file.rdbuf();
+		std::string output("HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length: ");
+		output += std::to_string(str_stream.str().size());
+		output += "\n\n";
+		std::cout << output;
+		write(_this_socket, output.data(), output.size());
+		output = str_stream.str();
+		std::cout << output;
+		write(_this_socket, output.data(), output.size());
+		close(_this_socket);
+		}
+		close(server_fd);
 }

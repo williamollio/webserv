@@ -1,62 +1,50 @@
 #include "Socket.hpp"
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <unistd.h>
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#define PORT 80
 
-Socket::Socket() {
-	int server_fd;
-	struct sockaddr_in address;
-	int addrlen = sizeof(address);
+Socket::Socket() {}
+Socket::~Socket() {}
+Socket::Socket(int fd) : _fd(fd)
+{
+	if (fd < 0)
+		throw std::exception();
+}
 
-	address.sin_family = AF_INET;
-	address.sin_addr.s_addr = INADDR_ANY;
-	address.sin_port = htons( PORT );
+std::string Socket::read_socket()
+{
+	char*	read_buffer = new char[30001];
+	u_long	amount = 0;
+	amount = read(_fd, read_buffer, 30000);
+	if (amount < 0)
+		throw std::exception();
+	std::string tmp = std::string(read_buffer);
+	delete[] read_buffer;
+	return(tmp);
+}
 
-	memset(address.sin_zero, '\0', sizeof address.sin_zero);
+void Socket::send_header(std::string type)
+{
+	_type_header = type;
+}
 
-	if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0)
-	{
-		perror("In socket");
-		exit(EXIT_FAILURE);
-	}
-	int on = 1;
-	setsockopt (server_fd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof (on));
-	if (bind(server_fd, (struct sockaddr *)&address, sizeof(address)) < 0)
-	{
-		perror("In bind");
-		exit(EXIT_FAILURE);
-	}
-	if (listen(server_fd, 10) < 0)
-	{
-		perror("In listen");
-		exit(EXIT_FAILURE);
-	}
+void Socket::send_file(std::string name)
+{
+	_filename = name;
+	std::ifstream html_file(_filename);
+	std::stringstream	str_stream;
+	str_stream << html_file.rdbuf();
+	std::string content("HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length: ");
+	content += std::to_string(str_stream.str().size());
+	content += "\n\n";
+	content += str_stream.str();
+	this->send(content);
+}
 
-		while (1) {
+void Socket::send(std::string content)
+{
+	if (write(_fd, content.data(), content.size()) < 0)
+		throw std::exception();
+}
 
-		if ((_this_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen)) < 0)
-			std::cout << "message not accepted\n";
-		char*	read_buffer = new char[30001];
-		u_long	amount = 0;
-		amount = read( _this_socket, read_buffer, 30000);
-		_buffer = read_buffer;
-		std::cout << _buffer;
-		std::ifstream html_file("index.html");
-		std::stringstream	str_stream;
-		str_stream << html_file.rdbuf();
-		std::string output("HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length: ");
-		output += std::to_string(str_stream.str().size());
-		output += "\n\n";
-		std::cout << output;
-		write(_this_socket, output.data(), output.size());
-		output = str_stream.str();
-		std::cout << output;
-		write(_this_socket, output.data(), output.size());
-		close(_this_socket);
-		}
-		close(server_fd);
+void Socket::close_socket()
+{
+	close(_fd);
 }

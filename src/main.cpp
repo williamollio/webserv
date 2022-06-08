@@ -2,6 +2,15 @@
 #include "Socket.hpp"
 
 int main() {
-	Connection	server_connection;
-	server_connection.establishConnection();
+	try
+	{
+		Connection	server_connection;
+		server_connection.establishConnection();
+	}
+	catch(const std::exception& e)
+	{
+		std::cerr << e.what() << '\n';
+	}
+
+
 }

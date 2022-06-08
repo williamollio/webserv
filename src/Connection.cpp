@@ -1,4 +1,5 @@
 #include "Connection.hpp"
+#include "HTTPReader.hpp"
 
 Connection::Connection()
 {
@@ -19,7 +20,13 @@ Connection::Connection()
 		throw std::exception();
 }
 
-Connection::~Connection() {}
+static void removeHTTPReader(HTTPReader* & reader) {
+    delete reader;
+}
+
+Connection::~Connection() {
+    std::for_each(list.begin(), list.end(), ::removeHTTPReader);
+}
 
 void Connection::establishConnection()
 {
@@ -28,10 +35,9 @@ void Connection::establishConnection()
 		try
 		{
 			Socket socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen);
-			std::cout << socket.read_socket() << std::endl;
-			socket.send_header("html");
-			socket.send_file("index.html");
-			socket.close_socket();
+            HTTPReader* reader = new HTTPReader(socket);
+            list.push_back(reader);
+            reader->run();
 		}
 		catch(const std::exception& e)
 		{

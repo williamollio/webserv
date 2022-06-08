@@ -1,7 +1,9 @@
 #include "Socket.hpp"
 
 Socket::Socket() {}
+
 Socket::~Socket() {}
+
 Socket::Socket(int fd) : _fd(fd)
 {
 	if (fd < 0)
@@ -20,31 +22,34 @@ std::string Socket::read_socket()
 	return(tmp);
 }
 
-void Socket::send_header(std::string type)
+void Socket::send_header(const std::string & type)
 {
 	_type_header = type;
 }
 
-void Socket::send_file(std::string name)
+void Socket::send_file(const std::string & name)
 {
 	_filename = name;
 	std::ifstream html_file(_filename);
 	std::stringstream	str_stream;
 	str_stream << html_file.rdbuf();
-	std::string content("HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length: ");
+	std::string content("HTTP/1.1 200 OK\nContent-Type: text/");
+    content += _type_header + "\nContent-Length: ";
 	content += std::to_string(str_stream.str().size());
 	content += "\n\n";
 	content += str_stream.str();
+    std::cout << content;
 	this->send(content);
 }
 
-void Socket::send(std::string content)
+void Socket::send(const std::string & content)
 {
 	if (write(_fd, content.data(), content.size()) < 0)
 		throw std::exception();
 }
 
-void Socket::close_socket()
+void Socket::close_socket() const
 {
-	close(_fd);
+	if (close(_fd) < 0)
+        throw std::exception();
 }

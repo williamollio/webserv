@@ -1,14 +1,14 @@
 NAME	= webserv
 
 SRC_DIR	= src/
-SRC		= main.cpp Socket.cpp Connection.cpp
+SRC		= main.cpp Socket.cpp Connection.cpp HTTPReader.cpp
 
-#HDR	=  Connection.hpp Socket.hpp
+#HDR	=  Connection.hpp Socket.hpp HTTPReader.hpp
 
 OBJ_DIR	= obj/
 OBJ		= $(addprefix $(OBJ_DIR), $(SRC:.cpp=.o))
 
-FLAGS	= -Wall -Wextra -std=c++98 #-Werror
+FLAGS	= -Wall -Wextra -std=c++98 -g #-Werror
 
 all : $(OBJ_DIR) $(NAME)
 

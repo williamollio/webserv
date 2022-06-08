@@ -29,8 +29,8 @@ class Socket {
 		Socket(int fd);
 		~Socket();
 		std::string read_socket();
-		void send_header(std::string type);
-		void send_file(std::string name);
-		void send(std::string content);
-		void close_socket();
+		void send_header(const std::string & type);
+		void send_file(const std::string & name);
+		void send(const std::string & content);
+		void close_socket() const;
 };

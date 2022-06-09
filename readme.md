@@ -22,6 +22,6 @@
 # On-going tasks
 
 - <strong>mhahn</strong> : I/O Multiplexing
-- <strong>jkasper</strong> : parsing
+- <strong>jkasper</strong> : Configuration
 - <strong>wollio</strong> : I/O Multiplexing
 

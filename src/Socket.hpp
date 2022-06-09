@@ -7,6 +7,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <fcntl.h>
 
 class Socket {
 	private:

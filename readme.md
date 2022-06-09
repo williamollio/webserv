@@ -14,10 +14,12 @@
 # Steps
 
 1. Setting up the connection/sockets
-2. Parsing HTTP Request (c.f. RFC 7230 - 7235)
-3. I/O Multiplexing
+2. I/O Multiplexing
+3. HTTPReader (c.f. RFC 7230 - 7235)
 4. CGI
-5. Configuration
+5. HTTPsender (c.f. RFC 7230 - 7235)
+
+6. Configuration
 
 # On-going tasks
 

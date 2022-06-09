@@ -21,7 +21,7 @@
 
 # On-going tasks
 
-- <strong>mhahn</strong> : planning I
-- <strong>jkasper</strong> : planning I
-- <strong>wollio</strong> : planning I
+- <strong>mhahn</strong> : I/O Multiplexing
+- <strong>jkasper</strong> : parsing
+- <strong>wollio</strong> : I/O Multiplexing
 

@@ -34,4 +34,5 @@ class Socket {
 		void send_file(const std::string & name);
 		void send(const std::string & content);
 		void close_socket() const;
+		int get_fd() const;
 };

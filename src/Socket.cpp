@@ -8,7 +8,6 @@ Socket::Socket(int fd) : _fd(fd)
 {
 	if (fd < 0)
 		throw std::exception();
-	fcntl(fd, F_SETFL, O_NONBLOCK);
 }
 
 std::string Socket::read_socket()
@@ -54,3 +53,5 @@ void Socket::close_socket() const
 	if (close(_fd) < 0)
         throw std::exception();
 }
+
+int Socket::get_fd() const {return _fd;}

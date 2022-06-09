@@ -1,6 +1,6 @@
 ##		HEADER
 
-HEADER_FILES	= Connection.hpp Socket.hpp HTTPReader.hpp Configuration.hpp
+HEADER_FILES	= Connection.hpp Socket.hpp HTTPReader.hpp #Configuration.hpp
 HDR				= $(addprefix include/, $(HEADER_FILES))
 
 ##		SOURCES
@@ -8,16 +8,16 @@ HDR				= $(addprefix include/, $(HEADER_FILES))
 SRC_DIR	= src/
 
 MAIN_SRC= main.cpp Socket.cpp Connection.cpp HTTPReader.cpp
-CONF_SRC= Configuration.cpp
-SRC		= $(addprefix src/, $(MAIN)) $(addprefix src/config/, $(CONF_SRC))
+#CONF_SRC= Configuration.cpp
+SRC		= $(addprefix src/, $(MAIN)) #$(addprefix src/config/, $(CONF_SRC))
 
 ##		OBJECTS
 
 OBJ_DIR	= obj/
 
-CONF_OBJ= $(addprefix obj/config/, $(CONF_SRC))
+#CONF_OBJ= $(addprefix obj/config/, $(CONF_SRC))
 MAIN_OBJ= $(addprefix obj/, $(MAIN_SRC))
-OBJ		= $(MAIN_OBJ:.cpp=.o) $(CONF_OBJ:.cpp=.o)
+OBJ		= $(MAIN_OBJ:.cpp=.o) #$(CONF_OBJ:.cpp=.o)
 
 ##		COMPILER
 
@@ -37,7 +37,7 @@ obj/ :
 $(NAME) : $(OBJ)
 	c++ $(FLAGS) $(OBJ) -o $(NAME)
 
-$(OBJ_DIR)%.o : $(SRC_DIR)%.cpp $(HDR)
+$(OBJ_DIR)%.o: $(SRC_DIR)%.cpp $(HDR)
 	c++ $(FLAGS) $(INC) -c $< -o $@
 
 run : $(NAME)

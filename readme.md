@@ -13,7 +13,7 @@
 
 # Steps
 
-1. Setting up the connection/sockets (everyone) + reading ressources.pdf
+1. Setting up the connection/sockets
 2. Parsing HTTP Request (c.f. RFC 7230 - 7235)
 3. I/O Multiplexing
 4. CGI

@@ -26,9 +26,13 @@ void CGIResponseGet::run(Socket & socket) {
 	HTTPHeader header;
 	std::string file = "index2.html";
 	body = read_file(file);
-	header.set_content_type ("text/html");
-	header.set_content_length (body.size());
-	socket.send(header.tostring());
+	header.set_content_type("text/html");
+	header.set_content_length(body.size());
+    header.setStatusCode(200);
+    header.setConnection("Keep-alive");
+    header.setStatusMessage("OK");
+//    header.setContentEncoding("");
+	socket.send(header.tostring() + "\n\n" + body);
 }
 
 CGIResponseGet::CGIResponseGet(HTTPRequest &request) : CGIResponse(request) {}

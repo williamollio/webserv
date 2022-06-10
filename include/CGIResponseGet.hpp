@@ -12,6 +12,7 @@ public:
     explicit CGIResponseGet(HTTPRequest &);
 
     void run(Socket & socket);
+    std::string read_file(std::string file);
 };
 
 

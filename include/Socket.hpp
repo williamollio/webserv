@@ -8,6 +8,7 @@
 #include <fstream>
 #include <sstream>
 #include <fcntl.h>
+#include "IOException.hpp"
 
 class Socket {
 	private:
@@ -27,12 +28,12 @@ class Socket {
 		std::string _filename;
 	public:
 		Socket();
-		Socket(int fd);
+		Socket(int fd) throw (IOException);
 		~Socket();
-		std::string read_socket();
+		std::string read_socket() throw (IOException);
 		void send_header(const std::string & type);
 		void send_file(const std::string & name);
-		void send(const std::string & content);
-		void close_socket() const;
-		int get_fd() const;
+		void send(const std::string & content) throw (IOException);
+		void close_socket() const throw(IOException);
+		int get_fd() const _NOEXCEPT;
 };

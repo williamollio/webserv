@@ -12,7 +12,7 @@ HTTPReader::~HTTPReader() {
     try {
         _socket.close_socket();
     } catch (std::exception &exception) {
-        std::cerr << "HERE" << exception.what() << std::endl;
+        std::cerr << exception.what() << std::endl;
     }
 }
 

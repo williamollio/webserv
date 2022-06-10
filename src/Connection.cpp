@@ -1,5 +1,6 @@
 #include "Connection.hpp"
 #include "HTTPReader.hpp"
+#include "IOException.hpp"
 
 Connection::Connection() : address(), _fds(), _timeout(3 * 60 * 1000)
 {
@@ -9,14 +10,14 @@ Connection::Connection() : address(), _fds(), _timeout(3 * 60 * 1000)
 	address.sin_port = htons( PORT );
 
 	if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0)
-		throw std::exception();
+		throw IOException("Could not create socket!");
 	on = 1;
 	setsockopt (server_fd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof (on));
 	fcntl(server_fd, F_SETFL, O_NONBLOCK);
 	if (bind(server_fd, (struct sockaddr *)&address, sizeof(address)) < 0)
-		throw std::exception();
+		throw IOException("Could not bind file descriptor to the address!");
 	if (listen(server_fd, 10) < 0)
-		throw std::exception();
+		throw IOException("Cannot listen on the socket descriptor!");
 	_initialization_poll();
 }
 
@@ -72,10 +73,7 @@ void Connection::establishConnection()
       	    } else {
                 std::cout << "Can read from " << _fds[i].fd << std::endl;
       	        Socket socket = _fds[i].fd;
-                std::cout << socket.read_socket() << std::endl; // exception
-			    socket.send_header("html");
-			    socket.send_file("index.html");
-      	        socket.close_socket();
+                HTTPReader(socket).run();
       	        _fds[i].fd = -1;
       	    }
 	    }

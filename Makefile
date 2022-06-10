@@ -1,13 +1,13 @@
 ##		HEADER
 
-HEADER_FILES	= Connection.hpp Socket.hpp HTTPReader.hpp #Configuration.hpp
+HEADER_FILES	= Connection.hpp Socket.hpp HTTPReader.hpp IOException.hpp #Configuration.hpp
 HDR				= $(addprefix include/, $(HEADER_FILES))
 
 ##		SOURCES
 
 SRC_DIR	= src/
 
-MAIN_SRC= main.cpp Socket.cpp Connection.cpp HTTPReader.cpp
+MAIN_SRC= main.cpp Socket.cpp Connection.cpp HTTPReader.cpp IOException.cpp
 #CONF_SRC= Configuration.cpp
 SRC		= $(addprefix src/, $(MAIN)) #$(addprefix src/config/, $(CONF_SRC))
 

@@ -20,7 +20,7 @@ class Connection {
         std::list<HTTPReader*> list;
 		struct pollfd _fds[200];
 		int _timeout;
-		void	initialization_poll();
+		void	_initialization_poll();
 
 
 	public:

@@ -1,14 +1,12 @@
 #include "Connection.hpp"
 #include "HTTPReader.hpp"
 
-Connection::Connection() : _fds()
+Connection::Connection() : address(), _fds(), _timeout(3 * 60 * 1000)
 {
 	addrlen = sizeof(address);
 	address.sin_family = AF_INET;
 	address.sin_addr.s_addr = INADDR_ANY;
 	address.sin_port = htons( PORT );
-
-	memset(address.sin_zero, '\0', sizeof address.sin_zero);
 
 	if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0)
 		throw std::exception();
@@ -19,10 +17,10 @@ Connection::Connection() : _fds()
 		throw std::exception();
 	if (listen(server_fd, 10) < 0)
 		throw std::exception();
-	initialization_poll();
+	_initialization_poll();
 }
 
-void Connection::initialization_poll()
+void Connection::_initialization_poll()
 {
 	_fds[0].fd = server_fd;
 	_fds[0].events = POLLIN;
@@ -42,67 +40,49 @@ void Connection::establishConnection()
 	int nfds = 1;
 	int current_size;
 	bool end_server;
-	bool close_conn;
 
-	_timeout = (3 * 60 * 1000);
-	do
-	{
+	do {
 		rc = poll(_fds, nfds, _timeout);
-		if (rc <= 0)
-		{
+		if (rc <= 0) {
 			std::cout << "poll() failed or timeout" << std::endl;
 			break;
 		}
 		current_size = nfds;
 		for (int i = 0; i < current_size; i++)
     	{
-			printf("nfds %d current_size %d i %d\n", nfds, current_size, i);
-
-      	if(_fds[i].revents == 0)
-      	  continue;
-
-      	if(_fds[i].revents != POLLIN)
-      	{
-      	  printf("  Error! revents = %d\n", _fds[i].revents);
-      	  end_server = true;
-      	  break;
-      	}
-      	if (_fds[i].fd == server_fd)
-      	{
-      	  printf("  Listening socket is readable\n");
-      	  do
-      	  {
-				try
-				{
-					Socket socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen); // NULL NULL
-      	    		printf("  New incoming connection - %d\n", socket.get_fd());
-      	    		_fds[nfds].fd = socket.get_fd();
-      	    		_fds[nfds].events = POLLIN;
-      	    		nfds++;
-				}
-				catch(const std::exception& e)
-				{
-					break;
-				}
-
-      	  } while (1);
-      	}
-      	else
-      	{
-      	  printf("  Descriptor %d is readable\n", _fds[i].fd);
-      	  close_conn = false;
-      	  Socket socket = _fds[i].fd;
-      	  std::cout << socket.read_socket() << std::endl; // exception
-			socket.send_header("html");
-			socket.send_file("index.html");
-      	  socket.close_socket();
-      	  _fds[i].fd = -1;
-      	}
-	  }
-    } while (end_server == false);
-	  for (int i = 0; i < nfds; i++)
-  		{
-    		if(_fds[i].fd >= 0)
-      		close(_fds[i].fd);
-  		}
+			std::cout << "nfds " << nfds << " current_size " << current_size << " i " << i << std::endl;
+      	    if (_fds[i].revents == 0)
+                continue;
+            if(_fds[i].revents != POLLIN)
+      	    {
+                std::cout << "Error! revents = " << _fds[i].revents << std::endl;
+                end_server = true;
+                break;
+      	    }
+            if (_fds[i].fd == server_fd)
+      	    {
+                std::cout << "Can read from listening socket" << std::endl;
+                int socketDescriptor;
+                while ((socketDescriptor = accept(server_fd, (struct sockaddr *) &address, (socklen_t *) &addrlen)) >= 0) { // NULL NULL
+                    std::cout << "New connection: " << _fds[nfds].fd << std::endl;
+                    _fds[nfds].fd = socketDescriptor;
+                    _fds[nfds].events = POLLIN;
+                    nfds++;
+                }
+      	    } else {
+                std::cout << "Can read from " << _fds[i].fd << std::endl;
+      	        Socket socket = _fds[i].fd;
+                std::cout << socket.read_socket() << std::endl; // exception
+			    socket.send_header("html");
+			    socket.send_file("index.html");
+      	        socket.close_socket();
+      	        _fds[i].fd = -1;
+      	    }
+	    }
+    } while (!end_server);
+    for (int i = 0; i < nfds; i++)
+  	{
+    	if(_fds[i].fd >= 0)
+    	    close(_fds[i].fd);
+  	}
 }

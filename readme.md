@@ -13,17 +13,17 @@
 
 # Steps
 
-1. Setting up the connection/sockets
-2. I/O Multiplexing
+1. Setting up the connection/sockets ✅
+2. I/O Multiplexing ✅
 3. HTTPReader (c.f. RFC 7230 - 7235)
 4. CGI
-5. HTTPsender (c.f. RFC 7230 - 7235)
+5. HTTPSender (c.f. RFC 7230 - 7235)
 
 6. Configuration
 
 # On-going tasks
 
-- <strong>mhahn</strong> : I/O Multiplexing
-- <strong>jkasper</strong> : Configuration
-- <strong>wollio</strong> : I/O Multiplexing
+- <strong>mhahn</strong> : CGI / HTTPSender
+- <strong>jkasper</strong> : Configuration / HTTPReader
+- <strong>wollio</strong> : CGI / HTTPSender
 

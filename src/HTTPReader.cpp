@@ -26,8 +26,9 @@ HTTPReader::~HTTPReader() {
 }
 
 void HTTPReader::run() {
+	HTTPRequest*	request;
     try {
-        HTTPRequest* request = _parse();
+        request = _parse();
         CGIResponse * response;
         switch (request->getType()) {
             case HTTPRequest::GET:    response = new CGIResponseGet(*request);    break;
@@ -35,11 +36,33 @@ void HTTPReader::run() {
             case HTTPRequest::DELETE: response = new CGIResponseDelete(*request); break;
         }
         response->run(_socket);
-        delete response;
+        delete request;
     } catch (std::exception& ex) {
         // TODO: Error
 //        sendError(ex.getErrorCode());
     }
+    delete request;
+}
+
+std::vector<std::string>	split_str_vector(const std::string& tosplit, const std::string& needle) {
+	size_t						cursor	= 0;
+	std::vector<std::string>	str;
+	size_t						pos		= tosplit.find(needle.c_str(), cursor, needle.length());
+	do {
+		str.push_back(tosplit.substr(cursor, pos - cursor));
+		cursor = pos + 2;
+		pos = tosplit.find(needle.c_str(), cursor, 2);
+	}
+	while (pos != std::string::npos);
+	return str;
+}
+
+void HTTPRequest::get_payload(const std::string& data) throw(std::exception) {
+	size_t	cursor = data.find("\n\n", 0);
+	if (cursor == std::string::npos)
+		throw HTTPException(400);
+	cursor += 2;
+	_payload = data.substr(cursor);
 }
 
 HTTPRequest* HTTPReader::_parse() throw(std::exception) {
@@ -87,9 +110,9 @@ HTTPRequest* HTTPReader::_parse() throw(std::exception) {
 		else if (raw.find("Host:", old_nl, 5) != raw.npos)
 			retval->_host = raw.substr(old_nl + 6, new_nl - (old_nl + 6));
 		else if (raw.find("Accept-Language:", old_nl, 16) != raw.npos)
-			retval->_lang[0] = raw.substr(old_nl + 17, new_nl - (old_nl + 17));//TODO: split
+			retval->_lang = split_str_vector(raw.substr(old_nl + 17, new_nl - (old_nl + 17)), ", ");
 		else if (raw.find("Accept-Encoding:", old_nl, 16) != raw.npos)
-			retval->_encoding[0] = raw.substr(old_nl + 17, new_nl - (old_nl + 17));//TODO: split
+			retval->_encoding = split_str_vector(raw.substr(old_nl + 17, new_nl - (old_nl + 17)), ", ");
 		else if (raw.find("Content-Type:", old_nl, 13) != raw.npos)
 			retval->_content_type = raw.substr(old_nl + 14, new_nl - (old_nl + 14));
 		else if (raw.find("Content-Length:", old_nl, 15) != raw.npos)
@@ -101,10 +124,11 @@ HTTPRequest* HTTPReader::_parse() throw(std::exception) {
 	}
 	if (retval->_content_length != 0 && retval->_content_type.length() == 0)
 		throw HTTPException(400);
-	else if (retval->_content_length != 0)
+	else if (retval->_content_length != 0) {
 		retval->_content = true;
+		retval->get_payload(raw);
+	}
 	else
 		retval->_content = false;
-//TODO: PAYLOAD
 	return retval;
 }

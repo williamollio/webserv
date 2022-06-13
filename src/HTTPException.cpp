@@ -13,7 +13,6 @@ HTTPException::HTTPException(int code) _NOEXCEPT {
 const char *HTTPException::what() const _NOEXCEPT {
 	std::stringstream ret;
 	ret << _code;
-
 	return ret.str().c_str();
 }
 

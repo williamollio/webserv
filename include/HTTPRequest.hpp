@@ -17,7 +17,7 @@ public:
     };
 
     TYPE getType() const;
-
+	void get_payload(const std::string& data) throw(std::exception);
 protected:
     explicit HTTPRequest(TYPE);
 

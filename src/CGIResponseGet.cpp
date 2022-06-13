@@ -24,7 +24,7 @@ void CGIResponseGet::run(Socket & socket) {
 	std::string body;
 
 	HTTPHeader header;
-	std::string file = "index2.html";
+	std::string file = "index.html";
 	body = read_file(file);
 	header.set_content_type("text/html");
 	header.set_content_length(body.size());

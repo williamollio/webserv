@@ -40,7 +40,7 @@ void Connection::establishConnection()
 	int rc;
 	int nfds = 1;
 	int current_size;
-	bool end_server;
+	bool end_server = false;
 
 	do {
 		rc = poll(_fds, nfds, _timeout);

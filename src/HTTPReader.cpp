@@ -26,7 +26,7 @@ HTTPReader::~HTTPReader() {
 }
 
 void HTTPReader::run() {
-	HTTPRequest*	request = nullptr;
+	HTTPRequest*	request = NULL;
     try {
         request = _parse();
         CGIResponse * response;
@@ -40,7 +40,7 @@ void HTTPReader::run() {
         // TODO: Error
 //        sendError(ex.getErrorCode());
     }
-	if (request != nullptr)
+	if (request != NULL)
     	delete request;
 }
 

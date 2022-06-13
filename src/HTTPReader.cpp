@@ -11,6 +11,7 @@
 #include "CGIResponseDelete.hpp"
 #include "HTTPException.hpp"
 #include <cstdlib>
+#include <iostream>
 
 HTTPReader::HTTPReader(): _socket() {}
 
@@ -35,7 +36,7 @@ void HTTPReader::run() {
         }
         response->run(_socket);
         delete response;
-    } catch (std::exception & ex) {
+    } catch (HTTPException & ex) {
         // TODO: Error
 //        sendError(ex.getErrorCode());
     }
@@ -44,13 +45,13 @@ void HTTPReader::run() {
 HTTPRequest* HTTPReader::_parse() throw(std::exception) {
 	char buff[30001];
 	if (!read(_socket.get_fd(), buff, 30000)) {
-		throw HTTPException::what("504");
+		throw HTTPException(504);
 	}
 	std::string raw(buff);
 	size_t old_nl;
 	old_nl = raw.find('\n', 0);
 	if (raw.npos == old_nl) {
-		throw HTTPException::what("400");
+		throw HTTPException(400);
 	}
 	HTTPRequest*	retval;
 	if (!raw.compare(0, 3, "GET"))
@@ -60,9 +61,9 @@ HTTPRequest* HTTPReader::_parse() throw(std::exception) {
 	else if (!raw.compare(0, 6, "DELETE"))
 		retval = new HTTPRequestDelete();
 	else
-		throw HTTPException::what("400");
+		throw HTTPException(400);
 	if (raw.find("HTTP/1.1", 0, old_nl) == raw.npos)
-		throw HTTPException::what("400");
+		throw HTTPException(400);
 	retval->_http_version = "1.1";
 	{///path
 		size_t	first;
@@ -74,7 +75,7 @@ HTTPRequest* HTTPReader::_parse() throw(std::exception) {
 		else if (!raw.compare(0, 6, "DELETE"))
 			first = 6;
 		else
-			throw HTTPException::what("400");
+			throw HTTPException(400);
 		last = raw.find("HTTP/1.1", 0, old_nl) - 1;
 		retval->_path = raw.substr(first, last);
 	}
@@ -100,7 +101,7 @@ HTTPRequest* HTTPReader::_parse() throw(std::exception) {
 		new_nl = raw.find('\n', old_nl + 1);
 	}
 	if (retval->_content_length != 0 && retval->_content_type.length() == 0)
-		throw HTTPException::what("400");
+		throw HTTPException(400);
 	else if (retval->_content_length != 0)
 		retval->_content = true;
 	else

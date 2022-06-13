@@ -9,8 +9,12 @@
 #include <string>
 
 class HTTPException : std::exception {
+private:
+	int	_code;
 public:
-	static const char *what(const std::string& code) throw();
+	HTTPException(int code) _NOEXCEPT;
+	~HTTPException() _NOEXCEPT {};
+	const char *what() const _NOEXCEPT;
 };
 
 

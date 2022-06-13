@@ -8,7 +8,7 @@
 #include <exception>
 #include <string>
 
-class HTTPException : std::exception {
+class HTTPException : public std::exception {
 private:
 	int	_code;
 public:

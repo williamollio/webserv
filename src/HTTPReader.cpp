@@ -36,7 +36,7 @@ void HTTPReader::run() {
         }
         response->run(_socket);
         delete response;
-    } catch (HTTPException & ex) {
+    } catch (std::exception& ex) {
         // TODO: Error
 //        sendError(ex.getErrorCode());
     }
@@ -62,7 +62,7 @@ HTTPRequest* HTTPReader::_parse() throw(std::exception) {
 		retval = new HTTPRequestDelete();
 	else
 		throw HTTPException(400);
-	if (raw.find("HTTP/1.1", 0, old_nl) == raw.npos)
+	if (raw.find("HTTP/1.1", 0, 8) == raw.npos)
 		throw HTTPException(400);
 	retval->_http_version = "1.1";
 	{///path
@@ -76,26 +76,25 @@ HTTPRequest* HTTPReader::_parse() throw(std::exception) {
 			first = 6;
 		else
 			throw HTTPException(400);
-		last = raw.find("HTTP/1.1", 0, old_nl) - 1;
+		last = raw.find("HTTP/1.1", 0, 8) - 1;
 		retval->_path = raw.substr(first, last);
 	}
 
-	//else
 	size_t	new_nl = raw.find('\n', old_nl + 1);
-	while (new_nl == old_nl + 1) {
-		if (raw.find("User-Agent:", old_nl, new_nl) != raw.npos)
-			retval->_user_agent = raw.substr(old_nl + 12, new_nl);
-		else if (raw.find("Host:", old_nl, new_nl) != raw.npos)
-			retval->_host = raw.substr(old_nl + 6, new_nl);
-		else if (raw.find("Accept-Language:", old_nl, new_nl) != raw.npos)
-			retval->_lang[0] = raw.substr(old_nl + 17, new_nl);//TODO: split
-		else if (raw.find("Accept-Encoding:", old_nl, new_nl) != raw.npos)
-			retval->_encoding[0] = raw.substr(old_nl + 17, new_nl);//TODO: split
-		else if (raw.find("Content-Type:", old_nl, new_nl) != raw.npos)
-			retval->_content_type = raw.substr(old_nl + 14, new_nl);
-		else if (raw.find("Content-Length:", old_nl, new_nl) != raw.npos)
-			retval->_content_length = strtol(raw.substr(old_nl + 16, new_nl).c_str(), NULL, 0);
-		else if (raw.find("Connection:", old_nl, new_nl) != raw.npos && raw.find("Keep-Alive", old_nl, new_nl) != raw.npos)
+	while (new_nl != raw.npos) {
+		if (raw.find("User-Agent:", old_nl, 11) != raw.npos)
+			retval->_user_agent = raw.substr(old_nl + 12, new_nl - (old_nl + 12));
+		else if (raw.find("Host:", old_nl, 5) != raw.npos)
+			retval->_host = raw.substr(old_nl + 6, new_nl - (old_nl + 6));
+		else if (raw.find("Accept-Language:", old_nl, 16) != raw.npos)
+			retval->_lang[0] = raw.substr(old_nl + 17, new_nl - (old_nl + 17));//TODO: split
+		else if (raw.find("Accept-Encoding:", old_nl, 16) != raw.npos)
+			retval->_encoding[0] = raw.substr(old_nl + 17, new_nl - (old_nl + 17));//TODO: split
+		else if (raw.find("Content-Type:", old_nl, 13) != raw.npos)
+			retval->_content_type = raw.substr(old_nl + 14, new_nl - (old_nl + 14));
+		else if (raw.find("Content-Length:", old_nl, 15) != raw.npos)
+			retval->_content_length = strtol(raw.substr(old_nl + 16, new_nl - (old_nl + 16)).c_str(), NULL, 0);
+		else if (raw.find("Connection:", old_nl, 11) != raw.npos && raw.find("Keep-Alive", old_nl, 10) != raw.npos)
 			retval->_keep_alive = true;
 		old_nl = new_nl;
 		new_nl = raw.find('\n', old_nl + 1);

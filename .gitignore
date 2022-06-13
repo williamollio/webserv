@@ -2,3 +2,4 @@
 obj/
 webserv
 .vscode/
+.DS_Store

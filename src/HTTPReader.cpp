@@ -26,7 +26,7 @@ HTTPReader::~HTTPReader() {
 }
 
 void HTTPReader::run() {
-	HTTPRequest*	request;
+	HTTPRequest*	request = nullptr;
     try {
         request = _parse();
         CGIResponse * response;
@@ -36,24 +36,24 @@ void HTTPReader::run() {
             case HTTPRequest::DELETE: response = new CGIResponseDelete(*request); break;
         }
         response->run(_socket);
-        delete request;
     } catch (std::exception& ex) {
         // TODO: Error
 //        sendError(ex.getErrorCode());
     }
-    delete request;
+	if (request != nullptr)
+    	delete request;
 }
 
 std::vector<std::string>	split_str_vector(const std::string& tosplit, const std::string& needle) {
 	size_t						cursor	= 0;
 	std::vector<std::string>	str;
 	size_t						pos		= tosplit.find(needle.c_str(), cursor, needle.length());
-	do {
+	while (pos != std::string::npos) {
 		str.push_back(tosplit.substr(cursor, pos - cursor));
-		cursor = pos + 2;
-		pos = tosplit.find(needle.c_str(), cursor, 2);
+		cursor = pos + needle.length();
+		pos = tosplit.find(needle.c_str(), cursor, needle.length());
 	}
-	while (pos != std::string::npos);
+	str.push_back(tosplit.substr(cursor));
 	return str;
 }
 
@@ -72,7 +72,7 @@ HTTPRequest* HTTPReader::_parse() throw(std::exception) {
 	}
 	std::string raw(buff);
 	size_t old_nl;
-	old_nl = raw.find('\n', 0);
+	old_nl = raw.find('\n');
 	if (raw.npos == old_nl) {
 		throw HTTPException(400);
 	}
@@ -87,6 +87,7 @@ HTTPRequest* HTTPReader::_parse() throw(std::exception) {
 		throw HTTPException(400);
 	if (raw.find("HTTP/1.1", 0, 8) == raw.npos)
 		throw HTTPException(400);
+	retval->_copy_raw = raw;
 	retval->_http_version = "1.1";
 	{///path
 		size_t	first;
@@ -100,29 +101,29 @@ HTTPRequest* HTTPReader::_parse() throw(std::exception) {
 		else
 			throw HTTPException(400);
 		last = raw.find("HTTP/1.1", 0, 8) - 1;
-		retval->_path = raw.substr(first, last);
+		retval->_path = raw.substr(first, last - first);
 	}
 
-	size_t	new_nl = raw.find('\n', old_nl + 1);
+	size_t	new_nl = raw.find('\n', old_nl + 2);
 	while (new_nl != raw.npos) {
-		if (raw.find("User-Agent:", old_nl, 11) != raw.npos)
-			retval->_user_agent = raw.substr(old_nl + 12, new_nl - (old_nl + 12));
-		else if (raw.find("Host:", old_nl, 5) != raw.npos)
-			retval->_host = raw.substr(old_nl + 6, new_nl - (old_nl + 6));
-		else if (raw.find("Accept-Language:", old_nl, 16) != raw.npos)
-			retval->_lang = split_str_vector(raw.substr(old_nl + 17, new_nl - (old_nl + 17)), ", ");
-		else if (raw.find("Accept-Encoding:", old_nl, 16) != raw.npos)
-			retval->_encoding = split_str_vector(raw.substr(old_nl + 17, new_nl - (old_nl + 17)), ", ");
-		else if (raw.find("Content-Type:", old_nl, 13) != raw.npos)
-			retval->_content_type = raw.substr(old_nl + 14, new_nl - (old_nl + 14));
-		else if (raw.find("Content-Length:", old_nl, 15) != raw.npos)
-			retval->_content_length = strtol(raw.substr(old_nl + 16, new_nl - (old_nl + 16)).c_str(), NULL, 0);
-		else if (raw.find("Connection:", old_nl, 11) != raw.npos && raw.find("Keep-Alive", old_nl, 10) != raw.npos)
+		if (raw.find("User-Agent:", old_nl, 11) < new_nl)
+			retval->_user_agent = raw.substr(old_nl + 13, new_nl - (old_nl + 14));
+		else if (raw.find("Host:", old_nl, 5) < new_nl)
+			retval->_host = raw.substr(old_nl + 7, new_nl - (old_nl + 8));
+		else if (raw.find("Accept-Language:", old_nl, 16) < new_nl)
+			retval->_lang = split_str_vector(raw.substr(old_nl + 18, new_nl - (old_nl + 19)), ", ");
+		else if (raw.find("Accept-Encoding:", old_nl, 16) < new_nl)
+			retval->_encoding = split_str_vector(raw.substr(old_nl + 18, new_nl - (old_nl + 19)), ", ");
+		else if (raw.find("Accept:", old_nl, 7)  < new_nl)
+			retval->_content_type =  split_str_vector(raw.substr(old_nl + 8, new_nl - (old_nl + 9)), ",");
+		else if (raw.find("Content-Length:", old_nl, 15) < new_nl)
+			retval->_content_length = strtol(raw.substr(old_nl + 17, new_nl - (old_nl + 18)).c_str(), NULL, 0);
+		else if (raw.find("Connection:", old_nl, 11) < new_nl && raw.find("keep-alive", old_nl, 10) != raw.npos)
 			retval->_keep_alive = true;
 		old_nl = new_nl;
 		new_nl = raw.find('\n', old_nl + 1);
 	}
-	if (retval->_content_length != 0 && retval->_content_type.length() == 0)
+	if (retval->_content_length != 0 && retval->_content_type.empty())
 		throw HTTPException(400);
 	else if (retval->_content_length != 0) {
 		retval->_content = true;

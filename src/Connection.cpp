@@ -51,7 +51,7 @@ void Connection::establishConnection()
 		current_size = nfds;
 		for (int i = 0; i < current_size; i++)
     	{
-			std::cout << "nfds " << nfds << " current_size " << current_size << " i " << i << std::endl;
+			//std::cout << "nfds " << nfds << " current_size " << current_size << " i " << i << std::endl;
       	    if (_fds[i].revents == 0)
                 continue;
             if(_fds[i].revents != POLLIN)

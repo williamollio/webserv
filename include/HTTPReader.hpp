@@ -17,7 +17,7 @@ class HTTPReader {
         void run();
 
     private:
-        HTTPRequest _parse() throw(std::exception);
+        HTTPRequest* _parse() throw(std::exception);
         Socket _socket;
 };
 

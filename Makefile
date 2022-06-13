@@ -11,7 +11,7 @@ SRC_DIR	= src/
 
 MAIN_SRC= main.cpp Socket.cpp Connection.cpp HTTPReader.cpp IOException.cpp HTTPRequest.cpp HTTPRequestGet.cpp \
 	 	  HTTPRequestPost.cpp HTTPRequestDelete.cpp CGIResponse.cpp CGIResponseGet.cpp CGIResponsePost.cpp \
-	 	  CGIResponseDelete.cpp HTTPHeader.cpp
+	 	  CGIResponseDelete.cpp HTTPException.cpp HTTPHeader.cpp
 #CONF_SRC= Configuration.cpp
 SRC		= $(addprefix src/, $(MAIN)) #$(addprefix src/config/, $(CONF_SRC))
 

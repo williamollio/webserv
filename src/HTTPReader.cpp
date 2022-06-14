@@ -58,11 +58,12 @@ std::vector<std::string>	split_str_vector(const std::string& tosplit, const std:
 }
 
 void HTTPRequest::get_payload(const std::string& data) throw(std::exception) {
-	size_t	cursor = data.find("\n\n", 0);
+	size_t	cursor = data.find("\r\n\r\n", 0);
 	if (cursor == std::string::npos)
 		throw HTTPException(400);
 	cursor += 2;
 	_payload = data.substr(cursor);
+	std::cout << "_payload: " << _payload << std::endl;
 }
 
 HTTPRequest* HTTPReader::_parse() throw(std::exception) {

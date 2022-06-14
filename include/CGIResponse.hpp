@@ -15,7 +15,7 @@ public:
 
     virtual void run(Socket & socket) = 0;
 
-private:
+protected:
     const HTTPRequest & _request;
 };
 

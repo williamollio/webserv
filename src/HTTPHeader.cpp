@@ -36,7 +36,9 @@ std::string HTTPHeader::tostring() const
 	str << "Date: " << "Mon, 18 Jul 2016 16:06:00 GMT\n";
 	if (_transfer_encoding != "")
 		str << "Transfer-Encoding: " << _transfer_encoding << "\n";
-	return (str.str());
+    std::string tmp = str.str();
+    tmp.erase(tmp.end() - 1);
+	return (tmp);
 }
 
 const std::string &HTTPHeader::getStatusMessage() const {

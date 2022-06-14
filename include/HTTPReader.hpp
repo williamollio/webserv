@@ -7,6 +7,7 @@
 
 
 #include "Socket.hpp"
+#include "HTTPRequest.hpp"
 
 class HTTPReader {
     public:
@@ -16,6 +17,7 @@ class HTTPReader {
         void run();
 
     private:
+        HTTPRequest* _parse() throw(std::exception);
         Socket _socket;
 };
 

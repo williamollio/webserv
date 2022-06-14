@@ -2,6 +2,7 @@
 #include "Socket.hpp"
 #include "HTTPReader.hpp"
 #include <sys/socket.h>
+#include <sys/poll.h>
 #include <netinet/in.h>
 #include <unistd.h>
 #include <iostream>
@@ -17,6 +18,9 @@ class Connection {
 		int addrlen;
 		int on;
         std::list<HTTPReader*> list;
+		struct pollfd _fds[200];
+		int _timeout;
+		void	_initialization_poll();
 
 
 	public:

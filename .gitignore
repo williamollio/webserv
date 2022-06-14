@@ -1,3 +1,5 @@
 .idea/
-./obj/**
+obj/
 webserv
+.vscode/
+.DS_Store

@@ -1,23 +1,30 @@
 #include "Connection.hpp"
 #include "HTTPReader.hpp"
+#include "IOException.hpp"
 
-Connection::Connection()
+Connection::Connection() : address(), _fds(), _timeout(3 * 60 * 1000)
 {
 	addrlen = sizeof(address);
 	address.sin_family = AF_INET;
 	address.sin_addr.s_addr = INADDR_ANY;
 	address.sin_port = htons( PORT );
 
-	memset(address.sin_zero, '\0', sizeof address.sin_zero);
-
 	if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0)
-		throw std::exception();
+		throw IOException("Could not create socket!");
 	on = 1;
 	setsockopt (server_fd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof (on));
+	fcntl(server_fd, F_SETFL, O_NONBLOCK);
 	if (bind(server_fd, (struct sockaddr *)&address, sizeof(address)) < 0)
-		throw std::exception();
+		throw IOException("Could not bind file descriptor to the address!");
 	if (listen(server_fd, 10) < 0)
-		throw std::exception();
+		throw IOException("Cannot listen on the socket descriptor!");
+	_initialization_poll();
+}
+
+void Connection::_initialization_poll()
+{
+	_fds[0].fd = server_fd;
+	_fds[0].events = POLLIN;
 }
 
 static void removeHTTPReader(HTTPReader* & reader) {
@@ -30,18 +37,50 @@ Connection::~Connection() {
 
 void Connection::establishConnection()
 {
-	while (1)
-	{
-		try
-		{
-			Socket socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen);
-            HTTPReader* reader = new HTTPReader(socket);
-            list.push_back(reader);
-            reader->run();
+	int rc;
+	int nfds = 1;
+	int current_size;
+	bool end_server = false;
+
+	do {
+		rc = poll(_fds, nfds, _timeout);
+		if (rc <= 0) {
+			std::cout << "poll() failed or timeout" << std::endl;
+			break;
 		}
-		catch(const std::exception& e)
-		{
-			std::cerr << e.what() << '\n';
-		}
-	}
+		current_size = nfds;
+		for (int i = 0; i < current_size; i++)
+    	{
+			//std::cout << "nfds " << nfds << " current_size " << current_size << " i " << i << std::endl;
+      	    if (_fds[i].revents == 0)
+                continue;
+            if(_fds[i].revents != POLLIN)
+      	    {
+                std::cout << "Error! revents = " << _fds[i].revents << std::endl;
+                end_server = true;
+                break;
+      	    }
+            if (_fds[i].fd == server_fd)
+      	    {
+                std::cout << "Can read from listening socket" << std::endl;
+                int socketDescriptor;
+                while ((socketDescriptor = accept(server_fd, (struct sockaddr *) &address, (socklen_t *) &addrlen)) >= 0) { // NULL NULL
+                    std::cout << "New connection: " << _fds[nfds].fd << std::endl;
+                    _fds[nfds].fd = socketDescriptor;
+                    _fds[nfds].events = POLLIN;
+                    nfds++;
+                }
+      	    } else {
+                std::cout << "Can read from " << _fds[i].fd << std::endl;
+      	        Socket socket = _fds[i].fd;
+                HTTPReader(socket).run();
+      	        _fds[i].fd = -1;
+      	    }
+	    }
+    } while (!end_server);
+    for (int i = 0; i < nfds; i++)
+  	{
+    	if(_fds[i].fd >= 0)
+    	    close(_fds[i].fd);
+  	}
 }

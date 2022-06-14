@@ -10,18 +10,32 @@
 #include "CGIResponsePost.hpp"
 #include "CGIResponseDelete.hpp"
 
-HTTPHeader::HTTPHeader() {}
+HTTPHeader::HTTPHeader()
+{
+	_status_message = "";
+	_status_code = 0;
+	_connection = "";
+	_content_encoding = "";
+	_content_type = "";
+	_content_length = 0;
+	_transfer_encoding = "";
+}
 
 std::string HTTPHeader::tostring() const
 {
 	std::stringstream str;
 	str << "HTTP/1.1 " << _status_code << " " << _status_message << "\n";
-	str << "Connection: " << _connection << "\n";
-//	str << "Content-Encoding: " << _content_encoding << "\n";
-	str << "Content-Type: " << _content_type << "\n";
-	str << "Content-Length: " << _content_length << "\n";
+	if (_connection != "")
+		str << "Connection: " << _connection << "\n";
+	if (_content_encoding != "")
+		str << "Content-Encoding: " << _content_encoding << "\n";
+	if (_content_type != "")
+		str << "Content-Type: " << _content_type << "\n";
+	if (_content_length != 0)
+		str << "Content-Length: " << _content_length << "\n";
 	str << "Date: " << "Mon, 18 Jul 2016 16:06:00 GMT\n";
-//	str << "Transfer-Encoding: " << _transfer_encoding << "\n";
+	if (_transfer_encoding != "")
+		str << "Transfer-Encoding: " << _transfer_encoding << "\n";
 	return (str.str());
 }
 

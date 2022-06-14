@@ -31,7 +31,8 @@ void CGIResponseGet::run(Socket & socket) {
     header.setStatusCode(200);
     header.setConnection("Keep-alive");
     header.setStatusMessage("OK");
-//    header.setContentEncoding("");
+//    header.setContentEncoding("")
+    std::cout << header.tostring() << std::endl;
 	socket.send(header.tostring() + "\n\n" + body);
 }
 

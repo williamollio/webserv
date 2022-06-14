@@ -28,5 +28,5 @@
 - <strong>wollio</strong> : HTTPSender
 
 # To do
-- <strong> HTTPReader </strong>: POST Request on Safari throwing error + Initilization of the body for POST Request
-- <strong> HTTPSender </strong> : POST Request uploading files + handle other GET Requests + restrict access GET Request + implement DELETE request/response 
+- <strong> HTTPReader </strong>: POST Request on Safari throwing error
+- <strong> HTTPSender </strong> : POST Request uploading files (upload) + trim part of the message (upload) + handle other GET Requests + restrict access GET Request + implement DELETE request/response 

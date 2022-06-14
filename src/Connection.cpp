@@ -1,8 +1,11 @@
 #include "Connection.hpp"
 #include "HTTPReader.hpp"
 #include "IOException.hpp"
+#include <poll.h>
 
-Connection::Connection() : address(), _fds(), _timeout(3 * 60 * 1000)
+#define INFTIM -1
+
+Connection::Connection() : address(), _fds(), _timeout(INFTIM)
 {
 	addrlen = sizeof(address);
 	address.sin_family = AF_INET;

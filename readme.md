@@ -23,7 +23,10 @@
 
 # On-going tasks
 
-- <strong>mhahn</strong> : CGI / HTTPSender
-- <strong>jkasper</strong> : Configuration / HTTPReader
-- <strong>wollio</strong> : CGI / HTTPSender
+- <strong>mhahn</strong> : CGI
+- <strong>jkasper</strong> : ConfigurationReader / HTTPReader
+- <strong>wollio</strong> : HTTPSender
 
+# To do
+HTTPReader : POST Request on Safari throwing error + Initilization of the body for POST Request
+HTTPSender : POST Request uploading files + handle other GET Requests + restrict access GET Request + implement DELETE request/response 

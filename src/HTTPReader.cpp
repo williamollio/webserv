@@ -10,6 +10,7 @@
 #include "CGIResponsePost.hpp"
 #include "CGIResponseDelete.hpp"
 #include "HTTPException.hpp"
+#include "URI.hpp"
 #include <cstdlib>
 #include <iostream>
 
@@ -26,22 +27,29 @@ HTTPReader::~HTTPReader() {
 }
 
 void HTTPReader::run() {
-	HTTPRequest*	request = NULL;
+	HTTPRequest * request  = NULL;
+    CGIResponse * response = NULL;
     try {
         request = _parse();
-        CGIResponse * response;
-        switch (request->getType()) {
-            case HTTPRequest::GET:    response = new CGIResponseGet(*request);    break;
-            case HTTPRequest::POST:   response = new CGIResponsePost(*request);   break;
-            case HTTPRequest::DELETE: response = new CGIResponseDelete(*request); break;
+        URI uri = URI(request->_path);
+        if (uri.isCGIIdentifier()) {
+            // TODO Call the CGI
+        } else {
+            switch (request->getType()) {
+                case HTTPRequest::GET:    response = new CGIResponseGet(*request);    break;
+                case HTTPRequest::POST:   response = new CGIResponsePost(*request);   break;
+                case HTTPRequest::DELETE: response = new CGIResponseDelete(*request); break;
+                default:
+                    throw HTTPException(400);
+            }
+            response->run(_socket);
         }
-        response->run(_socket);
     } catch (std::exception& ex) {
         // TODO: Error
 //        sendError(ex.getErrorCode());
     }
-	if (request != NULL)
-    	delete request;
+	if (request != NULL) delete request;
+    if (response != NULL) delete response;
 }
 
 std::vector<std::string>	split_str_vector(const std::string& tosplit, const std::string& needle) {

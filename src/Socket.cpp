@@ -18,7 +18,6 @@ std::string Socket::read_socket() throw (IOException)
 	if (amount < 0)
 		throw IOException("Could not read from the socket!");
 	std::string tmp = std::string(read_buffer);
-    std::cout << tmp;
 	delete[] read_buffer;
 	return(tmp);
 }

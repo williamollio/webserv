@@ -36,10 +36,17 @@ void HTTPReader::run() {
             case HTTPRequest::DELETE: response = new CGIResponseDelete(*request); break;
         }
         response->run(_socket);
-    } catch (std::exception& ex) {
-        // TODO: Error
-//        sendError(ex.getErrorCode());
     }
+	catch (HTTPException& ex) {
+		CGIResponse *error;
+		error = new CGIResponseGet(*request); // New derived for that ?
+		error->send_error_code(_socket, ex.get_error_code());
+    }
+	catch (IOException& ex) {
+		CGIResponse *error;
+		error = new CGIResponseGet(*request);
+		error->send_error_message(_socket, ex.what());
+	}
 	if (request != NULL)
     	delete request;
 }

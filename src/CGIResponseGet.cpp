@@ -50,8 +50,8 @@ void CGIResponseGet::run(Socket & socket) {
 	header.set_content_length(body.size());
     header.setStatusCode(200);
     header.setStatusMessage("OK");
-    std::cout << "header sent back : " << header.tostring() << std::endl;
-	socket.send(header.tostring() + "\n\n" + body);
+    std::cout << "header sent back :\n" << header.tostring() << std::endl;
+	socket.send(header.tostring() + "\r\n\r\n" + body);
 }
 
 CGIResponseGet::CGIResponseGet(HTTPRequest &request) : CGIResponse(request) {}

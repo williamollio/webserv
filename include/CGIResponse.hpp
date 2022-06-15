@@ -8,6 +8,8 @@
 #include "Socket.hpp"
 #include "HTTPRequest.hpp"
 #include "IOException.hpp"
+#include "HTTPHeader.hpp"
+#include "Tool.hpp"
 
 class CGIResponse {
 public:
@@ -19,6 +21,8 @@ public:
 	std::string set_default_file(std::string file) throw (IOException);
 	std::string read_file(std::string file) throw (IOException);
 
+	void send_error_code(Socket & socket, const int & error_code);
+	void send_error_message(Socket & socket, const std::string & message);
 protected:
 	const HTTPRequest	& _request;
 	std::string			_server_location_log;

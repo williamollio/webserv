@@ -5,7 +5,7 @@
 #include "../include/CGIResponseDelete.hpp"
 
 void CGIResponseDelete::run(Socket &socket) {
-    // TODO
+    (void)socket;
 }
 
 CGIResponseDelete::CGIResponseDelete(HTTPRequest &request) : CGIResponse(request) {}

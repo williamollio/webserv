@@ -11,6 +11,7 @@
 #include "CGIResponseDelete.hpp"
 #include "HTTPException.hpp"
 #include "URI.hpp"
+#include "CGICall.hpp"
 #include <cstdlib>
 #include <iostream>
 
@@ -31,9 +32,9 @@ void HTTPReader::run() {
     CGIResponse * response = NULL;
     try {
         request = _parse();
-        URI uri = URI(request->_path);
-        if (uri.isCGIIdentifier()) {
-            // TODO Call the CGI
+        request->setURI(URI(request->_path));
+        if (request->getURI().isCGIIdentifier()) {
+            response = new CGICall(*request);
         } else {
             switch (request->getType()) {
                 case HTTPRequest::GET:    response = new CGIResponseGet(*request);    break;
@@ -42,8 +43,8 @@ void HTTPReader::run() {
                 default:
                     throw HTTPException(400);
             }
-            response->run(_socket);
         }
+        response->run(_socket);
     } catch (std::exception& ex) {
         // TODO: Error
 //        sendError(ex.getErrorCode());

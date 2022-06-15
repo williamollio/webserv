@@ -19,8 +19,8 @@ void CGIResponsePost::run(Socket &socket) {
 	code << header.getStatusCode();
 	std::string body = code.str() + " " + header.getStatusMessage();
 	header.set_content_length(body.length());
-	std::cout << header.tostring() << std::endl;
-	std::cout << body << std::endl;
+	std::cout << "header sent back : " << header.tostring() << std::endl;
+	std::cout << "body sent back : " << body << std::endl;
 	socket.send(header.tostring() + "\n\n" + body);
 }
 

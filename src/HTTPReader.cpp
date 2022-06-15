@@ -63,7 +63,6 @@ void HTTPRequest::get_payload(const std::string& data) throw(std::exception) {
 		throw HTTPException(400);
 	cursor += 2;
 	_payload = data.substr(cursor);
-	std::cout << "_payload: " << _payload << std::endl;
 }
 
 HTTPRequest* HTTPReader::_parse() throw(std::exception) {

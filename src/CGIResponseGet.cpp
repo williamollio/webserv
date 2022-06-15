@@ -23,6 +23,7 @@ std::string CGIResponseGet::read_file(std::string file)
 std::string CGIResponseGet::set_file(std::string path)
 {
 	std::string tmp;
+
 	if (path == "/")
 	{
 		_file_extension = "html";
@@ -37,7 +38,7 @@ std::string CGIResponseGet::set_file(std::string path)
 		else
 			_file_extension = tmp.substr(pos);
 	}
-	std::cout << _file_extension << std::endl;
+	std::cout << "_file_extension : " << _file_extension << std::endl;
 	return (tmp);
 }
 
@@ -57,14 +58,13 @@ void CGIResponseGet::run(Socket & socket) {
 	std::string body;
 
 	HTTPHeader header;
-	std::string test = _request._path;
-	std::string file = set_file(test);
+	std::string file = set_file(_request._path);
 	body = read_file(file);
 	header.set_content_type(construct_content_type());
 	header.set_content_length(body.size());
     header.setStatusCode(200);
     header.setStatusMessage("OK");
-    std::cout << header.tostring() << std::endl;
+    std::cout << "header sent back : " << header.tostring() << std::endl;
 	socket.send(header.tostring() + "\n\n" + body);
 }
 

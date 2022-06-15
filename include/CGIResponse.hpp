@@ -14,9 +14,11 @@ public:
     virtual ~CGIResponse();
 
     virtual void run(Socket & socket) = 0;
+	std::string set_server_location(std::string path_from_configuration);
 
 protected:
-    const HTTPRequest & _request;
+	const HTTPRequest	& _request;
+	std::string			_server_location_log;
 };
 
 

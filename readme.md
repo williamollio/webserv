@@ -28,5 +28,6 @@
 - <strong>wollio</strong> : HTTPSender
 
 # To do
+- <strong> I/O Multiplexing </strong> : GET Request unknown file : we don't receive any GET Request
 - <strong> HTTPReader </strong>: POST Request on Safari throwing error
 - <strong> HTTPSender </strong> : POST Request uploading files (upload) + implement DELETE request/response 

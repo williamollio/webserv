@@ -29,4 +29,4 @@
 
 # To do
 - <strong> HTTPReader </strong>: POST Request on Safari throwing error
-- <strong> HTTPSender </strong> : POST Request uploading files (upload) + implement DELETE request/response + make html file error adaptable
+- <strong> HTTPSender </strong> : cleanup + merge + make html file error adaptable + POST Request uploading files (upload) + implement DELETE request/response

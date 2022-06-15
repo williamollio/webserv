@@ -7,19 +7,6 @@
 #include <fstream>
 #include <algorithm>
 
-std::string CGIResponseGet::read_file(std::string file)
-{
-	std::ifstream is;
-	is.open(file);
-	if (!is.is_open())
-		throw std::exception();
-
-	std::stringstream buffer;
-	buffer << is.rdbuf();
-	is.close();
-	return (buffer.str());
-}
-
 std::string CGIResponseGet::set_file(std::string path)
 {
 	std::string tmp;
@@ -38,7 +25,6 @@ std::string CGIResponseGet::set_file(std::string path)
 		else
 			_file_extension = tmp.substr(pos);
 	}
-	std::cout << "_file_extension : " << _file_extension << std::endl;
 	return (tmp);
 }
 

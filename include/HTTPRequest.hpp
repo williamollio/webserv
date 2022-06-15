@@ -7,6 +7,7 @@
 
 #include <string>
 #include <vector>
+#include "URI.hpp"
 
 class HTTPRequest {
 private:
@@ -18,11 +19,17 @@ public:
 
     TYPE getType() const;
 	void get_payload(const std::string& data) throw(std::exception);
+
+    const URI &getURI() const;
+    void setURI(const URI &uri);
+
 protected:
     explicit HTTPRequest(TYPE);
 
 private:
     const TYPE		_type;
+    URI uri;
+
 public:	//TODO: make private with get and set
 	std::string		_copy_raw;
 	std::string		_http_version;

@@ -28,21 +28,6 @@ void Socket::send_header(const std::string & type)
 	_type_header = type;
 }
 
-void Socket::send_file(const std::string & name)
-{
-	_filename = name;
-	std::ifstream html_file(_filename);
-	std::stringstream	str_stream;
-	str_stream << html_file.rdbuf();
-	std::string content("HTTP/1.1 200 OK\nContent-Type: text/");
-    content += _type_header + "\nContent-Length: ";
-	content += std::to_string(str_stream.str().size());
-	content += "\n\n";
-	content += str_stream.str();
-    std::cout << content;
-	this->send(content);
-}
-
 void Socket::send(const std::string & content) throw (IOException)
 {
 	if (write(_fd, content.data(), content.size()) < 0)

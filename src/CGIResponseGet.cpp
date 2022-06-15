@@ -17,7 +17,6 @@ std::string CGIResponseGet::read_file(std::string file)
 	std::stringstream buffer;
 	buffer << is.rdbuf();
 	is.close();
-	std::cout << "buffer.str()" << buffer.str() << std::endl;
 	return (buffer.str());
 }
 
@@ -38,7 +37,7 @@ std::string CGIResponseGet::set_file(std::string path)
 		else
 			_file_extension = tmp.substr(pos);
 	}
-	std::cout << tmp << std::endl;
+	std::cout << _file_extension << std::endl;
 	return (tmp);
 }
 
@@ -47,7 +46,6 @@ std::string CGIResponseGet::construct_content_type()
 	std::string tmp;
 
 	tmp = "text/";
-	std::cout << "here" << std::endl;
 	if (_file_extension == "html")
 		tmp += _file_extension;
 	else

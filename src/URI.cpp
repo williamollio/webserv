@@ -65,7 +65,7 @@ URI::Token URI::nextToken() {
 }
 
 bool URI::isSpecial(char c) {
-    return !(isalpha(c) || c == '.' || c == '%' || c == '-' || c =='_');
+    return !(isalnum(c) || c == '.' || c == '%' || c == '-' || c =='_');
 }
 
 bool URI::isPathType(URI::Token::Type type) {

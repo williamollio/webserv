@@ -9,7 +9,7 @@
 
 class CGICall: public CGIResponse {
 public:
-    explicit CGICall(HTTPRequest &);
+    explicit CGICall(HTTPRequest *);
     ~CGICall();
 
     void run(Socket &socket);

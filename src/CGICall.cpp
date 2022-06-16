@@ -7,7 +7,7 @@
 #include "URISyntaxException.hpp"
 #include "HTTPException.hpp"
 
-CGICall::CGICall(HTTPRequest & request) : CGIResponse(request) {}
+CGICall::CGICall(HTTPRequest * request) : CGIResponse(request) {}
 
 CGICall::~CGICall() {}
 

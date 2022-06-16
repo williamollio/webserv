@@ -35,7 +35,7 @@ void HTTPReader::run() {
         request = _parse();
         request->setURI(URI(request->_path));
         if (request->getURI().isCGIIdentifier()) {
-            response = new CGICall(*request);
+            response = new CGICall(request);
         } else {
             switch (request->getType()) {
                 case HTTPRequest::GET:    response = new CGIResponseGet(request);    break;

@@ -12,7 +12,7 @@
 class URI {
 public:
     URI();
-    URI(const std::string &);
+    explicit URI(const std::string &);
     URI(const URI &);
     ~URI();
 

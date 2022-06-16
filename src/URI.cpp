@@ -178,6 +178,7 @@ std::string URI::Token::tokenTypeString(URI::Token::Type type) {
         case TEXT:     return "Literal";
         case AND:      return "Ampersand ('&')";
         case END:      return "End of string";
-        default:       return "Default";
+        default:
+            return "Default";
     }
 }

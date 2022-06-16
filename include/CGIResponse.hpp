@@ -7,24 +7,22 @@
 
 #include "Socket.hpp"
 #include "HTTPRequest.hpp"
-#include "IOException.hpp"
+#include "HTTPException.hpp"
 #include "HTTPHeader.hpp"
 #include "Tool.hpp"
 
 class CGIResponse {
 public:
-    explicit CGIResponse(HTTPRequest &);
+    explicit CGIResponse(HTTPRequest *);
     virtual ~CGIResponse();
 
     virtual void run(Socket & socket) = 0;
-	std::string set_server_location(std::string path_from_configuration) throw (IOException);
-	std::string set_default_file(std::string file) throw (IOException);
-	std::string read_file(std::string file) throw (IOException);
+	std::string set_server_location(std::string path_from_configuration);
+	std::string set_default_file(std::string file);
+	std::string read_file(std::string file);
 
-	void send_error_code(Socket & socket, const int & error_code);
-	void send_error_message(Socket & socket, const std::string & message);
 protected:
-	const HTTPRequest	& _request;
+	const HTTPRequest	* _request;
 	std::string			_server_location_log;
 	std::string			_default_file;
 };

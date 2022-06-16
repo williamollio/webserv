@@ -135,11 +135,3 @@ std::string get_message(const int & error_code)
 			return "Unknown Server Error";
 	}
 }
-
-int get_code(const std::string & message)
-{
-	int code = 500;
-	if ( message == "error : open failed")
-		code = 404;
-	return (code);
-}

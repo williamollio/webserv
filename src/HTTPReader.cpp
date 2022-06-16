@@ -9,6 +9,7 @@
 #include "CGIResponseGet.hpp"
 #include "CGIResponsePost.hpp"
 #include "CGIResponseDelete.hpp"
+#include "CGIResponseError.hpp"
 #include "HTTPException.hpp"
 #include <cstdlib>
 #include <iostream>
@@ -31,22 +32,17 @@ void HTTPReader::run() {
         request = _parse();
         CGIResponse * response;
         switch (request->getType()) {
-            case HTTPRequest::GET:    response = new CGIResponseGet(*request);    break;
-            case HTTPRequest::POST:   response = new CGIResponsePost(*request);   break;
-            case HTTPRequest::DELETE: response = new CGIResponseDelete(*request); break;
+            case HTTPRequest::GET:    response = new CGIResponseGet(request);    break;
+            case HTTPRequest::POST:   response = new CGIResponsePost(request);   break;
+            case HTTPRequest::DELETE: response = new CGIResponseDelete(request); break;
         }
         response->run(_socket);
     }
 	catch (HTTPException& ex) {
-		CGIResponse *error;
-		error = new CGIResponseGet(*request); // New derived for that ?
-		error->send_error_code(_socket, ex.get_error_code());
+		CGIResponseError error;
+		error.set_error_code(ex.get_error_code());
+		error.run(_socket);
     }
-	catch (IOException& ex) {
-		CGIResponse *error;
-		error = new CGIResponseGet(*request);
-		error->send_error_message(_socket, ex.what());
-	}
 	if (request != NULL)
     	delete request;
 }

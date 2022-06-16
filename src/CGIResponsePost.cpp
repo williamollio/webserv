@@ -20,4 +20,4 @@ void CGIResponsePost::run(Socket &socket) {
 	socket.send(header.tostring() + "\r\n\r\n" + body);
 }
 
-CGIResponsePost::CGIResponsePost(HTTPRequest &request) : CGIResponse(request) {}
+CGIResponsePost::CGIResponsePost(HTTPRequest *request) : CGIResponse(request) {}

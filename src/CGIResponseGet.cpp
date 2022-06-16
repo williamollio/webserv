@@ -44,7 +44,7 @@ void CGIResponseGet::run(Socket & socket) {
 	std::string body;
 
 	HTTPHeader header;
-	std::string file = set_file(_request._path);
+	std::string file = set_file(_request->_path);
 	body = read_file(file);
 	header.set_content_type(construct_content_type());
 	header.set_content_length(body.size());
@@ -54,4 +54,4 @@ void CGIResponseGet::run(Socket & socket) {
 	socket.send(header.tostring() + "\r\n\r\n" + body);
 }
 
-CGIResponseGet::CGIResponseGet(HTTPRequest &request) : CGIResponse(request) {}
+CGIResponseGet::CGIResponseGet(HTTPRequest *request) : CGIResponse(request) {}

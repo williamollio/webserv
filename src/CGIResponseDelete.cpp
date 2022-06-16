@@ -8,4 +8,4 @@ void CGIResponseDelete::run(Socket &socket) {
     (void)socket;
 }
 
-CGIResponseDelete::CGIResponseDelete(HTTPRequest &request) : CGIResponse(request) {}
+CGIResponseDelete::CGIResponseDelete(HTTPRequest *request) : CGIResponse(request) {}

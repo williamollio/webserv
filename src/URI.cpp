@@ -42,9 +42,11 @@ std::string URI::determineFileWithExtension() const {
 }
 
 void URI::tokenize() {
-    while (!stream.eof()) {
-        tokens.push_back(nextToken());
-    }
+    Token t("", Token::END, 0, 0);
+    do {
+        t = nextToken();
+        tokens.push_back(t);
+    } while (t.getType() != Token::END);
 }
 
 URI::Token URI::nextToken() {
@@ -59,7 +61,7 @@ URI::Token URI::nextToken() {
     while (!stream.eof() && !isSpecial(static_cast<char>(stream.peek()))) {
         buffer += static_cast<char>(stream.get());
     }
-    if (buffer.empty()) return Token(buffer, Token::END, pos, pos + 1);
+    if (buffer.empty()) return Token("", Token::END, pos, pos + 1);
     return Token(buffer, Token::TEXT, pos, (stream.eof() ? static_cast<unsigned long>(pos + buffer.size())
                                                                                         : static_cast<unsigned long>(stream.tellg())));
 }
@@ -107,7 +109,7 @@ std::map<std::string, std::string> URI::getVars() const {
         expect(Token::TEXT, *(++it));
         vars[name] = it->getContent();
         ++it;
-    } while (it != tokens.cend() && ensureTokenIs(Token::AND, *it));
+    } while (it->getType() != Token::END && ensureTokenIs(Token::AND, *it));
     return vars;
 }
 

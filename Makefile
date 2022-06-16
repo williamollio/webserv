@@ -2,7 +2,9 @@
 
 HEADER_FILES	= Connection.hpp Socket.hpp HTTPReader.hpp IOException.hpp HTTPRequest.hpp HTTPRequestGet.hpp  \
 				  HTTPRequestPost.hpp HTTPRequestDelete.hpp CGIResponse.hpp CGIResponseGet.hpp CGIResponsePost.hpp \
-				  CGIResponseDelete.hpp HTTPHeader.hpp HTTPException.hpp Tool.hpp CGIResponseError.hpp #Configuration.hpp
+				  CGIResponseDelete.hpp HTTPHeader.hpp HTTPException.hpp Tool.hpp CGIResponseError.hpp \
+				  URI.hpp CGICall.hpp URISyntaxException.hpp #Configuration.hpp
+
 HDR				= $(addprefix include/, $(HEADER_FILES))
 
 ##		SOURCES
@@ -11,7 +13,7 @@ SRC_DIR	= src/
 
 MAIN_SRC= main.cpp Socket.cpp Connection.cpp HTTPReader.cpp IOException.cpp HTTPRequest.cpp HTTPRequestGet.cpp \
 	 	  HTTPRequestPost.cpp HTTPRequestDelete.cpp CGIResponse.cpp CGIResponseGet.cpp CGIResponsePost.cpp \
-	 	  CGIResponseDelete.cpp HTTPException.cpp HTTPHeader.cpp Tool.cpp CGIResponseError.cpp
+	 	  CGIResponseDelete.cpp HTTPException.cpp HTTPHeader.cpp Tool.cpp CGIResponseError.cpp URI.cpp CGICall.cpp URISyntaxException.cpp
 #CONF_SRC= Configuration.cpp
 SRC		= $(addprefix src/, $(MAIN)) #$(addprefix src/config/, $(CONF_SRC))
 

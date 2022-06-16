@@ -9,3 +9,11 @@ HTTPRequest::TYPE HTTPRequest::getType() const {
 }
 
 HTTPRequest::HTTPRequest(HTTPRequest::TYPE type): _type(type) {}
+
+const URI &HTTPRequest::getURI() const {
+    return uri;
+}
+
+void HTTPRequest::setURI(const URI &uri) {
+    HTTPRequest::uri = uri;
+}

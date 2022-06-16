@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include "URI.hpp"
+#include "URISyntaxException.hpp"
 
 URI::URI(const std::string & uri): original(uri), tokens(), stream(original) {
     tokenize();
@@ -110,11 +111,11 @@ std::map<std::string, std::string> URI::getVars() const {
     return vars;
 }
 
-void URI::expect(URI::Token::Type type, const Token & token) throw(std::exception) {
-    if (token.getType() != type) throw std::exception();
+void URI::expect(URI::Token::Type type, const Token & token) {
+    if (token.getType() != type) throw URISyntaxException(token);
 }
 
-bool URI::ensureTokenIs(URI::Token::Type type, const Token & token) throw(std::exception) {
+bool URI::ensureTokenIs(URI::Token::Type type, const Token & token) {
     expect(type, token);
     return true;
 }

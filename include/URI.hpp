@@ -10,6 +10,8 @@
 #include <sstream>
 #include <map>
 
+class URISyntaxException;
+
 class URI {
 public:
     URI();
@@ -22,7 +24,6 @@ public:
     bool                               isCGIIdentifier() const;
     std::map<std::string, std::string> getVars() const;
 
-private:
     class Token {
     public:
         enum Type {
@@ -47,6 +48,8 @@ private:
         Token::Type   type;
     };
 
+private:
+
     std::string           original;
     std::list<URI::Token> tokens;
     std::stringstream     stream;
@@ -56,8 +59,8 @@ private:
     URI::Token         nextToken();
     static bool        hasExtension(const std::string &);
     static bool        isCleanString(const std::string &, unsigned long pos);
-    static inline void expect(Token::Type, const Token &) throw(std::exception);
-    static inline bool ensureTokenIs(Token::Type, const Token &) throw(std::exception);
+    static inline void expect(Token::Type, const Token &);
+    static inline bool ensureTokenIs(Token::Type, const Token &);
     static inline bool isSpecial(char c);
     static inline bool isPathType(URI::Token::Type);
 };

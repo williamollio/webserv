@@ -62,6 +62,7 @@ URI::Token URI::nextToken() {
     while (!stream.eof() && !isSpecial(static_cast<char>(stream.peek()))) {
         buffer += static_cast<char>(stream.get());
     }
+    if (buffer.empty()) return Token(buffer, Token::END, pos, pos + 1);
     return Token(buffer, Token::TEXT, pos, (stream.eof() ? static_cast<unsigned long>(pos + buffer.size())
                                                                                         : static_cast<unsigned long>(stream.tellg())));
 }
@@ -85,6 +86,40 @@ bool URI::isCleanString(const std::string & str, unsigned long pos) {
          ++it) {
         if (isSpecial(*it)) return false;
     }
+    return true;
+}
+
+std::map<std::string, std::string> URI::getVars() const {
+    std::map<std::string, std::string> vars;
+    std::list<Token>::const_iterator it;
+    for (it = tokens.cbegin();
+         it != tokens.cend() && isPathType(it->getType());
+         ++it) {
+        if (hasExtension(it->getContent())) break;
+    }
+    std::stringstream request;
+    for (++it; it != tokens.cend() && it->getType() != Token::QUESTION; ++it) {
+        request << it->getContent();
+    }
+    vars["REQUEST"] = request.str();
+    do {
+        ++it;
+        expect(Token::TEXT, *it);
+        std::string name = it->getContent();
+        expect(Token::EQUAL, *(++it));
+        expect(Token::TEXT, *(++it));
+        vars[name] = it->getContent();
+        ++it;
+    } while (it != tokens.cend() && ensureTokenIs(Token::AND, *it));
+    return vars;
+}
+
+void URI::expect(URI::Token::Type type, const Token & token) throw(std::exception) {
+    if (token.getType() != type) throw std::exception();
+}
+
+bool URI::ensureTokenIs(URI::Token::Type type, const Token & token) throw(std::exception) {
+    expect(type, token);
     return true;
 }
 

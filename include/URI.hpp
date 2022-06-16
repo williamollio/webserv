@@ -8,6 +8,7 @@
 #include <string>
 #include <list>
 #include <sstream>
+#include <map>
 
 class URI {
 public:
@@ -18,13 +19,14 @@ public:
 
     URI & operator=(const URI &);
 
-    bool isCGIIdentifier() const;
+    bool                               isCGIIdentifier() const;
+    std::map<std::string, std::string> getVars() const;
 
 private:
     class Token {
     public:
         enum Type {
-            SLASH, QUESTION, EQUAL, TEXT, AND
+            SLASH, QUESTION, EQUAL, TEXT, AND, END
         };
         Token(const std::string &, const Token::Type &, unsigned long startPos, unsigned long endPos);
         Token(char, const Token::Type &, unsigned long startPos, unsigned long endPos);
@@ -49,13 +51,15 @@ private:
     std::list<URI::Token> tokens;
     std::stringstream     stream;
 
-    std::string determineFileWithExtension() const;
-    void        tokenize();
-    URI::Token  nextToken();
-    static bool isCleanString(const std::string &, unsigned long pos);
-    static bool isSpecial(char c);
-    static bool isPathType(URI::Token::Type);
-    static bool hasExtension(const std::string &);
+    std::string        determineFileWithExtension() const;
+    void               tokenize();
+    URI::Token         nextToken();
+    static bool        hasExtension(const std::string &);
+    static bool        isCleanString(const std::string &, unsigned long pos);
+    static inline void expect(Token::Type, const Token &) throw(std::exception);
+    static inline bool ensureTokenIs(Token::Type, const Token &) throw(std::exception);
+    static inline bool isSpecial(char c);
+    static inline bool isPathType(URI::Token::Type);
 };
 
 

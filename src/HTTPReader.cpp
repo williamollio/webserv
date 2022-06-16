@@ -9,6 +9,7 @@
 #include "CGIResponseGet.hpp"
 #include "CGIResponsePost.hpp"
 #include "CGIResponseDelete.hpp"
+#include "CGIResponseError.hpp"
 #include "HTTPException.hpp"
 #include <cstdlib>
 #include <iostream>
@@ -31,14 +32,16 @@ void HTTPReader::run() {
         request = _parse();
         CGIResponse * response;
         switch (request->getType()) {
-            case HTTPRequest::GET:    response = new CGIResponseGet(*request);    break;
-            case HTTPRequest::POST:   response = new CGIResponsePost(*request);   break;
-            case HTTPRequest::DELETE: response = new CGIResponseDelete(*request); break;
+            case HTTPRequest::GET:    response = new CGIResponseGet(request);    break;
+            case HTTPRequest::POST:   response = new CGIResponsePost(request);   break;
+            case HTTPRequest::DELETE: response = new CGIResponseDelete(request); break;
         }
         response->run(_socket);
-    } catch (std::exception& ex) {
-        // TODO: Error
-//        sendError(ex.getErrorCode());
+    }
+	catch (HTTPException& ex) {
+		CGIResponseError error;
+		error.set_error_code(ex.get_error_code());
+		error.run(_socket);
     }
 	if (request != NULL)
     	delete request;
@@ -58,7 +61,7 @@ std::vector<std::string>	split_str_vector(const std::string& tosplit, const std:
 }
 
 void HTTPRequest::get_payload(const std::string& data) throw(std::exception) {
-	size_t	cursor = data.find("\n\n", 0);
+	size_t	cursor = data.find("\r\n\r\n", 0);
 	if (cursor == std::string::npos)
 		throw HTTPException(400);
 	cursor += 2;
@@ -71,7 +74,6 @@ HTTPRequest* HTTPReader::_parse() throw(std::exception) {
 		throw HTTPException(504);
 	}
 	std::string raw(buff);
-	std::cout << raw << std::endl;
 	size_t old_nl;
 	old_nl = raw.find('\n');
 	if (raw.npos == old_nl) {

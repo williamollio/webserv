@@ -14,7 +14,8 @@ private:
 public:
 	HTTPException(int code) _NOEXCEPT;
 	~HTTPException() _NOEXCEPT {};
-	const char *what() const _NOEXCEPT;
+
+	int get_error_code();
 };
 
 

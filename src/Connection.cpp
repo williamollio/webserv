@@ -1,8 +1,11 @@
 #include "Connection.hpp"
 #include "HTTPReader.hpp"
 #include "IOException.hpp"
+#include <poll.h>
 
-Connection::Connection() : address(), _fds(), _timeout(3 * 60 * 1000)
+#define INFTIM -1
+
+Connection::Connection() : address(), _fds(), _timeout(INFTIM)
 {
 	addrlen = sizeof(address);
 	address.sin_family = AF_INET;
@@ -51,7 +54,6 @@ void Connection::establishConnection()
 		current_size = nfds;
 		for (int i = 0; i < current_size; i++)
     	{
-			//std::cout << "nfds " << nfds << " current_size " << current_size << " i " << i << std::endl;
       	    if (_fds[i].revents == 0)
                 continue;
             if(_fds[i].revents != POLLIN)
@@ -62,16 +64,13 @@ void Connection::establishConnection()
       	    }
             if (_fds[i].fd == server_fd)
       	    {
-                std::cout << "Can read from listening socket" << std::endl;
                 int socketDescriptor;
-                while ((socketDescriptor = accept(server_fd, (struct sockaddr *) &address, (socklen_t *) &addrlen)) >= 0) { // NULL NULL
-                    std::cout << "New connection: " << _fds[nfds].fd << std::endl;
+                while ((socketDescriptor = accept(server_fd, (struct sockaddr *) &address, (socklen_t *) &addrlen)) >= 0) {
                     _fds[nfds].fd = socketDescriptor;
                     _fds[nfds].events = POLLIN;
                     nfds++;
                 }
       	    } else {
-                std::cout << "Can read from " << _fds[i].fd << std::endl;
       	        Socket socket = _fds[i].fd;
                 HTTPReader(socket).run();
       	        _fds[i].fd = -1;

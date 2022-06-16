@@ -10,7 +10,7 @@
 
 class CGIResponseDelete : public CGIResponse {
 public:
-    explicit CGIResponseDelete(HTTPRequest &);
+    explicit CGIResponseDelete(HTTPRequest *);
 
     void run(Socket &socket);
 };

@@ -32,7 +32,6 @@ class Socket {
 		~Socket();
 		std::string read_socket() throw (IOException);
 		void send_header(const std::string & type);
-		void send_file(const std::string & name);
 		void send(const std::string & content) throw (IOException);
 		void close_socket() const throw(IOException);
 		int get_fd() const _NOEXCEPT;

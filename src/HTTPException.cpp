@@ -10,10 +10,9 @@ HTTPException::HTTPException(int code) _NOEXCEPT {
 	_code = code;
 }
 
-const char *HTTPException::what() const _NOEXCEPT {
-	std::stringstream ret;
-	ret << _code;
-	return ret.str().c_str();
+int HTTPException::get_error_code() {
+	return (_code);
 }
+
 
 

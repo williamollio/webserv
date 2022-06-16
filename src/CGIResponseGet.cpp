@@ -5,34 +5,53 @@
 #include "../include/CGIResponseGet.hpp"
 #include "HTTPHeader.hpp"
 #include <fstream>
+#include <algorithm>
 
-std::string CGIResponseGet::read_file(std::string file)
+std::string CGIResponseGet::set_file(std::string path)
 {
-	std::ifstream is;
-	is.open(file);
-	if (!is.is_open())
-		throw std::exception();
+	std::string tmp;
 
-	std::stringstream buffer;
-	buffer << is.rdbuf();
-	is.close();
+	if (path == "/")
+	{
+		_file_extension = "html";
+		tmp = "index.html";
+	}
+	else
+	{
+		tmp = path.erase(0,1);
+		size_t pos = tmp.find('.', 0);
+		if (pos == std::string::npos)
+			_file_extension = "";
+		else
+			_file_extension = tmp.substr(pos);
+	}
+	return (tmp);
+}
 
-	return (buffer.str());
+std::string CGIResponseGet::construct_content_type()
+{
+	std::string tmp;
+
+	tmp = "text/";
+	if (_file_extension == "html")
+		tmp += _file_extension;
+	else
+		tmp += "plain";
+	return (tmp);
 }
 
 void CGIResponseGet::run(Socket & socket) {
 	std::string body;
 
 	HTTPHeader header;
-	std::string file = "index.html";
+	std::string file = set_file(_request->_path);
 	body = read_file(file);
-	header.set_content_type("text/html");
+	header.set_content_type(construct_content_type());
 	header.set_content_length(body.size());
     header.setStatusCode(200);
-    header.setConnection("Keep-alive");
     header.setStatusMessage("OK");
-//    header.setContentEncoding("");
-	socket.send(header.tostring() + "\n\n" + body);
+    std::cout << "header sent back :\n" << header.tostring() << std::endl;
+	socket.send(header.tostring() + "\r\n\r\n" + body);
 }
 
-CGIResponseGet::CGIResponseGet(HTTPRequest &request) : CGIResponse(request) {}
+CGIResponseGet::CGIResponseGet(HTTPRequest *request) : CGIResponse(request) {}

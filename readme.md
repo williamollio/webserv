@@ -23,7 +23,10 @@
 
 # On-going tasks
 
-- <strong>mhahn</strong> : CGI / HTTPSender
-- <strong>jkasper</strong> : Configuration / HTTPReader
-- <strong>wollio</strong> : CGI / HTTPSender
+- <strong>mhahn</strong> : CGI
+- <strong>jkasper</strong> : ConfigurationReader / HTTPReader
+- <strong>wollio</strong> : HTTPSender
 
+# To do
+- <strong> HTTPReader </strong>: POST Request on Safari throwing error
+- <strong> HTTPSender </strong> : cleanup + merge + make html file error adaptable + POST Request uploading files (upload) + implement DELETE request/response

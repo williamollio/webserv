@@ -52,7 +52,7 @@ URI::Token URI::nextToken() {
 
 bool URI::isSpecial() {
     const char tmp = static_cast<char>(stream.peek());
-    return !(isalpha(tmp) || tmp == '.' || tmp == '%' || tmp == '-');
+    return !(isalpha(tmp) || tmp == '.' || tmp == '%' || tmp == '-' || tmp =='_');
 }
 
 URI &URI::operator=(const URI &other) {

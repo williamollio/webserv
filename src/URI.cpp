@@ -112,7 +112,12 @@ std::map<std::string, std::string> URI::getVars() const {
 }
 
 void URI::expect(URI::Token::Type type, const Token & token) {
-    if (token.getType() != type) throw URISyntaxException(token);
+    std::cerr << token.getType() << std::endl;
+    if (token.getType() != type) throw URISyntaxException(token, std::string("Expected '")
+                                                               + Token::tokenTypeString(type)
+                                                               + std::string("', got '")
+                                                               + Token::tokenTypeString(token.getType())
+                                                               + std::string("'!"));
 }
 
 bool URI::ensureTokenIs(URI::Token::Type type, const Token & token) {
@@ -163,4 +168,16 @@ unsigned long URI::Token::getEndPos() const {
 
 URI::Token::Type URI::Token::getType() const {
     return type;
+}
+
+std::string URI::Token::tokenTypeString(URI::Token::Type type) {
+    switch (type) {
+        case SLASH:    return "Slash ('/')";
+        case QUESTION: return "Question-mark ('?')";
+        case EQUAL:    return "Equal-sign ('=')";
+        case TEXT:     return "Literal";
+        case AND:      return "Ampersand ('&')";
+        case END:      return "End of string";
+        default:       return "Default";
+    }
 }

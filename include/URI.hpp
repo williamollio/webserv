@@ -40,6 +40,7 @@ public:
         unsigned long       getStartPos() const;
         unsigned long       getEndPos() const;
         Type                getType() const;
+        static std::string  tokenTypeString(Type);
 
     private:
         std::string   str;

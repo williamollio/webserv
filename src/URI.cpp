@@ -14,7 +14,9 @@ URI::URI(const std::string &uri): original(uri), tokens(), stream(original) {
 //    }
 }
 
-URI::URI(const URI &other): original(other.original), tokens(other.tokens), stream(original) {}
+URI::URI(const URI &other): original(other.original), tokens(), stream(original) {
+    tokenize();
+}
 
 URI::URI(): original(), tokens() {}
 
@@ -22,11 +24,25 @@ URI::~URI() {}
 
 bool URI::isCGIIdentifier() const {
     std::string cgiFile = determineFileWithExtension();
-    return false;
+    if (!cgiFile.empty()) {
+        // TODO Ask configuration for CGI file extensions
+        return true;
+    } else {
+        return false;
+    }
 }
 
 std::string URI::determineFileWithExtension() const {
-    return std::string();
+    std::stringstream buffer;
+    for (std::list<Token>::const_iterator it = tokens.cbegin();
+         it != tokens.cend() && isPathType(it->getType());
+         ++it) {
+        const std::string & content = it->getContent();
+        buffer << content;
+        if (hasExtension(content)) break;
+    }
+    const std::string & tmp = buffer.str();
+    return hasExtension(tmp) ? tmp : std::string();
 }
 
 void URI::tokenize() {
@@ -43,21 +59,38 @@ URI::Token URI::nextToken() {
         case '=': return Token(static_cast<char>(stream.get()), Token::EQUAL, pos, stream.tellg());
     }
     std::string buffer;
-    while (!stream.eof() && !isSpecial()) {
+    while (!stream.eof() && !isSpecial(static_cast<char>(stream.peek()))) {
         buffer += static_cast<char>(stream.get());
     }
     return Token(buffer, Token::TEXT, pos, (stream.eof() ? static_cast<unsigned long>(pos + buffer.size())
                                                                                         : static_cast<unsigned long>(stream.tellg())));
 }
 
-bool URI::isSpecial() {
-    const char tmp = static_cast<char>(stream.peek());
-    return !(isalpha(tmp) || tmp == '.' || tmp == '%' || tmp == '-' || tmp =='_');
+bool URI::isSpecial(char c) {
+    return !(isalpha(c) || c == '.' || c == '%' || c == '-' || c =='_');
+}
+
+bool URI::isPathType(URI::Token::Type type) {
+    return type == Token::SLASH || type == Token::TEXT;
+}
+
+bool URI::hasExtension(const std::string & str) {
+    const unsigned long pos = str.rfind('.');
+    return pos != std::string::npos && pos != str.size() - 1 && isCleanString(str, pos);
+}
+
+bool URI::isCleanString(const std::string & str, unsigned long pos) {
+    for (std::string::const_iterator it = str.cbegin() + static_cast<long>(pos);
+         it != str.cend();
+         ++it) {
+        if (isSpecial(*it)) return false;
+    }
+    return true;
 }
 
 URI &URI::operator=(const URI &other) {
     original = other.original;
-    tokens = (other.tokens);
+    tokens = other.tokens;
     stream.setf(EOF);
     return *this;
 }
@@ -82,4 +115,20 @@ URI::Token &URI::Token::operator=(const URI::Token &other) {
     endPos = other.endPos;
     type = other.type;
     return *this;
+}
+
+const std::string & URI::Token::getContent() const {
+    return str;
+}
+
+unsigned long URI::Token::getStartPos() const {
+    return startPos;
+}
+
+unsigned long URI::Token::getEndPos() const {
+    return endPos;
+}
+
+URI::Token::Type URI::Token::getType() const {
+    return type;
 }

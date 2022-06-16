@@ -10,4 +10,5 @@ CGICall::~CGICall() {}
 
 void CGICall::run(Socket &socket) {
     // TODO
+    std::cout << "CGI to be called!" << std::endl;
 }

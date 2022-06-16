@@ -33,21 +33,29 @@ private:
 
         Token & operator=(const Token &);
 
-    public:
+        const std::string & getContent() const;
+        unsigned long       getStartPos() const;
+        unsigned long       getEndPos() const;
+        Type                getType() const;
+
+    private:
         std::string   str;
         unsigned long startPos;
         unsigned long endPos;
         Token::Type   type;
     };
 
-    std::string original;
+    std::string           original;
     std::list<URI::Token> tokens;
-    std::stringstream stream;
+    std::stringstream     stream;
 
     std::string determineFileWithExtension() const;
-    void tokenize();
-    URI::Token nextToken();
-    bool isSpecial();
+    void        tokenize();
+    URI::Token  nextToken();
+    static bool isCleanString(const std::string &, unsigned long pos);
+    static bool isSpecial(char c);
+    static bool isPathType(URI::Token::Type);
+    static bool hasExtension(const std::string &);
 };
 
 

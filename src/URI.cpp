@@ -5,16 +5,11 @@
 #include <iostream>
 #include "URI.hpp"
 
-URI::URI(const std::string &uri): original(uri), tokens(), stream(original) {
+URI::URI(const std::string & uri): original(uri), tokens(), stream(original) {
     tokenize();
-//    for (std::list<Token>::const_iterator it = tokens.cbegin(); it != tokens.cend(); ++it) {
-//        std::cout << it->type << ", "
-//                  << it->startPos << " until " << it->endPos << ", "
-//                  << "Content: '" << it->str << "'" << std::endl;
-//    }
 }
 
-URI::URI(const URI &other): original(other.original), tokens(), stream(original) {
+URI::URI(const URI & other): original(other.original), tokens(), stream(original) {
     tokenize();
 }
 
@@ -50,6 +45,7 @@ void URI::tokenize() {
         tokens.push_back(nextToken());
     }
 }
+
 URI::Token URI::nextToken() {
     unsigned long pos = stream.tellg();
     switch (stream.peek()) {

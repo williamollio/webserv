@@ -2,7 +2,6 @@
 // Created by Manuel Hahn on 6/14/22.
 //
 
-#include <iostream>
 #include "URI.hpp"
 #include "URISyntaxException.hpp"
 
@@ -114,12 +113,11 @@ std::map<std::string, std::string> URI::getVars() const {
 }
 
 void URI::expect(URI::Token::Type type, const Token & token) {
-    std::cerr << token.getType() << std::endl;
-    if (token.getType() != type) throw URISyntaxException(token, std::string("Expected '")
+    if (token.getType() != type) throw URISyntaxException(token, "Expected '"
                                                                + Token::tokenTypeString(type)
-                                                               + std::string("', got '")
+                                                               + "', got '"
                                                                + Token::tokenTypeString(token.getType())
-                                                               + std::string("'!"));
+                                                               + "'!");
 }
 
 bool URI::ensureTokenIs(URI::Token::Type type, const Token & token) {

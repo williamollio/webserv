@@ -16,6 +16,7 @@ void CGICall::run(Socket & socket) {
     try {
         std::map<std::string, std::string> vars = _request->getURI().getVars();
     } catch (URISyntaxException & ex) {
+        // TODO maybe just ignore...
         std::cerr << ex.what() << std::endl;
         throw HTTPException(400);
     }

@@ -26,9 +26,9 @@ void	clearws(std::string& line) {
 	std::string::iterator	l = line.end();
 	for (std::string::iterator	it = line.begin(); it != l;) {
 		std::cout << "char: -" << *it << "-" << std::endl;
-		if (*it == ' ' || *it == '	') {
+		if (*it == ' ' || *it == '\t') {
 			std::cout << "here" << std::endl;
-			line.erase(it++);
+			line.erase(it);
 		} else
 			break;
 	}
@@ -311,12 +311,15 @@ bool Configuration::get_server_file_acceptance() const {
 
 
 //CLASS UNEXPECTED-TOKEN
-Configuration::UnexpectedToken::UnexpectedToken(size_t _in_line) _NOEXCEPT : _line(_in_line) { }
+Configuration::UnexpectedToken::UnexpectedToken(size_t _in_line) _NOEXCEPT : _line(_in_line) {
+    std::stringstream ret;
+    ret << "unexpected token in line: " << _line;
+    _token  = ret.str();
+}
 
 const char *Configuration::UnexpectedToken::what() const _NOEXCEPT {
-	std::stringstream ret;
-	ret << "unexpected token in line: " << _line;
-	return ret.str().c_str();
+
+    return _token.c_str();
 }
 
 Configuration::BadConfig::BadConfig() _NOEXCEPT {

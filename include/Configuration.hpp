@@ -52,8 +52,10 @@ public:
 	class UnexpectedToken : public std::exception {
 	private:
 		size_t	_line;
+        std::string _token;
 	public:
 		UnexpectedToken(size_t _in_line) _NOEXCEPT;
+        ~UnexpectedToken() _NOEXCEPT {}
 		const char *what() const _NOEXCEPT;
 	};
 

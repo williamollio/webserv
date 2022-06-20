@@ -71,8 +71,10 @@ void Connection::establishConnection()
                     nfds++;
                 }
       	    } else {
-      	        Socket socket = _fds[i].fd;
-                HTTPReader(socket).run();
+                Socket socket = _fds[i].fd;
+                HTTPReader * reader = new HTTPReader(socket);
+                list.push_back(reader);
+                reader->run();
       	        _fds[i].fd = -1;
       	    }
 	    }

@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <iostream>
 
 class Configuration {
 private:
@@ -24,20 +25,30 @@ private:
 	std::string		_server_location_log;
 	bool			_accept_file;					///standard OFF
 
-	void	parse_server(std::fstream& file);
+	void	parse_server(std::fstream& file, std::string& line);
 	void	get_next_delim_char(std::fstream& file, char delim, bool ws);
 	void	check_portnum();
 
 
 	void	parse_vec_str(std::fstream& file, vectorString& output, std::string& c_line);
 	void	parse_vec_int(std::fstream& file, vectorInt& output, std::string& c_line);
-	//void	parse_map_int_str(std::fstream& file, intMapString& output, std::string& c_line);	//TODO
+	void	parse_map_int_str(std::fstream& file, intMapString& output, std::string& c_line);
 	void	parse_str(std::string& output, std::string& c_line);
 	void	parse_bool(bool& output, std::string& c_line);
+
 public:
 	Configuration();
+	Configuration(std::string location);
 	void	load_config_file(std::string& path);
 
+	vectorString	get_server_names()					const;
+	vectorInt		get_server_ports()					const;
+	vectorString	get_server_location()				const;
+	intMapString	get_server_error_page_location()	const;
+	std::string		get_server_log_location()			const;
+	bool			get_server_file_acceptance()		const;
+
+	//EXCEPTIONS
 	class UnexpectedToken : public std::exception {
 	private:
 		size_t	_line;
@@ -56,5 +67,7 @@ public:
 	};
 };
 
+
+std::ostream& operator<<(std::ostream& os, const Configuration& conf);
 
 

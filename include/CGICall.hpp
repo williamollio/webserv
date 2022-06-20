@@ -12,7 +12,16 @@ public:
     explicit CGICall(HTTPRequest *);
     ~CGICall();
 
-    void run(Socket &socket);
+    void run(Socket & socket);
+
+private:
+    const URI & uri;
+    std::string method;
+    std::string protocol;
+    std::string pathinfo;
+    pid_t       child;
+
+    void execute(const Socket &);
 };
 
 

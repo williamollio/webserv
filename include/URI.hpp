@@ -24,6 +24,7 @@ public:
     bool                               isCGIIdentifier() const;
     bool                               isSyntaxExceptionEnabled() const;
     void                               setSyntaxExceptionEnabled(bool);
+    std::string                        getFile() const;
     std::map<std::string, std::string> getVars() const;
 
     class Token {
@@ -59,6 +60,7 @@ private:
     bool                  syntaxThrowing;
 
     std::string        determineFileWithExtension() const;
+    std::string        determineFile() const;
     void               tokenize();
     URI::Token         nextToken();
     inline bool        ensureTokenIs(Token::Type, const Token &) const;

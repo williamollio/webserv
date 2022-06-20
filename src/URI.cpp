@@ -28,6 +28,11 @@ bool URI::isCGIIdentifier() const {
 }
 
 std::string URI::determineFileWithExtension() const {
+    const std::string & tmp = determineFile();
+    return hasExtension(tmp) ? tmp : std::string();
+}
+
+std::string URI::determineFile() const {
     std::stringstream buffer;
     for (std::list<Token>::const_iterator it = tokens.cbegin();
          it != tokens.cend() && isPathType(it->getType());
@@ -36,8 +41,7 @@ std::string URI::determineFileWithExtension() const {
         buffer << content;
         if (hasExtension(content)) break;
     }
-    const std::string & tmp = buffer.str();
-    return hasExtension(tmp) ? tmp : std::string();
+    return buffer.str();
 }
 
 void URI::tokenize() {
@@ -146,6 +150,10 @@ void URI::setSyntaxExceptionEnabled(bool enabled) {
 
 void URI::skipToNext(URI::Token::Type type, std::list<Token>::const_iterator iterator) {
     for (; iterator->getType() != Token::END || iterator->getType() == type; ++iterator);
+}
+
+std::string URI::getFile() const {
+    return determineFile();
 }
 
 URI &URI::operator=(const URI &other) {

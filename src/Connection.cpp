@@ -5,7 +5,7 @@
 
 #define INFTIM -1
 
-Connection::Connection() : address(), _fds(), _timeout(INFTIM)
+Connection::Connection() : _timeout(INFTIM), address(), _fds()
 {
 	addrlen = sizeof(address);
 	address.sin_family = AF_INET;

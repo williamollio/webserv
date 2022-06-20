@@ -12,7 +12,7 @@
 class HTTPReader {
     public:
         HTTPReader();
-        HTTPReader(Socket &);
+        explicit HTTPReader(Socket &);
         ~HTTPReader();
         void run();
 

@@ -142,3 +142,7 @@ HTTPRequest* HTTPReader::_parse() throw(std::exception) {
 		retval->_content = false;
 	return retval;
 }
+
+bool HTTPReader::isRunning() const {
+    return response->isRunning();
+}

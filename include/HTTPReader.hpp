@@ -15,7 +15,9 @@ class HTTPReader {
         HTTPReader();
         explicit HTTPReader(Socket &);
         ~HTTPReader();
+
         void run();
+        bool isRunning() const;
 
     private:
         Socket        _socket;

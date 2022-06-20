@@ -22,7 +22,7 @@ class Connection {
         std::list<HTTPReader *> list;
 
 		void _initialization_poll();
-
+        void cleanReaders();
 
 	public:
 		Connection();

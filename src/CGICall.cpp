@@ -52,3 +52,11 @@ void CGICall::execute(const Socket & socket) {
     args[0] = const_cast<char *>(filename.c_str());
     if (execve(filename.c_str(), args, env) < 0) throw HTTPException(500);
 }
+
+bool CGICall::isRunning() {
+    if (child == -1) return false;
+    int status;
+    const pid_t result = waitpid(child, &status, WNOHANG);
+    if (result < 0) throw HTTPException(500);
+    return result == 0;
+}

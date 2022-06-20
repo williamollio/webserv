@@ -30,12 +30,12 @@ void Connection::_initialization_poll()
 	_fds[0].events = POLLIN;
 }
 
-static void removeHTTPReader(HTTPReader* & reader) {
+static void forceRemoveHTTPReader(HTTPReader* & reader) {
     delete reader;
 }
 
 Connection::~Connection() {
-    std::for_each(list.begin(), list.end(), ::removeHTTPReader);
+    std::for_each(list.begin(), list.end(), forceRemoveHTTPReader);
 }
 
 void Connection::establishConnection()
@@ -78,10 +78,23 @@ void Connection::establishConnection()
       	        _fds[i].fd = -1;
       	    }
 	    }
+        cleanReaders();
     } while (!end_server);
     for (int i = 0; i < nfds; i++)
   	{
     	if(_fds[i].fd >= 0)
     	    close(_fds[i].fd);
   	}
+}
+
+static void maybeDeleteReader(HTTPReader* & reader) {
+    if (!reader->isRunning()) {
+        delete reader;
+        reader = NULL;
+    }
+}
+
+void Connection::cleanReaders() {
+    std::for_each(list.begin(), list.end(), maybeDeleteReader);
+    list.remove(NULL);
 }

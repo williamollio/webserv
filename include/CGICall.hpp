@@ -13,6 +13,7 @@ public:
     ~CGICall();
 
     void run(Socket & socket);
+    bool isRunning();
 
 private:
     const URI & uri;

@@ -66,14 +66,6 @@ std::vector<std::string>	split_str_vector(const std::string& tosplit, const std:
 	return str;
 }
 
-void HTTPRequest::get_payload(const std::string& data) throw(std::exception) {
-	size_t	cursor = data.find("\r\n\r\n", 0);
-	if (cursor == std::string::npos)
-		throw HTTPException(400);
-	cursor += 2;
-	_payload = data.substr(cursor);
-}
-
 HTTPRequest* HTTPReader::_parse() throw(std::exception) {
 	char buff[30001];
 	if (!read(_socket.get_fd(), buff, 30000)) {
@@ -136,7 +128,7 @@ HTTPRequest* HTTPReader::_parse() throw(std::exception) {
 		throw HTTPException(400);
 	else if (retval->_content_length != 0) {
 		retval->_content = true;
-		retval->get_payload(raw);
+		retval->set_payload(raw);
 	}
 	else
 		retval->_content = false;

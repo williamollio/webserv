@@ -22,7 +22,7 @@ private:
     std::string pathinfo;
     pid_t       child;
 
-    void execute(Socket &);
+    void execute(int, int);
 };
 
 

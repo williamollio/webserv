@@ -28,23 +28,41 @@ void CGICall::run(Socket & socket) {
     protocol = "SERVER_PROTOCOL=HTTP/1.1";
     pathinfo = "PATH_INFO=" + uri.getFile();
     // TODO Extensive checks before executing CGI!
+    int in[2], out[2];
+    if (pipe(in) < 0) throw HTTPException(500);
+    if (pipe(out) < 0) {
+        close(in[0]);
+        close(in[1]);
+        throw HTTPException(500);
+    }
+    write(in[1], _request->get_payload().c_str(), _request->get_payload().size());
+    close(in[1]);
+    execute(in[0], out[1]);
+    int status;
+    waitpid(child, &status, WUNTRACED);
+    close(in[0]);
+    close(out[1]);
+    // Hacky way to do this, I know ;)
+    std::string str = Socket(out[0]).read_socket();
+    // TODO Parse the answer of the CGI Script
     HTTPHeader header;
-    header.setStatusMessage(get_message(200));
+    header.setConnection("close-connection");
     header.setStatusCode(200);
-    header.setConnection("keep-alive");
-    header.set_content_type("plain/text");
-    header.set_content_length(500);
-    socket.send(header.tostring() + "\r\n\r\n");
-    execute(socket);
+    header.setStatusMessage(get_message(200));
+    header.set_content_type("text/plain");
+    header.set_content_length(str.size());
+    socket.send(header.tostring());
+    socket.send("\r\n\r\n");
+    socket.send(str);
 }
 
-void CGICall::execute(Socket & socket) {
+void CGICall::execute(const int in, const int out) {
     child = fork();
     if (child < 0) throw HTTPException(500);
     if (child > 0) return;
-    dup2(socket.get_fd(), STDIN_FILENO);
-    dup2(socket.get_fd(), STDOUT_FILENO);
-    dup2(socket.get_fd(), STDERR_FILENO);
+    dup2(in, STDIN_FILENO);
+    dup2(out, STDOUT_FILENO);
+    dup2(out, STDERR_FILENO); // Or maybe not?
     char ** env = new char * [4]();
     env[0] = const_cast<char *>(method.c_str());
     env[1] = const_cast<char *>(protocol.c_str());
@@ -53,11 +71,12 @@ void CGICall::execute(Socket & socket) {
     char ** args = new char * [2]();
     args[0] = const_cast<char *>(filename.c_str());
     if (execve(filename.c_str(), args, env) < 0) {
-        // TODO This should never happen!
         CGIResponseError response;
-        response.set_error_code(404);
-        response.run(socket);
-        socket.close_socket();
+        response.set_error_code(500);
+	Socket s(out);
+        response.run(s);
+	close(in);
+	close(out);
 	exit(-1);
     }
 }
@@ -66,6 +85,5 @@ bool CGICall::isRunning() {
     if (child == -1) return false;
     int status;
     const pid_t result = waitpid(child, &status, WNOHANG);
-    if (result < 0) throw HTTPException(500);
     return result == 0;
 }

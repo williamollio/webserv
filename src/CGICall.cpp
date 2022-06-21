@@ -5,6 +5,7 @@
 #include <map>
 #include <csignal>
 #include "CGICall.hpp"
+#include "CGIResponseError.hpp"
 #include "HTTPException.hpp"
 
 
@@ -26,6 +27,7 @@ void CGICall::run(Socket & socket) {
     }
     protocol = "SERVER_PROTOCOL=HTTP/1.1";
     pathinfo = "PATH_INFO=" + uri.getFile();
+    // TODO Extensive checks before executing CGI!
     HTTPHeader header;
     header.setStatusMessage(get_message(200));
     header.setStatusCode(200);
@@ -36,7 +38,7 @@ void CGICall::run(Socket & socket) {
     execute(socket);
 }
 
-void CGICall::execute(const Socket & socket) {
+void CGICall::execute(Socket & socket) {
     child = fork();
     if (child < 0) throw HTTPException(500);
     if (child > 0) return;
@@ -47,10 +49,17 @@ void CGICall::execute(const Socket & socket) {
     env[0] = const_cast<char *>(method.c_str());
     env[1] = const_cast<char *>(protocol.c_str());
     env[2] = const_cast<char *>(pathinfo.c_str());
-    const std::string filename = "/Users/mhahn/Documents/webserv/a.out";
+    const std::string filename = "/Users/mhahn/Documents/Programmierung/42/webserv/a.out";
     char ** args = new char * [2]();
     args[0] = const_cast<char *>(filename.c_str());
-    if (execve(filename.c_str(), args, env) < 0) throw HTTPException(500);
+    if (execve(filename.c_str(), args, env) < 0) {
+        // TODO This should never happen!
+        CGIResponseError response;
+        response.set_error_code(404);
+        response.run(socket);
+        socket.close_socket();
+	exit(-1);
+    }
 }
 
 bool CGICall::isRunning() {

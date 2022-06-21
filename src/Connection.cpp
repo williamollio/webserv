@@ -45,8 +45,6 @@ void Connection::establishConnection()
     int current_size;
     bool end_server = false;
 
-	for (int i = 1; i < 200; ++i)
-            assert(_fds[i].fd == 0);
     do {
         rc = poll(_fds, nfds, _timeout);
         if (rc <= 0) {
@@ -79,7 +77,7 @@ void Connection::establishConnection()
                 reader->run();
       	        _fds[i].fd = -1;
       	    }
-	    }
+        }
         cleanReaders();
     } while (!end_server);
     for (int i = 0; i < nfds; i++) {

@@ -28,5 +28,6 @@
 - <strong>wollio</strong> : HTTPSender
 
 # To do
+- <strong> Connection </strong>: solve Error! revents = 17
 - <strong> HTTPReader </strong>: POST Request on Safari throwing error
 - <strong> HTTPSender </strong> : POST Request uploading files (upload) + implement DELETE request/response + Deep test

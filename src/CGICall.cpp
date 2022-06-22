@@ -42,8 +42,7 @@ void CGICall::run(Socket & socket) {
     waitpid(child, &status, WUNTRACED);
     close(in[0]);
     close(out[1]);
-    HTTPHeader header = parseCGIResponse(out[0]);
-    socket.send(header.tostring());
+    socket.send(parseCGIResponse(out[0]).tostring());
     socket.send("\r\n\r\n");
     ssize_t r, w;
     char b;
@@ -105,7 +104,7 @@ HTTPHeader CGICall::parseCGIResponse(const int fd) {
     while (!(line = nextLine(fd)).empty()) {
         unsigned long i = line.find(':');
         if (i != std::string::npos) {
-            std::string varName = line.substr(0, i - 1);
+            std::string varName = line.substr(0, i);
             i = skipWhitespaces(line, ++i);
             std::string arg = line.substr(i, line.size());
             if (vars.find(varName) == vars.end()) {
@@ -113,8 +112,21 @@ HTTPHeader CGICall::parseCGIResponse(const int fd) {
             } else throw HTTPException(500);
         }
     }
+    if (vars.empty()) throw HTTPException(500);
     for (std::map<std::string, std::string>::const_iterator it = vars.begin(); it != vars.end(); ++it) {
-        std::cout << it->first << " : " << it->second << std::endl;
+        const std::string & varName = it->first;
+        const std::string & arg = it->second;
+        if (varName == "Content-Type") header.set_content_type(arg);
+        else if (varName == "Status") {
+            const char * const str = arg.c_str();
+            char * pos;
+            long status = strtol(str, &pos, 10);
+            header.setStatusCode(static_cast<int>(status));
+            unsigned long i = pos - str;
+            i = skipWhitespaces(arg, i);
+            header.setStatusMessage(arg.substr(i, arg.size()));
+        } else throw HTTPException(500);
+        // TODO Add some more...
     }
     return header;
 }
@@ -126,6 +138,7 @@ std::string CGICall::nextLine(const int fd) {
     while ((r = read(fd, &c, 1)) > 0 && c != '\n') {
         ret += c;
     }
+    if (ret.back() == '\r') ret.erase(ret.end() - 1);
     if (r < 0) throw HTTPException(500);
     return ret;
 }

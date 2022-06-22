@@ -22,7 +22,12 @@ private:
     std::string pathinfo;
     pid_t       child;
 
+    void childExecute(int, int);
     void execute(int, int);
+
+    static std::string   nextLine(int);
+    static HTTPHeader    parseCGIResponse(int);
+    static unsigned long skipWhitespaces(const std::string &, unsigned long);
 };
 
 

@@ -27,8 +27,9 @@ void CGICall::run(Socket & socket) {
     }
     protocol = "SERVER_PROTOCOL=HTTP/1.1";
     pathinfo = "PATH_INFO=" + uri.getFile();
-    // TODO Extensive checks before executing CGI!
     const std::string & requestedFile = getcwd(NULL, 0) + _request->_path;
+    if (access(requestedFile.c_str(), F_OK) < 0) throw HTTPException(404);
+    if (access(requestedFile.c_str(), X_OK) < 0) throw HTTPException(403);
     int in[2], out[2];
     if (pipe(in) < 0) throw HTTPException(500);
     if (pipe(out) < 0) {
@@ -69,7 +70,6 @@ void CGICall::execute(const int in, const int out, const std::string & requested
     env[1] = const_cast<char *>(protocol.c_str());
     env[2] = const_cast<char *>(pathinfo.c_str());
     char ** args = new char * [2]();
-    std::cerr << requestedFile << std::endl;
     args[0] = const_cast<char *>(requestedFile.c_str());
     if (execve(requestedFile.c_str(), args, env) < 0) {
         exit(-1);

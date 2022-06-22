@@ -169,6 +169,18 @@ std::string URI::getQuery() const {
     return ret;
 }
 
+std::string URI::getPathInfo() const {
+    std::list<Token>::const_iterator it;
+    for (it = tokens.begin(); it->getType() != Token::END && isPathType(it->getType()); ++it) {
+        if (it->getType() == Token::TEXT && hasExtension(it->getContent())) break;
+    }
+    std::string ret;
+    for (++it; it != tokens.end() && it->getType() != Token::END && isPathType(it->getType()); ++it) {
+        ret += it->getContent();
+    }
+    return ret;
+}
+
 URI &URI::operator=(const URI &other) {
     original = other.original;
     tokens = other.tokens;

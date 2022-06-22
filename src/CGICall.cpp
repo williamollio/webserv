@@ -28,6 +28,7 @@ void CGICall::run(Socket & socket) {
     protocol = "SERVER_PROTOCOL=HTTP/1.1";
     pathinfo = "PATH_INFO=" + uri.getFile();
     // TODO Extensive checks before executing CGI!
+    const std::string & requestedFile = getcwd(NULL, 0) + _request->_path;
     int in[2], out[2];
     if (pipe(in) < 0) throw HTTPException(500);
     if (pipe(out) < 0) {
@@ -37,11 +38,12 @@ void CGICall::run(Socket & socket) {
     }
     write(in[1], _request->get_payload().c_str(), _request->get_payload().size());
     close(in[1]);
-    execute(in[0], out[1]);
+    execute(in[0], out[1], requestedFile);
     int status;
     waitpid(child, &status, WUNTRACED);
     close(in[0]);
     close(out[1]);
+    if (status != 0) throw HTTPException(500);
     socket.send(parseCGIResponse(out[0]).tostring());
     socket.send("\r\n\r\n");
     ssize_t r, w;
@@ -54,24 +56,10 @@ void CGICall::run(Socket & socket) {
     if (r < 0 || w < 0) throw HTTPException(500);
 }
 
-void CGICall::execute(const int in, const int out) {
+void CGICall::execute(const int in, const int out, const std::string & requestedFile) {
     child = fork();
     if (child < 0) throw HTTPException(500);
     if (child > 0) return;
-    int code = 0;
-    try {
-        childExecute(in, out);
-    } catch (std::exception & ex) {
-        CGIResponseError response;
-        response.set_error_code(500);
-        Socket s(out);
-        response.run(s);
-        code = -1;
-    }
-    exit(code);
-}
-
-void CGICall::childExecute(const int in, const int out) {
     dup2(in, STDIN_FILENO);
     dup2(out, STDOUT_FILENO);
     close(in);
@@ -80,11 +68,11 @@ void CGICall::childExecute(const int in, const int out) {
     env[0] = const_cast<char *>(method.c_str());
     env[1] = const_cast<char *>(protocol.c_str());
     env[2] = const_cast<char *>(pathinfo.c_str());
-    const std::string filename = "/Users/mhahn/Documents/webserv/test.pl";
     char ** args = new char * [2]();
-    args[0] = const_cast<char *>(filename.c_str());
-    if (execve(filename.c_str(), args, env) < 0) {
-        throw HTTPException(500);
+    std::cerr << requestedFile << std::endl;
+    args[0] = const_cast<char *>(requestedFile.c_str());
+    if (execve(requestedFile.c_str(), args, env) < 0) {
+        exit(-1);
     }
 }
 

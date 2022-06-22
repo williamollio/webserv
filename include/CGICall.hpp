@@ -22,8 +22,7 @@ private:
     std::string pathinfo;
     pid_t       child;
 
-    void childExecute(int, int);
-    void execute(int, int);
+    void execute(int, int, const std::string &);
 
     static std::string   nextLine(int);
     static HTTPHeader    parseCGIResponse(int);

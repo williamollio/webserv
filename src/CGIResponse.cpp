@@ -28,6 +28,7 @@ std::string CGIResponse::read_file(std::string file)
 {
 	std::ifstream is;
 	is.open(file);
+	std::cout << "file to open : " << file << std::endl;
 	if (!is.is_open())
 		throw HTTPException(404);
 
@@ -51,8 +52,8 @@ std::string CGIResponse::set_default_file(std::string file)
 CGIResponse::CGIResponse(HTTPRequest *request): _request(request)
 {
 	/* CONFIGURATION */
-	_server_location_log = set_server_location("/server");
-	_default_file = set_default_file("../index.html");
+	_server_location_log = set_server_location("/");
+	_default_file = set_default_file("index.html");
 }
 
 CGIResponse::~CGIResponse() {}

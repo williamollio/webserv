@@ -72,6 +72,7 @@ HTTPRequest* HTTPReader::_parse() throw(std::exception) {
 		throw HTTPException(504);
 	}
 	std::string raw(buff);
+	std::cout << "raw:\n" << raw << std::endl;
 	size_t old_nl;
 	old_nl = raw.find('\n');
 	if (raw.npos == old_nl) {

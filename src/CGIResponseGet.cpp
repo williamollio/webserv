@@ -23,7 +23,7 @@ std::string CGIResponseGet::set_file(std::string path)
 		if (pos == std::string::npos)
 			_file_extension = "";
 		else
-			_file_extension = tmp.substr(pos);
+			_file_extension = tmp.substr(pos+1);
 	}
 	return (tmp);
 }
@@ -37,6 +37,7 @@ std::string CGIResponseGet::construct_content_type()
 		tmp += _file_extension;
 	else
 		tmp += "plain";
+	std::cout << "tmp: " << tmp << "file extension: " << _file_extension << std::endl;
 	return (tmp);
 }
 

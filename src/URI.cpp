@@ -21,7 +21,7 @@ bool URI::isCGIIdentifier() const {
     std::string cgiFile = determineFileWithExtension();
     if (!cgiFile.empty()) {
         // TODO Ask configuration for CGI file extensions
-        return true;
+        return false; //
     } else {
         return false;
     }

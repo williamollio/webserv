@@ -19,15 +19,36 @@ CGICall::~CGICall() {
 }
 
 void CGICall::run(Socket & socket) {
-    std::map<std::string, std::string> vars = uri.getVars();
     switch (_request->getType()) {
         case HTTPRequest::GET:    method += "GET";    break;
         case HTTPRequest::POST:   method += "POST";   break;
         case HTTPRequest::DELETE: method += "DELETE"; break;
     }
+    const std::string pwd = getcwd(NULL, 0);
     protocol = "SERVER_PROTOCOL=HTTP/1.1";
-    pathinfo = "PATH_INFO=" + uri.getFile();
-    const std::string & requestedFile = getcwd(NULL, 0) + _request->_path;
+    gatewayInterface = "GATEWAY_INTERFACE=CGI/1.1";
+    pathinfo = "PATH_INFO=" + uri.getPathInfo(); // TODO: [...]/script/something?bla -> [...]/something -> <serverPath>/something Done?
+    queryString = "QUERY_STRING=" + uri.getQuery();
+    // TODO: IP Address (REMOTE_ADDR)
+    // TODO: REMOMTE_HOST = REMOTE_ADDR
+    scriptName = "SCRIPT_NAME=" + pwd + uri.getFile();
+    serverName = "SERVER_NAME=" + _request->_host;
+    serverSoftware = "SERVER_SOFTWARE=webserv/1.0 (2022/06)";
+    {
+        std::stringstream s;
+        s << "SERVER_PORT=" << 80; // TODO: Get the correct port!
+        serverPort = s.str();
+    }
+    if (_request->_content) {
+        std::stringstream s;
+        s << "CONTENT_LENGTH=" << _request->_content_length;
+        contentLength = s.str();
+        contentType = "CONTENT_TYPE=";
+        for (std::vector<std::string>::const_iterator it = _request->_content_type.begin(); it != _request->_content_type.end(); ++it) {
+            contentType += *it;
+        }
+    }
+    const std::string & requestedFile = pwd + _request->_path;
     if (access(requestedFile.c_str(), F_OK) < 0) throw HTTPException(404);
     if (access(requestedFile.c_str(), X_OK) < 0) throw HTTPException(403);
     int in[2], out[2];
@@ -65,10 +86,20 @@ void CGICall::execute(const int in, const int out, const std::string & requested
     dup2(out, STDOUT_FILENO);
     close(in);
     close(out);
-    char ** env = new char * [4]();
+    char ** env = new char * [_request->_content ? 12 : 10]();
     env[0] = const_cast<char *>(method.c_str());
     env[1] = const_cast<char *>(protocol.c_str());
     env[2] = const_cast<char *>(pathinfo.c_str());
+    env[3] = const_cast<char *>(gatewayInterface.c_str());
+    env[4] = const_cast<char *>(queryString.c_str());
+    env[5] = const_cast<char *>(scriptName.c_str());
+    env[6] = const_cast<char *>(serverName.c_str());
+    env[7] = const_cast<char *>(serverPort.c_str());
+    env[8] = const_cast<char *>(serverSoftware.c_str());
+    if (_request->_content) {
+        env[9] = const_cast<char *>(contentLength.c_str());
+        env[10] = const_cast<char *>(contentType.c_str());
+    }
     char ** args = new char * [2]();
     args[0] = const_cast<char *>(requestedFile.c_str());
     if (execve(requestedFile.c_str(), args, env) < 0) {

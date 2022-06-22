@@ -20,6 +20,14 @@ private:
     std::string method;
     std::string protocol;
     std::string pathinfo;
+    std::string contentLength;
+    std::string contentType;
+    std::string gatewayInterface;
+    std::string queryString;
+    std::string scriptName;
+    std::string serverName;
+    std::string serverPort;
+    std::string serverSoftware;
     pid_t       child;
 
     void execute(int, int, const std::string &);

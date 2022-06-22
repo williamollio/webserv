@@ -3,6 +3,7 @@
 //
 
 #include "HTTPRequest.hpp"
+#include "HTTPException.hpp"
 
 HTTPRequest::TYPE HTTPRequest::getType() const {
     return _type;
@@ -16,4 +17,16 @@ const URI &HTTPRequest::getURI() const {
 
 void HTTPRequest::setURI(const URI &uri) {
     HTTPRequest::uri = uri;
+}
+
+void HTTPRequest::set_payload(const std::string& data) throw(std::exception) {
+	size_t	cursor = data.find("\r\n\r\n", 0);
+	if (cursor == std::string::npos)
+		throw HTTPException(400);
+	cursor += 2;
+	_payload = data.substr(cursor);
+}
+
+const std::string & HTTPRequest::get_payload() const {
+    return _payload;
 }

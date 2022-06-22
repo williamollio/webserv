@@ -5,15 +5,15 @@
 #include "URI.hpp"
 #include "URISyntaxException.hpp"
 
-URI::URI(const std::string & uri): original(uri), tokens(), stream(original) {
+URI::URI(const std::string & uri): original(uri), tokens(), stream(original), syntaxThrowing(false) {
     tokenize();
 }
 
-URI::URI(const URI & other): original(other.original), tokens(), stream(original) {
+URI::URI(const URI & other): original(other.original), tokens(), stream(original), syntaxThrowing(other.isSyntaxExceptionEnabled()) {
     tokenize();
 }
 
-URI::URI(): original(), tokens() {}
+URI::URI(): original(), tokens(), syntaxThrowing(false) {}
 
 URI::~URI() {}
 
@@ -28,6 +28,11 @@ bool URI::isCGIIdentifier() const {
 }
 
 std::string URI::determineFileWithExtension() const {
+    const std::string & tmp = determineFile();
+    return hasExtension(tmp) ? tmp : std::string();
+}
+
+std::string URI::determineFile() const {
     std::stringstream buffer;
     for (std::list<Token>::const_iterator it = tokens.cbegin();
          it != tokens.cend() && isPathType(it->getType());
@@ -36,8 +41,7 @@ std::string URI::determineFileWithExtension() const {
         buffer << content;
         if (hasExtension(content)) break;
     }
-    const std::string & tmp = buffer.str();
-    return hasExtension(tmp) ? tmp : std::string();
+    return buffer.str();
 }
 
 void URI::tokenize() {
@@ -102,27 +106,54 @@ std::map<std::string, std::string> URI::getVars() const {
     vars["REQUEST"] = request.str();
     do {
         ++it;
-        expect(Token::TEXT, *it);
+        if (!expect(Token::TEXT, *it)) {
+            skipToNext(Token::AND, it);
+            continue;
+        }
         std::string name = it->getContent();
-        expect(Token::EQUAL, *(++it));
-        expect(Token::TEXT, *(++it));
+        if (!expect(Token::EQUAL, *(++it))) {
+            skipToNext(Token::AND, it);
+            continue;
+        }
+        if (!expect(Token::TEXT, *(++it))) {
+            skipToNext(Token::AND, it);
+            continue;
+        }
         vars[name] = it->getContent();
         ++it;
     } while (it->getType() != Token::END && ensureTokenIs(Token::AND, *it));
     return vars;
 }
 
-void URI::expect(URI::Token::Type type, const Token & token) {
-    if (token.getType() != type) throw URISyntaxException(token, "Expected '"
+bool URI::expect(URI::Token::Type type, const Token & token) const {
+    const bool ret = token.getType() == type;
+    if (!ret && syntaxThrowing) throw URISyntaxException(token, "Expected '"
                                                                + Token::tokenTypeString(type)
                                                                + "', got '"
                                                                + Token::tokenTypeString(token.getType())
                                                                + "'!");
+    return ret;
 }
 
-bool URI::ensureTokenIs(URI::Token::Type type, const Token & token) {
+bool URI::ensureTokenIs(URI::Token::Type type, const Token & token) const {
     expect(type, token);
     return true;
+}
+
+bool URI::isSyntaxExceptionEnabled() const {
+    return syntaxThrowing;
+}
+
+void URI::setSyntaxExceptionEnabled(bool enabled) {
+    syntaxThrowing = enabled;
+}
+
+void URI::skipToNext(URI::Token::Type type, std::list<Token>::const_iterator iterator) {
+    for (; iterator->getType() != Token::END || iterator->getType() == type; ++iterator);
+}
+
+std::string URI::getFile() const {
+    return determineFile();
 }
 
 URI &URI::operator=(const URI &other) {

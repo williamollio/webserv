@@ -17,14 +17,15 @@ public:
     virtual ~CGIResponse();
 
     virtual void run(Socket & socket) = 0;
-	std::string set_server_location(std::string path_from_configuration);
-	std::string set_default_file(std::string file);
-	std::string read_file(std::string file);
+    virtual bool isRunning();
+	std::string  set_server_location(std::string path_from_configuration);
+	std::string  set_default_file(std::string file);
+	std::string  read_file(std::string file);
 
 protected:
-	const HTTPRequest	* _request;
-	std::string			_server_location_log;
-	std::string			_default_file;
+	const HTTPRequest * _request;
+	std::string         _server_location_log;
+	std::string         _default_file;
 };
 
 

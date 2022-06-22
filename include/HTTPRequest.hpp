@@ -17,11 +17,12 @@ public:
         GET, POST, DELETE
     };
 
-    TYPE getType() const;
-	void get_payload(const std::string& data) throw(std::exception);
+    TYPE                getType() const;
+    void                set_payload(const std::string& data) throw(std::exception);
+    const std::string & get_payload() const;
 
-    const URI &getURI() const;
-    void setURI(const URI &uri);
+    const URI &         getURI() const;
+    void                setURI(const URI &uri);
 
 protected:
     explicit HTTPRequest(TYPE);

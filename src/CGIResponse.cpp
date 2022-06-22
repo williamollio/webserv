@@ -56,3 +56,7 @@ CGIResponse::CGIResponse(HTTPRequest *request): _request(request)
 }
 
 CGIResponse::~CGIResponse() {}
+
+bool CGIResponse::isRunning() {
+    return false;
+}

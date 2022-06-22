@@ -3,9 +3,7 @@
 //
 
 #include "HTTPReader.hpp"
-#include "HTTPRequest.hpp"
 #include "HTTPRequestGet.hpp"
-#include "CGIResponse.hpp"
 #include "CGIResponseGet.hpp"
 #include "CGIResponsePost.hpp"
 #include "CGIResponseDelete.hpp"
@@ -16,21 +14,21 @@
 #include <cstdlib>
 #include <iostream>
 
-HTTPReader::HTTPReader(): _socket() {}
+HTTPReader::HTTPReader(): _socket(), response(NULL) {}
 
-HTTPReader::HTTPReader(Socket &socket): _socket(socket) {}
+HTTPReader::HTTPReader(Socket & socket): _socket(socket), response(NULL) {}
 
 HTTPReader::~HTTPReader() {
+    if (response != NULL) delete response;
     try {
         _socket.close_socket();
-    } catch (std::exception &exception) {
+    } catch (std::exception & exception) {
         std::cerr << exception.what() << std::endl;
     }
 }
 
 void HTTPReader::run() {
 	HTTPRequest * request  = NULL;
-    CGIResponse * response = NULL;
     try {
         request = _parse();
         request->setURI(URI(request->_path));
@@ -47,13 +45,12 @@ void HTTPReader::run() {
         }
         response->run(_socket);
     }
-	catch (HTTPException& ex) {
+	catch (HTTPException & ex) {
 		CGIResponseError error;
 		error.set_error_code(ex.get_error_code());
 		error.run(_socket);
     }
 	if (request != NULL) delete request;
-    if (response != NULL) delete response;
 }
 
 std::vector<std::string>	split_str_vector(const std::string& tosplit, const std::string& needle) {
@@ -67,14 +64,6 @@ std::vector<std::string>	split_str_vector(const std::string& tosplit, const std:
 	}
 	str.push_back(tosplit.substr(cursor));
 	return str;
-}
-
-void HTTPRequest::get_payload(const std::string& data) throw(std::exception) {
-	size_t	cursor = data.find("\r\n\r\n", 0);
-	if (cursor == std::string::npos)
-		throw HTTPException(400);
-	cursor += 2;
-	_payload = data.substr(cursor);
 }
 
 HTTPRequest* HTTPReader::_parse() throw(std::exception) {
@@ -139,9 +128,13 @@ HTTPRequest* HTTPReader::_parse() throw(std::exception) {
 		throw HTTPException(400);
 	else if (retval->_content_length != 0) {
 		retval->_content = true;
-		retval->get_payload(raw);
+		retval->set_payload(raw);
 	}
 	else
 		retval->_content = false;
 	return retval;
+}
+
+bool HTTPReader::isRunning() const {
+    return response->isRunning();
 }

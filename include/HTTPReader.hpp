@@ -8,17 +8,22 @@
 
 #include "Socket.hpp"
 #include "HTTPRequest.hpp"
+#include "CGIResponse.hpp"
 
 class HTTPReader {
     public:
         HTTPReader();
-        HTTPReader(Socket &);
+        explicit HTTPReader(Socket &);
         ~HTTPReader();
+
         void run();
+        bool isRunning() const;
 
     private:
-        HTTPRequest* _parse() throw(std::exception);
-        Socket _socket;
+        Socket        _socket;
+        CGIResponse * response;
+
+        HTTPRequest * _parse() throw(std::exception);
 };
 
 

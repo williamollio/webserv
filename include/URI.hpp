@@ -22,6 +22,9 @@ public:
     URI & operator=(const URI &);
 
     bool                               isCGIIdentifier() const;
+    bool                               isSyntaxExceptionEnabled() const;
+    void                               setSyntaxExceptionEnabled(bool);
+    std::string                        getFile() const;
     std::map<std::string, std::string> getVars() const;
 
     class Token {
@@ -54,16 +57,19 @@ private:
     std::string           original;
     std::list<URI::Token> tokens;
     std::stringstream     stream;
+    bool                  syntaxThrowing;
 
     std::string        determineFileWithExtension() const;
+    std::string        determineFile() const;
     void               tokenize();
     URI::Token         nextToken();
+    inline bool        ensureTokenIs(Token::Type, const Token &) const;
+    inline bool        expect(Token::Type, const Token &) const;
     static bool        hasExtension(const std::string &);
     static bool        isCleanString(const std::string &, unsigned long pos);
-    static inline void expect(Token::Type, const Token &);
-    static inline bool ensureTokenIs(Token::Type, const Token &);
     static inline bool isSpecial(char c);
     static inline bool isPathType(URI::Token::Type);
+    static inline void skipToNext(Token::Type, std::list<Token>::const_iterator);
 };
 
 

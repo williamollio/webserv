@@ -12,7 +12,21 @@ public:
     explicit CGICall(HTTPRequest *);
     ~CGICall();
 
-    void run(Socket &socket);
+    void run(Socket & socket);
+    bool isRunning();
+
+private:
+    const URI & uri;
+    std::string method;
+    std::string protocol;
+    std::string pathinfo;
+    pid_t       child;
+
+    void execute(int, int, const std::string &);
+
+    static std::string   nextLine(int);
+    static HTTPHeader    parseCGIResponse(int);
+    static unsigned long skipWhitespaces(const std::string &, unsigned long);
 };
 
 

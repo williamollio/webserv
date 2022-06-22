@@ -113,8 +113,17 @@ HTTPHeader CGICall::parseCGIResponse(const int fd) {
             unsigned long i = pos - str;
             i = skipWhitespaces(arg, i);
             header.setStatusMessage(arg.substr(i, arg.size()));
+        } else if (varName == "Content-Length") {
+            header.set_content_length(static_cast<int>(strtol(arg.c_str(), NULL, 10)));
+        } else if (varName == "Connection") {
+            header.setConnection(arg);
+        } else if (varName == "Transfer-Encoding") {
+            header.setTransferEncoding(arg);
+        } else if (varName == "Content-Encoding") {
+            header.setContentEncoding(arg);
+        } else if (varName.compare(0, 6, "X-CGI-") == 0) {
+            // Ignore...
         } else throw HTTPException(500);
-        // TODO Add some more...
     }
     return header;
 }

@@ -52,7 +52,7 @@ void CGICall::run(Socket & socket) {
     while ((r = read(out[0], &b, 1)) > 0) {
         w = write(socket.get_fd(), &b, 1);
     }
-    // TODO: @team please discuss asynchronous CGI
+    // TODO: @team please discuss asynchronous CGI @Done, result: yes, using multithreading!
     close(out[0]);
     if (r < 0 || w < 0) throw HTTPException(500);
 }

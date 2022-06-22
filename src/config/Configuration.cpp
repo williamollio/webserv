@@ -5,285 +5,141 @@
 #include "Configuration.hpp"
 
 
-Configuration::Configuration() : e_line(0), _accept_file(false) {
+Configuration::Configuration() : e_line(1), _accept_file(false) {
 	///TODO: initialize standard values
 }
 
-Configuration::word Configuration::conf_token_cmp(const std::string& word) {
-	if (word == "server")
-		return server;
-	else {
-		return w_errortype;
-	}
-}
-
-Configuration::Configuration(std::string location) : e_line(0), _accept_file(false) {
+Configuration::Configuration(std::string location) : e_line(1), _accept_file(false) {
 		load_config_file(location);
 }
 
-void	clearws(std::string& line) {
-	std::cout << line << std::endl;
-	std::string::iterator	l = line.end();
-	for (std::string::iterator	it = line.begin(); it != l;) {
-		std::cout << "char: -" << *it << "-" << std::endl;
-		if (*it == ' ' || *it == '\t') {
-			std::cout << "here" << std::endl;
-			line.erase(it);
-		} else
-			break;
+std::string Configuration::getword(Configuration::vectorString& line) {
+
+}
+
+bool catch_special(std::string& line, size_t li) {
+	switch (line[li]) {
+		case ':':
+			return false;
+		case ';':
+			return false;
+		case '{':
+			return false;
+		case '}':
+			return false;
+		case ',':
+			return false;
+		default:
+			return true;
 	}
 }
 
-size_t	find_delim(std::string& line) {
-	size_t	focc = 0;
-	focc = line.find(' ');
-	if (line.find('	') < focc)
-		focc = line.find('	');
-	if (line.find('{') < focc)
-		focc = line.find('{');
-	if (line.find('}') < focc)
-		focc = line.find('}');
-//	if (line.find(':') < focc)
-//		focc = line.find(':');
-	if (line.find('#') < focc)
-		focc = line.find('#');
-	if (line.find(',') < focc)
-		focc = line.find(',');
-	return focc;
+std::vector<std::string>	split_line(std::string& line) {
+	size_t i = 0;
+	size_t li = 0;
+	std::vector<std::string>	ret;
+	while (li != line.length()) {
+		i = li;
+		while (i != line.length() && (line[i] == ' ' || line[i] == '\t')) { i++; }
+		li = i;
+		while (li != line.length() && line[li] != ' ' && line[li] != '\t' && catch_special(line, li)) {
+			li++;
+		}
+		if (li != i)
+			ret.push_back(line.substr(i, li - i));
+		if (!catch_special(line, li)) {
+			ret.push_back(line.substr(li, 1));
+			li++;
+		}
+	}
+	return ret;
 }
 
-std::string	getword(std::string& line) {
-	clearws(line);
-	std::string word = line.substr(0, find_delim(line));
-	return word;
+Configuration::word Configuration::conf_token_cmp(Configuration::vectorString &line, size_t index) {
+	if (line[index] == "server" || line[index] == "Server")
+		return server;
+	return w_errortype;
 }
 
-
-
-void	Configuration::load_config_file(std::string& path) {
+void Configuration::load_config_file(std::string &path) {
 	std::fstream	file(path, std::fstream::in | std::fstream::out);
 	std::string		line;
+	vectorString	splitted_line;
+	size_t			index = 0;
 	if (!file.is_open())
 		throw BadConfig("wrong configuration file path");
-	while (file.peek() != EOF) {
-		std::getline(file, line);
-		switch (conf_token_cmp(getword(line))) {
+	while (!file.eof()) {
+		if (index >= splitted_line.size()) {
+			index = 0;
+			std::getline(file, line);
+			splitted_line = split_line(line);
+			e_line++;
+		}
+		switch (conf_token_cmp(splitted_line, index)) {
 			case server:
-				parse_server(file, line);
+				index = parse_server(file, splitted_line, index);
 				break;
 			default:
-				throw UnexpectedToken(e_line);
+				throw UnexpectedToken(e_line, splitted_line[index]);
 		}
-		e_line++;
 	}
 }
-
+size_t	Configuration::parse_server(std::fstream& file, vectorString& s_line, size_t index) {
+	std::string	line;
+	if (!delim_token("{", s_line[index]))
+		throw UnexpectedToken(e_line, s_line[index]);
+	index++;
+	while (!file.eof()) {
+		if (index >= s_line.size()) {
+			index = 0;
+			std::getline(file, line);
+			s_line = split_line(line);
+			e_line++;
+		}
+		while (index < s_line.size()) {
+			if (delim_token("}", s_line[index]))
+				return index;
+			else {
+				switch(server_token_cmp(s_line[index])) {
+					case name://TODO
+					case port://TODO
+					case location://TODO
+					case location_error://TODO
+					case location_log://TODO
+					case file_acc://TODO
+					default:
+						throw UnexpectedToken(e_line, s_line[index]);
+			}}
+		}
+	}
+}
 
 Configuration::server_word Configuration::server_token_cmp(const std::string &word) {
-	std::cout << "string: " << word << std::endl;
-	if (word == "server_names" || word == "server_name")
+	if (word == "server_names" || word == "server_name" || word == "Server_Names" || word == "Server_names" || word == "names"|| word == "Names")
 		return name;
-	if (word == "port" || word == "ports")
+	else if (word == "port" || word == "Port" || word == "Ports" || word == "ports")
 		return port;
-	if (word == "loc" || word == "locations" || word == "file_location")
+	else if (word == "location" || word == "locations" || word == "loc" || word == "files" || word == "Files" || word == "server_location" || word == "server_locations")
 		return location;
-	if (word ==  "error_page_location" || word == "error_page_locations" || word == "error_pages")
+	else if (word == "error_location" || word == "error_locations" || word == "error_loc" || word == "error_files" || word == "Error_Files" || word == "error_page_location" || word == "error_page_locations")
 		return location_error;
-	if (word == "log" || word == "log_location" || word == "location_log")
+	else if (word == "log" || word == "log_loc" || word == "log_location" || word == "Log")
 		return location_log;
-	if (word == "accept_files" || word == "upload_files")
+	else if (word == "upload" || word == "uploads" || word ==  "user_upload" || word == "user_uploads" || word == "Upload" || word == "Uploads" || word ==  "User_Upload" || word == "User_Uploads")
 		return file_acc;
-	else
-		return s_errortype;
+	return s_errortype;
 }
 
-void	Configuration::get_next_delim_char(std::fstream& file, char delim, bool ws) {
-	char c;
-	while (file.peek() != EOF) {
-		file.get(c);
-		if (c == delim)
-			return;
-		else if (ws && (c == ' ' || c == '	'))
-			continue ;
-		else if (c == '\n')
-			e_line++;
-		else
-			throw UnexpectedToken(e_line);
+bool Configuration::delim_token(const std::string& delims, std::string &word) {
+	size_t i;
+	for ( i = 0; delims.c_str()[i]; i++) {
+		if (delims.substr(i, 1) == word)
+			return true;
 	}
-	throw UnexpectedToken(e_line);
+	return false;
 }
 
-void Configuration::parse_server(std::fstream& file, std::string& line) {
-	clearws(line);
-	if (find_delim(line) == 0)
-		get_next_delim_char(file, '{', true);
-	while (file.peek() != EOF) {
-		std::getline(file, line);
-		clearws(line);
-		std::cout << "-" << line << "-" << std::endl;
-		switch (server_token_cmp(getword(line))) {
-			case name: std::cout << line << std::endl;
-				parse_vec_str(file, _server_names, line);						break;
-			case port: std::cout << line << std::endl;
-				parse_vec_int(file, _ports, line);	check_portnum();		break;
-			case location: std::cout << line << std::endl;
-				parse_vec_str(file, _server_locations, line);					break;
-			case location_error: std::cout << line << std::endl;
-				parse_map_int_str(file, _server_locations_error_pages, line);	break;
-			case location_log: std::cout << line << std::endl;
-				parse_str(_server_location_log, line);							break;
-			case file_acc: std::cout << line << std::endl;
-				parse_bool(_accept_file, line);									break;
-			default:
-				throw UnexpectedToken(e_line);
-		}
-		e_line++;
-	}
-}
-
-void Configuration::parse_vec_str(std::fstream &file, Configuration::vectorString &output, std::string& c_line) {
-	bool cb = false;
-	size_t	pos = c_line.find(':');
-	if (pos > c_line.length()) {
-		std::getline(file, c_line);
-		e_line++;
-		pos = 0;
-	} else
-		pos++;
-	do {
-		std::string	sub = c_line.substr(pos);
-		output.push_back(getword(sub));
-		pos = find_delim(sub);
-		if (!cb && c_line[pos] == ';')
-			return;
-		else if (c_line[pos] == '{') {
-			cb = true;
-			std::getline(file, c_line);
-			e_line++;
-		} else if (c_line[pos] == '}') {
-			if (cb)
-				return;
-			else
-				throw UnexpectedToken(e_line);
-		} else if (cb && c_line[pos] == ',') {
-			std::getline(file, c_line);
-			e_line++;
-		} else if (c_line[pos] == ' ' || c_line[pos] == '	')
-			continue;
-		else
-			throw UnexpectedToken(e_line);
-	} while (pos != 0 || cb);
-	throw UnexpectedToken(e_line);
-}
-
-void Configuration::parse_vec_int(std::fstream &file, Configuration::vectorInt &output, std::string &c_line) {
-	bool cb = false;
-	size_t	pos = c_line.find(':');
-	if (pos > c_line.length()) {
-		std::getline(file, c_line);
-		e_line++;
-		pos = 0;
-	} else
-		pos++;
-	do {
-		std::string	sub = c_line.substr(pos);
-		output.push_back(atoi(getword(sub).c_str()));
-		pos = find_delim(sub);
-		if (!cb && c_line[pos] == ';')
-			return;
-		else if (c_line[pos] == '{') {
-			cb = true;
-			std::getline(file, c_line);
-			e_line++;
-		} else if (c_line[pos] == '}') {
-			if (cb)
-				return;
-			else
-				throw UnexpectedToken(e_line);
-		} else if (cb && c_line[pos] == ',') {
-			std::getline(file, c_line);
-			e_line++;
-		} else if (c_line[pos] == ' ' || c_line[pos] == '	')
-			continue;
-		else
-			throw UnexpectedToken(e_line);
-	} while (pos != 0 || cb);
-	throw UnexpectedToken(e_line);
-}
-
-void Configuration::check_portnum() {
-	for (vectorInt::iterator it = _ports.begin(); it != _ports.end(); it++)
-		if (*it > 65535 || *it < 0)
-			throw BadConfig("Bad Portnumber");
-}
-
-void Configuration::parse_bool(bool &output, std::string &c_line) {
-	size_t	pos = c_line.find(':');
-		pos++;
-	size_t	pos_end = c_line.find(';');
-	if (pos > c_line.length() || pos_end > c_line.length())
-		throw UnexpectedToken(e_line);
-	std::string	sub = c_line.substr(pos, pos_end);
-	sub = getword(sub);
-	if (sub == "1" || sub  == "true" || sub == "TRUE" || sub == "True")
-		output = true;
-	else if (sub == "0" || sub  == "false" || sub == "FALSE" || sub == "False")
-		output = false;
-	else
-		throw UnexpectedToken(e_line);
-}
-
-void Configuration::parse_str(std::string &output, std::string &c_line) {
-	size_t	pos = c_line.find(':');
-	if (pos > c_line.length() || c_line.find(';') > c_line.length())
-		throw UnexpectedToken(e_line);
-	std::string	sub = c_line.substr(pos);
-	output = getword(sub);
-}
-
-void Configuration::parse_map_int_str(std::fstream &file, Configuration::intMapString &output, std::string &c_line) {
-	bool	cb = false;
-	bool	c_int = true;
-	size_t	pos = c_line.find(':');
-	int		int_key;
-	if (pos > c_line.length()) {
-		std::getline(file, c_line);
-		e_line++;
-		pos = 0;
-	} else
-		pos++;
-	do {
-		std::string	sub = c_line.substr(pos);
-		if (c_int)
-		{
-			int_key = (atoi(getword(sub).c_str()));
-			c_int = false;
-		} else {
-			output[int_key] = getword(sub);
-			c_int = false;
-		}
-		pos = find_delim(sub);
-		if (!cb && c_line[pos] == ';')
-			return;
-		else if (c_line[pos] == '{') {
-			cb = true;
-			std::getline(file, c_line);
-			e_line++;
-		} else if (c_line[pos] == '}') {
-			if (cb)
-				return;
-			else
-				throw UnexpectedToken(e_line);
-		} else if (cb && c_line[pos] == ',') {
-			std::getline(file, c_line);
-			e_line++;
-		} else if (c_line[pos] == ' ' || c_line[pos] == '	')
-			continue;
-		else
-			throw UnexpectedToken(e_line);
-	} while (pos != 0 || cb);
-	throw UnexpectedToken(e_line);
-}
+//GETTER FUNCTIONS
 
 Configuration::vectorString Configuration::get_server_names() const {
 	return _server_names;
@@ -310,10 +166,18 @@ bool Configuration::get_server_file_acceptance() const {
 }
 
 
+
+//void Configuration::check_portnum() {
+//	for (vectorInt::iterator it = _ports.begin(); it != _ports.end(); it++)
+//		if (*it > 65535 || *it < 0)
+//			throw BadConfig("Bad Portnumber");
+//}
+
+
 //CLASS UNEXPECTED-TOKEN
-Configuration::UnexpectedToken::UnexpectedToken(size_t _in_line) _NOEXCEPT : _line(_in_line) {
+Configuration::UnexpectedToken::UnexpectedToken(size_t _in_line, std::string& tok) _NOEXCEPT : _line(_in_line) {
     std::stringstream ret;
-    ret << "unexpected token in line: " << _line;
+    ret << "line: " << _line << "unexpected token: " << tok;
     _token  = ret.str();
 }
 

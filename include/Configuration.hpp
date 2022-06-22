@@ -12,10 +12,10 @@ private:
 	typedef std::map<int, std::string>	intMapString;
 
 	enum word {server, w_errortype};
-	enum server_word {name, port, location, location_error, location_log, file_acc, s_errortype};
+	enum server_word {name, port, location, location_error, location_log, file_acc, eos, s_errortype};
 	size_t			e_line;
 
-	enum word	conf_token_cmp(const std::string& word);
+	enum word	conf_token_cmp(vectorString& line, size_t index);
 	enum server_word	server_token_cmp(const std::string& word);
 
 	vectorString	_server_names;					///standard localhost:PORT
@@ -25,9 +25,11 @@ private:
 	std::string		_server_location_log;
 	bool			_accept_file;					///standard OFF
 
-	void	parse_server(std::fstream& file, std::string& line);
+	size_t	parse_server(std::fstream& file, vectorString& s_line, size_t index);
 	void	get_next_delim_char(std::fstream& file, char delim, bool ws);
 	void	check_portnum();
+	std::string	getword(vectorString& line);
+	bool	delim_token(const std::string& delims, std::string& word);
 
 
 	void	parse_vec_str(std::fstream& file, vectorString& output, std::string& c_line);
@@ -52,10 +54,10 @@ public:
 	class UnexpectedToken : public std::exception {
 	private:
 		size_t	_line;
-        std::string _token;
+		std::string _token;
 	public:
-		UnexpectedToken(size_t _in_line) _NOEXCEPT;
-        ~UnexpectedToken() _NOEXCEPT {}
+		UnexpectedToken(size_t _in_line, std::string& tok) _NOEXCEPT;
+		~UnexpectedToken() _NOEXCEPT {}
 		const char *what() const _NOEXCEPT;
 	};
 

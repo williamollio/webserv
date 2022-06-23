@@ -33,14 +33,14 @@ private:
 
 public:	//TODO: make private with get and set
 	std::string		_copy_raw;
-	std::string		_http_version;
-	std::string		_path;
-	std::string		_user_agent;
-	std::string		_host;
-	vectorString	_lang;
-	vectorString	_encoding;
-	bool			_keep_alive;
-	bool			_content;
+    std::string		_http_version;
+    std::string		_path;
+    std::string		_user_agent;
+    std::string		_host;
+    vectorString	_lang;
+    vectorString	_encoding;
+    bool			_keep_alive;
+    bool			_content;
 	size_t			_content_length;
 	vectorString		_content_type;
 	std::string		_payload;

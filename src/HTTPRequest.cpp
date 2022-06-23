@@ -9,7 +9,7 @@ HTTPRequest::TYPE HTTPRequest::getType() const {
     return _type;
 }
 
-HTTPRequest::HTTPRequest(HTTPRequest::TYPE type): _type(type) {}
+HTTPRequest::HTTPRequest(HTTPRequest::TYPE type): _type(type), _keep_alive(false), _content(false), _content_length(0) {}
 
 const URI &HTTPRequest::getURI() const {
     return uri;

@@ -27,6 +27,9 @@ public:
     unsigned int        getPeerAddress() const;
     void                setPeerAddress(unsigned int peerAddress);
 
+    const std::string &  getPeerName() const;
+    void                 setPeerName(const std::string & peerName);
+
 protected:
     explicit HTTPRequest(TYPE);
 
@@ -34,6 +37,7 @@ private:
     const TYPE  _type;
     URI          uri;
     unsigned int peerAddress;
+    std::string  peerName;
 
 public:	//TODO: make private with get and set
 	std::string		_copy_raw;

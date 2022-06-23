@@ -28,7 +28,7 @@ void CGICall::run(Socket & socket) {
     pathinfo = "PATH_INFO=" + uri.getPathInfo();
     queryString = "QUERY_STRING=" + uri.getQuery();
     remoteAddress = "REMOTE_ADDR=" + int_to_ipv4(_request->getPeerAddress());
-    remoteHost = "REMOTE_HOST=" + int_to_ipv4(_request->getPeerAddress());
+    remoteHost = "REMOTE_HOST=" + _request->getPeerName();
     scriptName = "SCRIPT_NAME=" + pwd + uri.getFile();
     serverName = "SERVER_NAME=" + _request->_host;
     serverSoftware = "SERVER_SOFTWARE=webserv/1.0 (2022/06)";

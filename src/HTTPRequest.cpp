@@ -38,3 +38,11 @@ unsigned int HTTPRequest::getPeerAddress() const {
 void HTTPRequest::setPeerAddress(unsigned int peerAddress) {
     HTTPRequest::peerAddress = peerAddress;
 }
+
+const std::string &HTTPRequest::getPeerName() const {
+    return peerName;
+}
+
+void HTTPRequest::setPeerName(const std::string &peerName) {
+    HTTPRequest::peerName = peerName;
+}

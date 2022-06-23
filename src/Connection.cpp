@@ -2,6 +2,7 @@
 #include "HTTPReader.hpp"
 #include "IOException.hpp"
 #include <poll.h>
+#include <netdb.h>
 
 #define INFTIM -1
 
@@ -75,6 +76,10 @@ void Connection::establishConnection()
                 HTTPReader * reader = new HTTPReader(socket);
                 getpeername(socket.get_fd(), (struct sockaddr *) &address, (socklen_t *) &addrlen);
                 reader->setPeerAddress(ntohl(address.sin_addr.s_addr));
+                char * host = new char[50]();
+                getnameinfo((struct sockaddr *) &address, (socklen_t) addrlen, host, (socklen_t) 50, NULL, 0, 0);
+                reader->setPeerName(host);
+                delete[] host;
                 list.push_back(reader);
                 reader->run();
       	        _fds[i].fd = -1;

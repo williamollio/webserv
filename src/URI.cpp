@@ -39,7 +39,7 @@ std::string URI::determineFile() const {
          ++it) {
         const std::string & content = it->getContent();
         buffer << content;
-        if (hasExtension(content)) break;
+        if (hasExtension(content) && isCleanString(content, 0)) break;
     }
     return buffer.str();
 }
@@ -79,7 +79,7 @@ bool URI::isPathType(URI::Token::Type type) {
 
 bool URI::hasExtension(const std::string & str) {
     const unsigned long pos = str.rfind('.');
-    return pos != std::string::npos && pos != str.size() - 1 && isCleanString(str, pos);
+    return pos != std::string::npos && pos != str.size() - 1;
 }
 
 bool URI::isCleanString(const std::string & str, unsigned long pos) {

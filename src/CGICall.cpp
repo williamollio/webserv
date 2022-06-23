@@ -5,9 +5,7 @@
 #include <map>
 #include <csignal>
 #include "CGICall.hpp"
-#include "CGIResponseError.hpp"
 #include "HTTPException.hpp"
-
 
 CGICall::CGICall(HTTPRequest * request)
         : CGIResponse(request), uri(request->getURI()), method("REQUEST_METHOD="), child(-1) {}

@@ -1,7 +1,17 @@
 
-#include "../include/Tool.hpp"
+#include <sstream>
+#include "Tool.hpp"
 
-std::string get_message(const int & error_code)
+std::string int_to_ipv4(unsigned int address) {
+    std::stringstream s;
+    s << static_cast<unsigned int>(static_cast<unsigned char>(address >> 24)) << ".";
+    s << static_cast<unsigned int>(static_cast<unsigned char>(address >> 16)) << ".";
+    s << static_cast<unsigned int>(static_cast<unsigned char>(address >> 8))  << ".";
+    s << static_cast<unsigned int>(static_cast<unsigned char>(address));
+    return s.str();
+}
+
+std::string get_message(int error_code)
 {
 	switch(error_code)
 	{

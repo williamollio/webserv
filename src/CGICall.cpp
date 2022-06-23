@@ -22,7 +22,9 @@ void CGICall::run(Socket & socket) {
         case HTTPRequest::POST:   method += "POST";   break;
         case HTTPRequest::DELETE: method += "DELETE"; break;
     }
-    const std::string pwd = getcwd(NULL, 0);
+    const char * c_pwd = getcwd(NULL, 0);
+    const std::string pwd = c_pwd;
+    delete c_pwd;
     protocol = "SERVER_PROTOCOL=HTTP/1.1";
     gatewayInterface = "GATEWAY_INTERFACE=CGI/1.1";
     pathinfo = "PATH_INFO=" + uri.getPathInfo();

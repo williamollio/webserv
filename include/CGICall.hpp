@@ -28,6 +28,8 @@ private:
     std::string serverName;
     std::string serverPort;
     std::string serverSoftware;
+    std::string remoteAddress;
+    std::string remoteHost;
     pid_t       child;
 
     void execute(int, int, const std::string &);

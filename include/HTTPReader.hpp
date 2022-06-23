@@ -19,9 +19,13 @@ class HTTPReader {
         void run();
         bool isRunning() const;
 
-    private:
+        unsigned int getPeerAddress() const;
+        void         setPeerAddress(unsigned int peerAddress);
+
+private:
         Socket        _socket;
         CGIResponse * response;
+        unsigned int  peerAddress;
 
         HTTPRequest * _parse() throw(std::exception);
 };

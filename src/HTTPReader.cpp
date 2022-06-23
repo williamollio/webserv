@@ -32,6 +32,7 @@ void HTTPReader::run() {
     try {
         request = _parse();
         request->setURI(URI(request->_path));
+        request->setPeerAddress(peerAddress);
         if (request->getURI().isCGIIdentifier()) {
             response = new CGICall(request);
         } else {
@@ -137,4 +138,12 @@ HTTPRequest* HTTPReader::_parse() throw(std::exception) {
 
 bool HTTPReader::isRunning() const {
     return response->isRunning();
+}
+
+unsigned int HTTPReader::getPeerAddress() const {
+    return peerAddress;
+}
+
+void HTTPReader::setPeerAddress(unsigned int peerAddress) {
+    HTTPReader::peerAddress = peerAddress;
 }

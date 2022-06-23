@@ -24,12 +24,16 @@ public:
     const URI &         getURI() const;
     void                setURI(const URI &uri);
 
+    unsigned int        getPeerAddress() const;
+    void                setPeerAddress(unsigned int peerAddress);
+
 protected:
     explicit HTTPRequest(TYPE);
 
 private:
-    const TYPE		_type;
-    URI uri;
+    const TYPE  _type;
+    URI          uri;
+    unsigned int peerAddress;
 
 public:	//TODO: make private with get and set
 	std::string		_copy_raw;

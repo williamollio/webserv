@@ -27,8 +27,8 @@ void CGICall::run(Socket & socket) {
     gatewayInterface = "GATEWAY_INTERFACE=CGI/1.1";
     pathinfo = "PATH_INFO=" + uri.getPathInfo();
     queryString = "QUERY_STRING=" + uri.getQuery();
-    // TODO: IP Address (REMOTE_ADDR)
-    // TODO: REMOMTE_HOST = REMOTE_ADDR
+    remoteAddress = "REMOTE_ADDR=" + int_to_ipv4(_request->getPeerAddress());
+    remoteHost = "REMOTE_HOST=" + int_to_ipv4(_request->getPeerAddress());
     scriptName = "SCRIPT_NAME=" + pwd + uri.getFile();
     serverName = "SERVER_NAME=" + _request->_host;
     serverSoftware = "SERVER_SOFTWARE=webserv/1.0 (2022/06)";
@@ -84,19 +84,21 @@ void CGICall::execute(const int in, const int out, const std::string & requested
     dup2(out, STDOUT_FILENO);
     close(in);
     close(out);
-    char ** env = new char * [_request->_content ? 12 : 10]();
-    env[0] = const_cast<char *>(method.c_str());
-    env[1] = const_cast<char *>(protocol.c_str());
-    env[2] = const_cast<char *>(pathinfo.c_str());
-    env[3] = const_cast<char *>(gatewayInterface.c_str());
-    env[4] = const_cast<char *>(queryString.c_str());
-    env[5] = const_cast<char *>(scriptName.c_str());
-    env[6] = const_cast<char *>(serverName.c_str());
-    env[7] = const_cast<char *>(serverPort.c_str());
-    env[8] = const_cast<char *>(serverSoftware.c_str());
+    char ** env = new char * [_request->_content ? 14 : 12]();
+    env[0]  = const_cast<char *>(method.c_str());
+    env[1]  = const_cast<char *>(protocol.c_str());
+    env[2]  = const_cast<char *>(pathinfo.c_str());
+    env[3]  = const_cast<char *>(gatewayInterface.c_str());
+    env[4]  = const_cast<char *>(queryString.c_str());
+    env[5]  = const_cast<char *>(scriptName.c_str());
+    env[6]  = const_cast<char *>(serverName.c_str());
+    env[7]  = const_cast<char *>(serverPort.c_str());
+    env[8]  = const_cast<char *>(serverSoftware.c_str());
+    env[9]  = const_cast<char *>(remoteHost.c_str());
+    env[10] = const_cast<char *>(remoteAddress.c_str());
     if (_request->_content) {
-        env[9] = const_cast<char *>(contentLength.c_str());
-        env[10] = const_cast<char *>(contentType.c_str());
+        env[11] = const_cast<char *>(contentLength.c_str());
+        env[12] = const_cast<char *>(contentType.c_str());
     }
     char ** args = new char * [2]();
     args[0] = const_cast<char *>(requestedFile.c_str());

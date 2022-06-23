@@ -73,6 +73,8 @@ void Connection::establishConnection()
       	    } else {
                 Socket socket = _fds[i].fd;
                 HTTPReader * reader = new HTTPReader(socket);
+                getpeername(socket.get_fd(), (struct sockaddr *) &address, (socklen_t *) &addrlen);
+                reader->setPeerAddress(ntohl(address.sin_addr.s_addr));
                 list.push_back(reader);
                 reader->run();
       	        _fds[i].fd = -1;

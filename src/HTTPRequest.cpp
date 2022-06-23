@@ -30,3 +30,11 @@ void HTTPRequest::set_payload(const std::string& data) throw(std::exception) {
 const std::string & HTTPRequest::get_payload() const {
     return _payload;
 }
+
+unsigned int HTTPRequest::getPeerAddress() const {
+    return peerAddress;
+}
+
+void HTTPRequest::setPeerAddress(unsigned int peerAddress) {
+    HTTPRequest::peerAddress = peerAddress;
+}

@@ -28,7 +28,6 @@ std::string CGIResponse::read_file(std::string file)
 {
 	std::ifstream is;
 	is.open(file);
-	std::cout << "file to open : " << file << std::endl;
 	if (!is.is_open())
 		throw HTTPException(404);
 

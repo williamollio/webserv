@@ -7,6 +7,7 @@
 
 #include <string>
 #include <vector>
+#include <iostream>
 #include "URI.hpp"
 
 class HTTPRequest {

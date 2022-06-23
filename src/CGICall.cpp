@@ -45,7 +45,7 @@ void CGICall::run(Socket & socket) {
         contentLength = s.str();
         contentType = "CONTENT_TYPE=";
         for (std::vector<std::string>::const_iterator it = _request->_content_type.begin(); it != _request->_content_type.end(); ++it) {
-            contentType += *it;
+            contentType += *it + ",";
         }
     }
     const std::string & requestedFile = pwd + _request->_path;

@@ -2,6 +2,7 @@
 #include "Socket.hpp"
 
 int main() {
+    signal(SIGPIPE, SIG_IGN);
 	try
 	{
 		Connection	server_connection;

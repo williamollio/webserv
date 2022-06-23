@@ -51,8 +51,9 @@ std::string CGIResponse::set_default_file(std::string file)
 CGIResponse::CGIResponse(HTTPRequest *request): _request(request)
 {
 	/* CONFIGURATION */
-	_server_location_log = set_server_location("/");
+	_server_location_log = set_server_location("/server");
 	_default_file = set_default_file("index.html");
+	_upload = "/upload";
 }
 
 CGIResponse::~CGIResponse() {}

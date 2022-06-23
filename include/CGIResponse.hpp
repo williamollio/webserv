@@ -26,6 +26,7 @@ protected:
 	const HTTPRequest * _request;
 	std::string         _server_location_log;
 	std::string         _default_file;
+	std::string         _upload;
 };
 
 

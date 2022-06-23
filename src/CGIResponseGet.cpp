@@ -37,7 +37,6 @@ std::string CGIResponseGet::construct_content_type()
 		tmp += _file_extension;
 	else
 		tmp += "plain";
-	std::cout << "tmp: " << tmp << "file extension: " << _file_extension << std::endl;
 	return (tmp);
 }
 
@@ -51,7 +50,6 @@ void CGIResponseGet::run(Socket & socket) {
 	header.set_content_length(body.size());
     header.setStatusCode(200);
     header.setStatusMessage("OK");
-    std::cout << "header sent back :\n" << header.tostring() << std::endl;
 	socket.send(header.tostring() + "\r\n\r\n" + body);
 }
 

@@ -25,7 +25,7 @@ void HTTPRequest::set_payload(const std::string& data) throw(std::exception) {
 		throw HTTPException(400);
 	cursor += 2;
 	_payload = data.substr(cursor);
-	std::cout << "_payload: \n" << _payload << std::endl;
+	std::cout << "_payload BEFORE: \n" << _payload << std::endl;
 }
 
 const std::string & HTTPRequest::get_payload() const {

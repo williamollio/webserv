@@ -27,7 +27,7 @@ void CGICall::run(Socket & socket) {
     const std::string pwd = getcwd(NULL, 0);
     protocol = "SERVER_PROTOCOL=HTTP/1.1";
     gatewayInterface = "GATEWAY_INTERFACE=CGI/1.1";
-    pathinfo = "PATH_INFO=" + uri.getPathInfo(); // TODO: [...]/script/something?bla -> [...]/something -> <serverPath>/something Done?
+    pathinfo = "PATH_INFO=" + uri.getPathInfo();
     queryString = "QUERY_STRING=" + uri.getQuery();
     // TODO: IP Address (REMOTE_ADDR)
     // TODO: REMOMTE_HOST = REMOTE_ADDR
@@ -48,7 +48,7 @@ void CGICall::run(Socket & socket) {
             contentType += *it + ",";
         }
     }
-    const std::string & requestedFile = pwd + _request->_path;
+    const std::string & requestedFile = pwd + uri.getFile();
     if (access(requestedFile.c_str(), F_OK) < 0) throw HTTPException(404);
     if (access(requestedFile.c_str(), X_OK) < 0) throw HTTPException(403);
     int in[2], out[2];

@@ -22,10 +22,12 @@ CGICall::CGICall(HTTPRequest * request)
 }
 
 CGICall::~CGICall() {
+    pthread_cancel(threadID);
+    pthread_join(threadID, NULL);
+    if (child > -1) {
+        kill(child, SIGTERM);
+    }
     pthread_mutex_destroy(&runningMutex);
-//    if (child > -1) {
-//        kill(child, SIGTERM);
-//    }
 }
 
 void CGICall::run(Socket & _socket) {
@@ -99,6 +101,7 @@ void CGICall::async(CGICall * self) {
                   << "INFO: " << exception.what()   << std::endl;
     }
     close(self->out[0]);
+    close(self->socket.get_fd());
     pthread_mutex_lock(&self->runningMutex);
     self->running = false;
     pthread_mutex_unlock(&self->runningMutex);

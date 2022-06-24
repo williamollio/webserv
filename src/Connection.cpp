@@ -66,7 +66,11 @@ void Connection::establishConnection()
             else if (_fds[i].revents == POLLERR || _fds[i].revents == POLL_HUP) {
                 ReaderByFDFinder finder(_fds[i].fd);
                 std::list<HTTPReader *>::iterator it = std::find_if(list.begin(), list.end(), finder);
-                if (it != list.end()) delete *it;
+                if (it != list.end()) {
+                    delete *it;
+                    *it = NULL;
+                }
+                list.remove(NULL);
                 close(_fds[i].fd);
                 _fds[i].fd = -1;
                 continue;

@@ -136,5 +136,5 @@ HTTPRequest* HTTPReader::_parse() throw(std::exception) {
 }
 
 bool HTTPReader::isRunning() const {
-    return response->isRunning();
+    return response == NULL || response->isRunning();
 }

@@ -56,12 +56,12 @@ void Connection::establishConnection()
         {
       	    if (_fds[i].revents == 0)
                 continue;
-            if(_fds[i].revents != POLLIN)
-      	    {
-                std::cout << "Error! revents = " << _fds[i].revents << std::endl;
-                end_server = true;
-                break;
-      	    }
+            // if(_fds[i].revents != POLLIN)
+      	    // {
+            //     std::cout << "Error! revents = " << _fds[i].revents << std::endl;
+            //     end_server = true;
+            //     break;
+      	    // }
             if (_fds[i].fd == server_fd)
       	    {
                 int socketDescriptor;

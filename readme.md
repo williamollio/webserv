@@ -29,3 +29,4 @@
 # To do
 - <strong> HTTPReader </strong>: POST Request on Safari & Chrome throwing error
 - <strong> HTTPSender </strong> : DELETE request/response
+- <strong> HTTPReader & CGI </strong> : chunked request

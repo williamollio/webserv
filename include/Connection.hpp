@@ -24,6 +24,16 @@ class Connection {
 		void _initialization_poll();
         void cleanReaders();
 
+        class ReaderByFDFinder {
+        public:
+            explicit ReaderByFDFinder(int fd);
+
+            bool operator()(HTTPReader* &) const;
+
+        private:
+            const int fd;
+        };
+
 	public:
 		Connection();
 		~Connection();

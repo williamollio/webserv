@@ -156,3 +156,11 @@ const std::string &HTTPReader::getPeerName() const {
 void HTTPReader::setPeerName(const std::string &peerName) {
     HTTPReader::peerName = peerName;
 }
+
+const Socket & HTTPReader::getSocket() const {
+    return _socket;
+}
+
+void HTTPReader::setSocket(const Socket & socket) {
+    _socket = socket;
+}

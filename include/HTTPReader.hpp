@@ -25,6 +25,9 @@ class HTTPReader {
         const std::string & getPeerName() const;
         void                setPeerName(const std::string &peerName);
 
+        const Socket & getSocket() const;
+        void           setSocket(const Socket &);
+
 private:
         Socket        _socket;
         CGIResponse * response;

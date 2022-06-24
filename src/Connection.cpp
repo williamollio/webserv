@@ -57,12 +57,23 @@ void Connection::establishConnection()
         {
       	    if (_fds[i].revents == 0)
                 continue;
-            if(_fds[i].revents != POLLIN)
-      	    {
-                std::cout << "Error! revents = " << _fds[i].revents << std::endl;
-                end_server = true;
-                break;
-      	    }
+//            if(_fds[i].revents != POLLIN)
+//      	    {
+//                std::cout << "Error! revents = " << _fds[i].revents << std::endl;
+//                end_server = true;
+//                break;
+//      	    }
+            else if (_fds[i].revents == POLLERR || _fds[i].revents == POLL_HUP) {
+                ReaderByFDFinder finder(_fds[i].fd);
+                std::list<HTTPReader *>::iterator it = std::find_if(list.begin(), list.end(), finder);
+                if (it != list.end()) delete *it;
+                close(_fds[i].fd);
+                _fds[i].fd = -1;
+                continue;
+            } else if (_fds[i].revents == POLLNVAL) {
+                _fds[i].fd = -1;
+                continue;
+            }
             if (_fds[i].fd == server_fd)
       	    {
                 int socketDescriptor;
@@ -103,4 +114,12 @@ static void maybeDeleteReader(HTTPReader* & reader) {
 void Connection::cleanReaders() {
     std::for_each(list.begin(), list.end(), maybeDeleteReader);
     list.remove(NULL);
+}
+
+// R E A D E R B Y F D F I N D E R   I M P L E M E N T A T I O N
+
+Connection::ReaderByFDFinder::ReaderByFDFinder(int fd) : fd(fd) {}
+
+bool Connection::ReaderByFDFinder::operator()(HTTPReader *  & reader) const {
+    return reader->getSocket().get_fd() == fd;
 }

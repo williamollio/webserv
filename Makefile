@@ -29,7 +29,7 @@ OBJ		= $(MAIN_OBJ:.cpp=.o) #$(CONF_OBJ:.cpp=.o)
 
 NAME	= webserv
 
-FLAGS	= -Wall -Wextra -std=c++98 -g #-Werror
+FLAGS	= -Wall -Wextra -std=c++98 -g -fsanitize=thread #-Werror
 
 INC		= -Iinclude
 

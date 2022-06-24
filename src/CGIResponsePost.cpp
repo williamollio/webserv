@@ -55,19 +55,29 @@ void CGIResponsePost::create_file(std::string &payload) {
 }
 
 void CGIResponsePost::saveFile(std::string payload) {
+	const char *upload;
+	DIR* dir;
+	char buf[256];
+
 	_filename = setFilename(payload);
 	trim_payload(payload);
-	create_file(payload);
-	const char *upload = _upload.c_str();
-	DIR* dir = opendir(upload);
+
+	upload = _upload.c_str();
+	dir = opendir(upload);
 	if (dir) {
-		std::cout << "fine" << std::endl;
+
+		if (getcwd(buf, sizeof(buf)) == NULL)
+			throw HTTPException(404);
+
+		if (chdir(upload) != 0)
+			throw HTTPException(404);
+
+		create_file(payload);
+		if (chdir(buf) != 0)
+			throw HTTPException(404);
 		closedir(dir);
 	}
-	else if (ENOENT == errno) { // can't find folder
-		throw HTTPException(501);
-	}
-	else { // permissions aren't correct
+	else {
 		throw HTTPException(500);
 	}
 }

@@ -10,6 +10,7 @@
 #include "HTTPRequestPost.hpp"
 #include <dirent.h>
 #include <errno.h>
+#include <fstream>
 
 class CGIResponsePost : public CGIResponse {
 public:
@@ -23,6 +24,8 @@ private:
 	void saveFile(std::string payload);
 	std::string setFilename(std::string payload);
 	void trim_payload(std::string &payload);
+	std::string get_delimiter(std::string &tmp);
+	void create_file(std::string &payload);
 };
 
 

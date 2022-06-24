@@ -6,17 +6,30 @@
 #include <csignal>
 #include "CGICall.hpp"
 #include "HTTPException.hpp"
+#include "CGIResponseError.hpp"
 
 CGICall::CGICall(HTTPRequest * request)
-        : CGIResponse(request), uri(request->getURI()), method("REQUEST_METHOD="), child(-1) {}
-
-CGICall::~CGICall() {
-    if (child > -1) {
-        kill(child, SIGTERM);
-    }
+        : CGIResponse(request),
+          uri(request->getURI()),
+          method("REQUEST_METHOD="),
+          child(-1),
+          threadID(),
+          in(),
+          out(),
+          running(false),
+          runningMutex() {
+    pthread_mutex_init(&runningMutex, NULL);
 }
 
-void CGICall::run(Socket & socket) {
+CGICall::~CGICall() {
+    pthread_mutex_destroy(&runningMutex);
+//    if (child > -1) {
+//        kill(child, SIGTERM);
+//    }
+}
+
+void CGICall::run(Socket & _socket) {
+    socket = _socket;
     switch (_request->getType()) {
         case HTTPRequest::GET:    method += "GET";    break;
         case HTTPRequest::POST:   method += "POST";   break;
@@ -51,31 +64,55 @@ void CGICall::run(Socket & socket) {
     const std::string & requestedFile = pwd + uri.getFile();
     if (access(requestedFile.c_str(), F_OK) < 0) throw HTTPException(404);
     if (access(requestedFile.c_str(), X_OK) < 0) throw HTTPException(403);
-    int in[2], out[2];
     if (pipe(in) < 0) throw HTTPException(500);
     if (pipe(out) < 0) {
         close(in[0]);
         close(in[1]);
         throw HTTPException(500);
     }
+    running = true;
     write(in[1], _request->get_payload().c_str(), _request->get_payload().size());
     close(in[1]);
     execute(in[0], out[1], requestedFile);
-    int status;
-    waitpid(child, &status, WUNTRACED);
-    close(in[0]);
-    close(out[1]);
-    if (status != 0) throw HTTPException(500);
-    socket.send(parseCGIResponse(out[0]).tostring());
-    socket.send("\r\n\r\n");
-    ssize_t r, w;
-    char b;
-    while ((r = read(out[0], &b, 1)) > 0) {
-        w = write(socket.get_fd(), &b, 1);
+    pthread_create(&threadID, NULL, reinterpret_cast<void *(*)(void *)>(CGICall::async), this);
+}
+
+void CGICall::async(CGICall * self) {
+    try {
+        int status;
+        waitpid(self->child, &status, WUNTRACED);
+        close(self->in[0]);
+        close(self->out[1]);
+        if (status != 0) throw HTTPException(500);
+        self->socket.send(parseCGIResponse(self->out[0]).tostring());
+        self->socket.send("\r\n\r\n");
+        ssize_t r, w;
+        char b;
+        while ((r = read(self->out[0], &b, 1)) > 0) {
+            if ((w = write(self->socket.get_fd(), &b, 1)) < 0) break;
+        }
+        if (r < 0 || w < 0) throw IOException("Could not send or read!");
+    } catch (HTTPException & httpException) {
+        self->sendError();
+    } catch (std::exception & exception) {
+        std::clog << "INFO: Socket has been closed" << std::endl
+                  << "INFO: " << exception.what()   << std::endl;
     }
-    // TODO: @team please discuss asynchronous CGI @Done, result: yes, using multithreading!
-    close(out[0]);
-    if (r < 0 || w < 0) throw HTTPException(500);
+    close(self->out[0]);
+    pthread_mutex_lock(&self->runningMutex);
+    self->running = false;
+    pthread_mutex_unlock(&self->runningMutex);
+}
+
+void CGICall::sendError() _NOEXCEPT {
+    try {
+        CGIResponseError error;
+        error.set_error_code(500);
+        error.run(socket);
+    } catch (std::exception & exception) {
+        std::clog << "INFO: Socket has been closed" << std::endl
+                  << "INFO: " << exception.what()   << std::endl;
+    }
 }
 
 void CGICall::execute(const int in, const int out, const std::string & requestedFile) {
@@ -110,10 +147,15 @@ void CGICall::execute(const int in, const int out, const std::string & requested
 }
 
 bool CGICall::isRunning() {
-    if (child == -1) return false;
-    int status;
-    const pid_t result = waitpid(child, &status, WNOHANG);
-    return result == 0;
+    bool ret;
+    pthread_mutex_lock(&runningMutex);
+    ret = running;
+    pthread_mutex_unlock(&runningMutex);
+    return ret;
+//    if (child == -1) return false;
+//    int status;
+//    const pid_t result = waitpid(child, &status, WNOHANG);
+//    return result == 0;
 }
 
 HTTPHeader CGICall::parseCGIResponse(const int fd) {

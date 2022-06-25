@@ -27,7 +27,15 @@ OBJ		= $(MAIN_OBJ:.cpp=.o) $(CONF_OBJ:.cpp=.o)
 
 NAME	= webserv
 
-FLAGS	= -Wall -Wextra -std=c++98 -g #-Werror
+FLAGS	= -Wall -Wextra -g #-Werror
+
+UNAME_S := $(shell uname -s)
+    ifeq ($(UNAME_S),Linux)
+        FLAGS+= -D_NOEXCEPT="_GLIBCXX_TXN_SAFE_DYN _GLIBCXX_NOTHROW" -Wno-deprecated
+    endif
+    ifeq ($(UNAME_S),Darwin)
+        CCFLAGS +=  -std=c++98
+    endif
 
 INC		= -Iinclude
 

@@ -5,11 +5,11 @@
 #include "Configuration.hpp"
 
 
-Configuration::Configuration() : e_line(1), _accept_file(false) {
+Configuration::Configuration() : e_line(0), _accept_file(false) {
 	///TODO: initialize standard values
 }
 
-Configuration::Configuration(std::string location) : e_line(1), _accept_file(false) {
+Configuration::Configuration(std::string location) : e_line(0), _accept_file(false) {
 		load_config_file(location);
 }
 
@@ -86,7 +86,7 @@ void Configuration::load_config_file(std::string &path) {
 }
 size_t	Configuration::parse_server(std::fstream& file, vectorString& s_line, size_t index) {
 	std::string	line;
-	if (!delim_token("{", s_line[index]))
+	if (!delim_token("{", s_line[++index]))
 		throw UnexpectedToken(e_line, s_line[index]);
 	index++;
 	while (!file.eof()) {
@@ -102,8 +102,14 @@ size_t	Configuration::parse_server(std::fstream& file, vectorString& s_line, siz
 			else {
 				switch(server_token_cmp(s_line[index])) {
 					case name://TODO
+						index = parse_vec_str(file, s_line, index);
+						break;
 					case port://TODO
+						index = parse_vec_int(file, s_line, index);
+						break;
 					case location://TODO
+						index = parse_vec_str(file, s_line, index)
+						break;
 					case location_error://TODO
 					case location_log://TODO
 					case file_acc://TODO
@@ -177,7 +183,7 @@ bool Configuration::get_server_file_acceptance() const {
 //CLASS UNEXPECTED-TOKEN
 Configuration::UnexpectedToken::UnexpectedToken(size_t _in_line, std::string& tok) _NOEXCEPT : _line(_in_line) {
     std::stringstream ret;
-    ret << "line: " << _line << "unexpected token: " << tok;
+    ret << "line: " << _line << " unexpected token: " << tok;
     _token  = ret.str();
 }
 

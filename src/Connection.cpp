@@ -1,6 +1,9 @@
 #include "Connection.hpp"
 #include "HTTPReader.hpp"
 #include "IOException.hpp"
+#if defined(__linux__) || defined(__linux) || defined(linux) || defined(__gnu_linux__)
+    #include <algorithm>
+#endif
 
 Connection::Connection() : address(), _fds(), _timeout(3 * 60 * 1000)
 {

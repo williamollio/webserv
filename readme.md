@@ -28,7 +28,7 @@
 
 # To do
 - <strong> HTTPReader </strong>: POST Request on Safari & Chrome throwing error
-- <strong> HTTPSender </strong> : DELETE request/response, handle rules for locations, methods
+- <strong> HTTPSender </strong> : Handle rules for locations/methods
 - <strong> HTTPReader & CGI </strong> : chunked request
 
 Turn on/off directory listing ?¿

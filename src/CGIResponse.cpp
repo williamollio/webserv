@@ -4,19 +4,25 @@
 
 #include "../include/CGIResponse.hpp"
 
-std::string CGIResponse::set_server_location(std::string path_from_configuration)
+std::string CGIResponse::set_current_path()
 {
 	char buf[256];
 
+	if (getcwd(buf, sizeof(buf)) == NULL)
+		throw HTTPException(404);
+	std::string current_path(buf);
+	return (current_path);
+}
+
+std::string CGIResponse::set_server_location(std::string path_from_configuration)
+{
 	static std::string tmp = "";
 
+	_current_path = set_current_path();
 	if (tmp == "")
 	{
-		if (getcwd(buf, sizeof(buf)) == NULL)
-			throw HTTPException(404);
-		std::string path(buf);
-		path += path_from_configuration;
-		const char * path_tmp = path.c_str();
+		_current_path += path_from_configuration;
+		const char * path_tmp = _current_path.c_str();
 		tmp = std::string(path_tmp);
 		if (chdir(path_tmp) != 0)
 			throw HTTPException(404);

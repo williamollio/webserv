@@ -37,6 +37,8 @@ private:
     int             out[2];
     bool            running;
     pthread_mutex_t runningMutex;
+    char **         environment;
+    char **         arguments;
 
     void execute(int, int, const std::string &);
     void sendError() _NOEXCEPT;

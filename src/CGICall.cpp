@@ -17,7 +17,8 @@ CGICall::CGICall(HTTPRequest * request)
           in(),
           out(),
           running(false),
-          runningMutex() {
+          runningMutex(),
+          environment(NULL), arguments(NULL) {
     pthread_mutex_init(&runningMutex, NULL);
 }
 
@@ -28,6 +29,8 @@ CGICall::~CGICall() {
         kill(child, SIGTERM);
     }
     pthread_mutex_destroy(&runningMutex);
+    if (environment != NULL) delete[] environment;
+    if (arguments != NULL) delete[] arguments;
 }
 
 void CGICall::run(Socket & _socket) {
@@ -48,6 +51,8 @@ void CGICall::run(Socket & _socket) {
     remoteHost = "REMOTE_HOST=" + _request->getPeerName();
     scriptName = "SCRIPT_NAME=" + pwd + uri.getFile();
     serverName = "SERVER_NAME=" + _request->_host;
+    arguments = new char * [2]();
+    environment = new char * [_request->_content ? 14 : 12]();
     serverSoftware = "SERVER_SOFTWARE=webserv/1.0 (2022/06)";
     {
         std::stringstream s;
@@ -126,25 +131,23 @@ void CGICall::execute(const int in, const int out, const std::string & requested
     dup2(out, STDOUT_FILENO);
     close(in);
     close(out);
-    char ** env = new char * [_request->_content ? 14 : 12]();
-    env[0]  = const_cast<char *>(method.c_str());
-    env[1]  = const_cast<char *>(protocol.c_str());
-    env[2]  = const_cast<char *>(pathinfo.c_str());
-    env[3]  = const_cast<char *>(gatewayInterface.c_str());
-    env[4]  = const_cast<char *>(queryString.c_str());
-    env[5]  = const_cast<char *>(scriptName.c_str());
-    env[6]  = const_cast<char *>(serverName.c_str());
-    env[7]  = const_cast<char *>(serverPort.c_str());
-    env[8]  = const_cast<char *>(serverSoftware.c_str());
-    env[9]  = const_cast<char *>(remoteHost.c_str());
-    env[10] = const_cast<char *>(remoteAddress.c_str());
+    environment[0]  = const_cast<char *>(method.c_str());
+    environment[1]  = const_cast<char *>(protocol.c_str());
+    environment[2]  = const_cast<char *>(pathinfo.c_str());
+    environment[3]  = const_cast<char *>(gatewayInterface.c_str());
+    environment[4]  = const_cast<char *>(queryString.c_str());
+    environment[5]  = const_cast<char *>(scriptName.c_str());
+    environment[6]  = const_cast<char *>(serverName.c_str());
+    environment[7]  = const_cast<char *>(serverPort.c_str());
+    environment[8]  = const_cast<char *>(serverSoftware.c_str());
+    environment[9]  = const_cast<char *>(remoteHost.c_str());
+    environment[10] = const_cast<char *>(remoteAddress.c_str());
     if (_request->_content) {
-        env[11] = const_cast<char *>(contentLength.c_str());
-        env[12] = const_cast<char *>(contentType.c_str());
+        environment[11] = const_cast<char *>(contentLength.c_str());
+        environment[12] = const_cast<char *>(contentType.c_str());
     }
-    char ** args = new char * [2]();
-    args[0] = const_cast<char *>(requestedFile.c_str());
-    if (execve(requestedFile.c_str(), args, env) < 0) {
+    arguments[0] = const_cast<char *>(requestedFile.c_str());
+    if (execve(requestedFile.c_str(), arguments, environment) < 0) {
         exit(-1);
     }
 }

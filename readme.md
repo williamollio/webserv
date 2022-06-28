@@ -28,5 +28,5 @@
 
 # To do
 - <strong> HTTPReader </strong>: POST Request on Safari & Chrome throwing error (Jascha)
-- <strong> HTTPSender </strong> : Handle rules for locations/methods (William), Directory listing 
+- <strong> HTTPSender </strong> : Handle rules for locations/methods (William), Directory listing (William)
 - <strong> HTTPReader </strong> : Chunked request (William)

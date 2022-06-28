@@ -19,12 +19,44 @@ void HTTPRequest::setURI(const URI &uri) {
     HTTPRequest::uri = uri;
 }
 
+std::string HTTPRequest::unchunkedPayload(const std::string &data, size_t cursor)
+{
+	std::string payload;
+	std::string line;
+	std::string buffer;
+
+	payload = data.substr(cursor);
+	std::istringstream tmp(payload);
+	getline(tmp, line);
+	for (int i = 1; line.front() != '0'; i++)
+	{
+		if (i % 2)
+		{
+			line.pop_back();
+			buffer.append(line);
+			line.clear();
+		}
+		getline(tmp, line);
+	}
+	payload.clear();
+	payload = buffer;
+	return (payload);
+}
+
+bool HTTPRequest::isChunkedRequest(const std::string &data)
+{
+	return (data.find("Transfer-Encoding: chunked") != std::string::npos);
+}
+
 void HTTPRequest::set_payload(const std::string& data) throw(std::exception) {
 	size_t	cursor = data.find("\r\n\r\n", 0);
 	if (cursor == std::string::npos)
 		throw HTTPException(400);
 	cursor += 2;
-	_payload = data.substr(cursor);
+	if (isChunkedRequest(data))
+		_payload = unchunkedPayload(data, cursor);
+	else
+		_payload = data.substr(cursor);
 }
 
 const std::string & HTTPRequest::get_payload() const {

@@ -4,7 +4,7 @@
 
 #include "../include/CGIResponse.hpp"
 
-std::string CGIResponse::set_current_path()
+std::string CGIResponse::get_current_path()
 {
 	char buf[256];
 
@@ -14,11 +14,12 @@ std::string CGIResponse::set_current_path()
 	return (current_path);
 }
 
+
 std::string CGIResponse::set_server_location(std::string path_from_configuration)
 {
 	static std::string tmp = "";
 
-	_current_path = set_current_path();
+	_current_path = get_current_path();
 	if (tmp == "")
 	{
 		_current_path += path_from_configuration;

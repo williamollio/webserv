@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <sstream>
 #include "URI.hpp"
 
 class HTTPRequest {
@@ -30,6 +31,8 @@ public:
 
     const std::string &  getPeerName() const;
     void                 setPeerName(const std::string & peerName);
+	std::string          unchunkedPayload(const std::string &data, size_t cursor);
+	bool                 isChunkedRequest(const std::string &data);
 
 protected:
     explicit HTTPRequest(TYPE);
@@ -51,7 +54,7 @@ public:	//TODO: make private with get and set
     bool			_keep_alive;
     bool			_content;
 	size_t			_content_length;
-	vectorString		_content_type;
+	vectorString	_content_type;
 	std::string		_payload;
 };
 

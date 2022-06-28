@@ -128,7 +128,7 @@ HTTPRequest* HTTPReader::_parse() throw(std::exception) {
 	}
 	if (retval->_content_length != 0 && retval->_content_type.empty())
 		throw HTTPException(400);
-	else if (retval->_content_length != 0) {
+	else if (retval->_content_length != 0 || retval->isChunkedRequest(raw)) {
 		retval->_content = true;
 		retval->set_payload(raw);
 	}

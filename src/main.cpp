@@ -7,8 +7,8 @@ int main() {
 	try
 	{
 		Configuration	config("server.conf");
-		std::cout << config;
-		std::cout << "config loaded!" << std::endl;
+		// std::cout << config;
+		// std::cout << "config loaded!" << std::endl;
 		Connection	server_connection;
 		server_connection.establishConnection();
 	}

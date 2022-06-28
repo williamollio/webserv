@@ -27,7 +27,6 @@ Connection::Connection() : _timeout(INFTIM), address(), _fds()
         if (listen(server_fd, 10) < 0)
             throw IOException("Cannot listen on the socket descriptor!");
         _fds[i].fd = server_fd;
-        std::cerr << "ServerFD: " << server_fd << std::endl;
         _fds[i].events = POLLIN;
         server_fds.push_back(server_fd);
     }

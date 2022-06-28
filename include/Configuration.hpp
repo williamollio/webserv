@@ -32,11 +32,11 @@ private:
 	bool	delim_token(const std::string& delims, std::string& word);
 
 
-	void	parse_vec_str(std::fstream& file, vectorString& output, std::string& c_line);
-	void	parse_vec_int(std::fstream& file, vectorInt& output, std::string& c_line);
-	void	parse_map_int_str(std::fstream& file, intMapString& output, std::string& c_line);
-	void	parse_str(std::string& output, std::string& c_line);
-	void	parse_bool(bool& output, std::string& c_line);
+	size_t	parse_vec_str(std::fstream& file, vectorString& input, size_t index, vectorString& output);
+	size_t	parse_vec_int(std::fstream& file, vectorString& input, size_t index, vectorInt& output);
+	size_t	parse_map_int_str(std::fstream& file, vectorString& input, size_t index, intMapString& output);
+	size_t	parse_str(std::string& output, std::string& c_line);
+	size_t	parse_bool(bool& output, std::string& c_line);
 
 public:
 	Configuration();

@@ -21,6 +21,8 @@ bool catch_special(std::string& line, size_t li) {
 	switch (line[li]) {
 		case ':':
 			return false;
+		case '#':
+			return false;
 		case ';':
 			return false;
 		case '{':
@@ -61,6 +63,137 @@ Configuration::word Configuration::conf_token_cmp(Configuration::vectorString &l
 	return w_errortype;
 }
 
+size_t	Configuration::parse_vec_str(std::fstream& file, vectorString& line, size_t index, vectorString& output) {
+	bool	ob = false;
+	std::string	gstr;
+
+	index++;
+	if (index >= line.size() || line[index] == "#") {
+		index = 0;
+		std::getline(file, gstr);
+		line = split_line(gstr);
+		e_line++;
+	}
+	if (line[index++] == "{")
+		ob = true;
+	bool	del = false;
+	while ((ob && line[index] != "}") || (!ob && line[index] != ";")) {
+		if (index >= line.size() || line[index] == "#") {
+			index = 0;
+			std::getline(file, gstr);
+			line = split_line(gstr);
+			e_line++;
+		} else {
+			if (!del && line[index] == ",")
+				del = true;
+			else if (del && line[index] == ",")
+				throw UnexpectedToken(e_line, line[index]);
+			else if (!ob && delim_token("{}", line[index]))
+				throw UnexpectedToken(e_line, line[index]);
+			else if (ob && delim_token("{;", line[index]))
+				throw UnexpectedToken(e_line, line[index]);
+			else {
+				output.push_back(line[index]);
+				del = false;
+			}
+			index++;
+		}
+	}
+	return ++index;
+}
+
+size_t	Configuration::parse_vec_int(std::fstream& file, vectorString& line, size_t index, vectorInt& output) {
+	bool	ob = false;
+	std::string	gstr;
+
+	index++;
+	if (index >= line.size() || line[index] == "#") {
+		index = 0;
+		std::getline(file, gstr);
+		line = split_line(gstr);
+		e_line++;
+	}
+	if (line[index++] == "{")
+		ob = true;
+	bool	del = false;
+	while ((ob && line[index] != "}") || (!ob && line[index] != ";")) {
+		if (index >= line.size() || line[index] == "#") {
+			index = 0;
+			std::getline(file, gstr);
+			line = split_line(gstr);
+			e_line++;
+		} else {
+			if (!del && line[index] == ",")
+				del = true;
+			else if (del && line[index] == ",")
+				throw UnexpectedToken(e_line, line[index]);
+			else if (!ob && delim_token(":{}", line[index]))
+				throw UnexpectedToken(e_line, line[index]);
+			else if (ob && delim_token(":{;", line[index]))
+				throw UnexpectedToken(e_line, line[index]);
+			else {
+				output.push_back(atoi(line[index].c_str()));
+				del = false;
+			}
+			index++;
+		}
+	}
+	return ++index;
+}
+
+size_t	Configuration::parse_map_int_str(std::fstream& file, vectorString& line, size_t index, intMapString& output) {
+	bool	ob = false;
+	std::string	gstr;
+	std::string	first;
+
+	index++;
+	if (index >= line.size() || line[index] == "#") {
+		index = 0;
+		std::getline(file, gstr);
+		line = split_line(gstr);
+		e_line++;
+	}
+	if (line[index++] == "{")
+		ob = true;
+	bool	del = true;
+	bool	page = true;
+
+	while ((ob && line[index] != "}") || (!ob && line[index] != ";")) {
+		if (index >= line.size() || line[index] == "#") {
+			index = 0;
+			std::getline(file, gstr);
+			line = split_line(gstr);
+			e_line++;
+		} else {
+			if (del && !page && line[index] != ":")
+				throw UnexpectedToken(e_line, line[index]);
+			else if (del && !page && line[index] == ":")
+				index++;
+			if (!del && line[index] == ",")
+				del = true;
+			else if (del && line[index] == ",")
+				throw UnexpectedToken(e_line, line[index]);
+			else if (!ob && delim_token("{}", line[index]))
+				throw UnexpectedToken(e_line, line[index]);
+			else if (ob && delim_token("{;", line[index]))
+				throw UnexpectedToken(e_line, line[index]);
+			else {
+				if (page) {
+					first = line[index];
+					page = false;
+				} else {
+					output.insert(std::pair<int, std::string>(atoi(first.c_str()), line[index]));
+					del = false;
+					page = true;
+				}
+			}
+			index++;
+		}
+	}
+	return ++index;
+}
+
+
 void Configuration::load_config_file(std::string &path) {
 	std::fstream	file(path, std::fstream::in | std::fstream::out);
 	std::string		line;
@@ -90,27 +223,30 @@ size_t	Configuration::parse_server(std::fstream& file, vectorString& s_line, siz
 		throw UnexpectedToken(e_line, s_line[index]);
 	index++;
 	while (!file.eof()) {
-		if (index >= s_line.size()) {
+		if (index >= s_line.size() || s_line[index] == "#") {
 			index = 0;
 			std::getline(file, line);
 			s_line = split_line(line);
 			e_line++;
 		}
-		while (index < s_line.size()) {
+		while (index < s_line.size() && s_line[index] != "#") {
 			if (delim_token("}", s_line[index]))
 				return index;
 			else {
 				switch(server_token_cmp(s_line[index])) {
-					case name://TODO
-						index = parse_vec_str(file, s_line, index);
+					case name:
+						std::cout << "server names: " << "[WARNING]	" << "cannot parse <name>:<portnumber>" << std::endl;
+						index = parse_vec_str(file, s_line, index, _server_names);
 						break;
-					case port://TODO
-						index = parse_vec_int(file, s_line, index);
+					case port:
+						index = parse_vec_int(file, s_line, index, _ports);
 						break;
-					case location://TODO
-						index = parse_vec_str(file, s_line, index)
+					case location:
+						index = parse_vec_str(file, s_line, index, _server_locations);
 						break;
-					case location_error://TODO
+					case location_error:
+						index = parse_map_int_str(file, s_line, index, _server_locations_error_pages);
+						break;
 					case location_log://TODO
 					case file_acc://TODO
 					default:
@@ -118,6 +254,7 @@ size_t	Configuration::parse_server(std::fstream& file, vectorString& s_line, siz
 			}}
 		}
 	}
+	return index;
 }
 
 Configuration::server_word Configuration::server_token_cmp(const std::string &word) {
@@ -127,7 +264,7 @@ Configuration::server_word Configuration::server_token_cmp(const std::string &wo
 		return port;
 	else if (word == "location" || word == "locations" || word == "loc" || word == "files" || word == "Files" || word == "server_location" || word == "server_locations")
 		return location;
-	else if (word == "error_location" || word == "error_locations" || word == "error_loc" || word == "error_files" || word == "Error_Files" || word == "error_page_location" || word == "error_page_locations")
+	else if (word == "error_location" || word == "error_locations" || word == "error_loc" || word == "error_pages" || word == "Error_Pages" || word == "error_page_location" || word == "error_page_locations")
 		return location_error;
 	else if (word == "log" || word == "log_loc" || word == "log_location" || word == "Log")
 		return location_log;

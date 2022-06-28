@@ -88,14 +88,26 @@ void CGICall::run(Socket & _socket) {
 void CGICall::async(CGICall * self) {
     try {
         self->waitOrThrow();
-        self->socket.send(parseCGIResponse(self->out[0]).tostring());
-        self->socket.send("\r\n\r\n");
-        ssize_t r, w;
-        char b;
-        while ((r = read(self->out[0], &b, 1)) > 0) {
-            if ((w = write(self->socket.get_fd(), &b, 1)) < 0) break;
+        HTTPHeader header = parseCGIResponse(self->out[0]);
+        std::string payload;
+        if (header.getTransferEncoding() == "chunked") {
+            header.setTransferEncoding("");
+            std::string line;
+            while (!(line = nextLine(self->out[0])).empty()) {
+                unsigned long length = strtol(line.c_str(), NULL, 10);
+                line = nextLine(self->out[0]);
+                payload.append(line.c_str(), length);
+            }
+        } else {
+            ssize_t r;
+            char b;
+            while ((r = read(self->out[0], &b, 1)) > 0) payload += b;
+            if (r < 0) throw HTTPException(500);
         }
-        if (r < 0 || w < 0) throw IOException("Could not send or read!");
+        header.set_content_length(static_cast<int>(payload.size()));
+        self->socket.send(header.tostring());
+        self->socket.send("\r\n\r\n");
+        self->socket.send(payload);
     } catch (HTTPException & httpException) {
         self->sendError(httpException.get_error_code());
     } catch (std::exception & exception) {

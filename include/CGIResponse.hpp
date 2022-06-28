@@ -21,9 +21,11 @@ public:
 	std::string  set_server_location(std::string path_from_configuration);
 	std::string  set_default_file(std::string file);
 	std::string  read_file(std::string file);
+	std::string set_current_path();
 
 protected:
 	const HTTPRequest * _request;
+	std::string         _current_path;
 	std::string         _server_location_log;
 	std::string         _default_file;
 	std::string         _upload;

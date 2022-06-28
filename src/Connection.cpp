@@ -59,12 +59,6 @@ void Connection::establishConnection()
         {
       	    if (_fds[i].revents == 0)
                 continue;
-//            if(_fds[i].revents != POLLIN)
-//      	    {
-//                std::cout << "Error! revents = " << _fds[i].revents << std::endl;
-//                end_server = true;
-//                break;
-//      	    }
             else if (_fds[i].revents == POLLERR || _fds[i].revents == POLL_HUP) {
                 ReaderByFDFinder finder(_fds[i].fd);
                 std::list<HTTPReader *>::iterator it = std::find_if(list.begin(), list.end(), finder);

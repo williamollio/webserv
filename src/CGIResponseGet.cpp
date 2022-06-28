@@ -49,7 +49,7 @@ void CGIResponseGet::run(Socket & socket) {
 	header.set_content_type(construct_content_type());
 	header.set_content_length(body.size());
     header.setStatusCode(200);
-    header.setStatusMessage("OK");
+    header.setStatusMessage(get_message(200));
 	socket.send(header.tostring() + "\r\n\r\n" + body);
 }
 

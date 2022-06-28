@@ -2,7 +2,8 @@
 
 HEADER_FILES	= Connection.hpp Socket.hpp HTTPReader.hpp IOException.hpp HTTPRequest.hpp HTTPRequestGet.hpp  \
 				  HTTPRequestPost.hpp HTTPRequestDelete.hpp CGIResponse.hpp CGIResponseGet.hpp CGIResponsePost.hpp \
-				  CGIResponseDelete.hpp HTTPHeader.hpp HTTPException.hpp Configuration.hpp
+				  CGIResponseDelete.hpp HTTPHeader.hpp HTTPException.hpp Configuration.hpp URI.hpp URISyntaxException.hpp \
+				  Tool.hpp CGICall.hpp CGIResponseError.hpp
 HDR				= $(addprefix include/, $(HEADER_FILES))
 
 ##		SOURCES
@@ -11,7 +12,8 @@ SRC_DIR	= src/
 
 MAIN_SRC= main.cpp Socket.cpp Connection.cpp HTTPReader.cpp IOException.cpp HTTPRequest.cpp HTTPRequestGet.cpp \
 	 	  HTTPRequestPost.cpp HTTPRequestDelete.cpp CGIResponse.cpp CGIResponseGet.cpp CGIResponsePost.cpp \
-	 	  CGIResponseDelete.cpp HTTPException.cpp HTTPHeader.cpp
+	 	  CGIResponseDelete.cpp HTTPException.cpp HTTPHeader.cpp URI.cpp URISyntaxException.cpp \
+          Tool.cpp CGICall.cpp CGIResponseError.cpp
 CONF_SRC= Configuration.cpp
 SRC		= $(addprefix src/, $(MAIN)) $(addprefix src/config/, $(CONF_SRC))
 
@@ -28,14 +30,6 @@ OBJ		= $(MAIN_OBJ:.cpp=.o) $(CONF_OBJ:.cpp=.o)
 NAME	= webserv
 
 FLAGS	= -Wall -Wextra -g #-Werror
-
-UNAME_S := $(shell uname -s)
-    ifeq ($(UNAME_S),Linux)
-        FLAGS+= -D_NOEXCEPT="_GLIBCXX_TXN_SAFE_DYN _GLIBCXX_NOTHROW" -Wno-deprecated
-    endif
-    ifeq ($(UNAME_S),Darwin)
-        CCFLAGS +=  -std=c++98
-    endif
 
 INC		= -Iinclude
 

@@ -9,7 +9,7 @@ HTTPRequest::TYPE HTTPRequest::getType() const {
     return _type;
 }
 
-HTTPRequest::HTTPRequest(HTTPRequest::TYPE type): _type(type) {}
+HTTPRequest::HTTPRequest(HTTPRequest::TYPE type): _type(type), _keep_alive(false), _content(false), _content_length(0) {}
 
 const URI &HTTPRequest::getURI() const {
     return uri;
@@ -29,4 +29,20 @@ void HTTPRequest::set_payload(const std::string& data) throw(std::exception) {
 
 const std::string & HTTPRequest::get_payload() const {
     return _payload;
+}
+
+unsigned int HTTPRequest::getPeerAddress() const {
+    return peerAddress;
+}
+
+void HTTPRequest::setPeerAddress(unsigned int peerAddress) {
+    HTTPRequest::peerAddress = peerAddress;
+}
+
+const std::string &HTTPRequest::getPeerName() const {
+    return peerName;
+}
+
+void HTTPRequest::setPeerName(const std::string &peerName) {
+    HTTPRequest::peerName = peerName;
 }

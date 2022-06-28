@@ -26,6 +26,8 @@ public:
     void                               setSyntaxExceptionEnabled(bool);
     std::string                        getFile() const;
     std::map<std::string, std::string> getVars() const;
+    std::string                        getQuery() const;
+    std::string                        getPathInfo() const;
 
     class Token {
     public:

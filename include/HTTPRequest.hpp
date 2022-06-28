@@ -25,23 +25,31 @@ public:
     const URI &         getURI() const;
     void                setURI(const URI &uri);
 
+    unsigned int        getPeerAddress() const;
+    void                setPeerAddress(unsigned int peerAddress);
+
+    const std::string &  getPeerName() const;
+    void                 setPeerName(const std::string & peerName);
+
 protected:
     explicit HTTPRequest(TYPE);
 
 private:
-    const TYPE		_type;
-    URI uri;
+    const TYPE  _type;
+    URI          uri;
+    unsigned int peerAddress;
+    std::string  peerName;
 
 public:	//TODO: make private with get and set
 	std::string		_copy_raw;
-	std::string		_http_version;
-	std::string		_path;
-	std::string		_user_agent;
-	std::string		_host;
-	vectorString	_lang;
-	vectorString	_encoding;
-	bool			_keep_alive;
-	bool			_content;
+    std::string		_http_version;
+    std::string		_path;
+    std::string		_user_agent;
+    std::string		_host;
+    vectorString	_lang;
+    vectorString	_encoding;
+    bool			_keep_alive;
+    bool			_content;
 	size_t			_content_length;
 	vectorString		_content_type;
 	std::string		_payload;

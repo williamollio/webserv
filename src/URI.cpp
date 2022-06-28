@@ -34,12 +34,12 @@ std::string URI::determineFileWithExtension() const {
 
 std::string URI::determineFile() const {
     std::stringstream buffer;
-    for (std::list<Token>::const_iterator it = tokens.cbegin();
-         it != tokens.cend() && isPathType(it->getType());
+    for (std::list<Token>::const_iterator it = tokens.begin();
+         it != tokens.end() && isPathType(it->getType());
          ++it) {
         const std::string & content = it->getContent();
         buffer << content;
-        if (hasExtension(content)) break;
+        if (hasExtension(content) && isCleanString(content, 0)) break;
     }
     return buffer.str();
 }
@@ -66,7 +66,7 @@ URI::Token URI::nextToken() {
     }
     if (buffer.empty()) return Token("", Token::END, pos, pos + 1);
     return Token(buffer, Token::TEXT, pos, (stream.eof() ? static_cast<unsigned long>(pos + buffer.size())
-                                                                                        : static_cast<unsigned long>(stream.tellg())));
+                                                         : static_cast<unsigned long>(stream.tellg())));
 }
 
 bool URI::isSpecial(char c) {
@@ -79,12 +79,12 @@ bool URI::isPathType(URI::Token::Type type) {
 
 bool URI::hasExtension(const std::string & str) {
     const unsigned long pos = str.rfind('.');
-    return pos != std::string::npos && pos != str.size() - 1 && isCleanString(str, pos);
+    return pos != std::string::npos && pos != str.size() - 1;
 }
 
 bool URI::isCleanString(const std::string & str, unsigned long pos) {
-    for (std::string::const_iterator it = str.cbegin() + static_cast<long>(pos);
-         it != str.cend();
+    for (std::string::const_iterator it = str.begin() + static_cast<long>(pos);
+         it != str.end();
          ++it) {
         if (isSpecial(*it)) return false;
     }
@@ -94,13 +94,13 @@ bool URI::isCleanString(const std::string & str, unsigned long pos) {
 std::map<std::string, std::string> URI::getVars() const {
     std::map<std::string, std::string> vars;
     std::list<Token>::const_iterator it;
-    for (it = tokens.cbegin();
-         it != tokens.cend() && isPathType(it->getType());
+    for (it = tokens.begin();
+         it != tokens.end() && isPathType(it->getType());
          ++it) {
         if (hasExtension(it->getContent())) break;
     }
     std::stringstream request;
-    for (++it; it != tokens.cend() && it->getType() != Token::QUESTION; ++it) {
+    for (++it; it != tokens.end() && it->getType() != Token::QUESTION; ++it) {
         request << it->getContent();
     }
     vars["REQUEST"] = request.str();
@@ -154,6 +154,31 @@ void URI::skipToNext(URI::Token::Type type, std::list<Token>::const_iterator ite
 
 std::string URI::getFile() const {
     return determineFile();
+}
+
+std::string URI::getQuery() const {
+    std::list<Token>::const_iterator it;
+    for (it = tokens.begin(); it->getType() != Token::END && it->getType() != Token::QUESTION; ++it);
+    std::list<Token>::const_iterator tmp = it;
+    ++tmp;
+    if (it->getType() == Token::END || tmp->getType() == Token::END) return "";
+    std::string ret;
+    for (; it->getType() != Token::END; ++it) {
+        ret += it->getContent();
+    }
+    return ret;
+}
+
+std::string URI::getPathInfo() const {
+    std::list<Token>::const_iterator it;
+    for (it = tokens.begin(); it->getType() != Token::END && isPathType(it->getType()); ++it) {
+        if (it->getType() == Token::TEXT && hasExtension(it->getContent())) break;
+    }
+    std::string ret;
+    for (++it; it != tokens.end() && it->getType() != Token::END && isPathType(it->getType()); ++it) {
+        ret += it->getContent();
+    }
+    return ret;
 }
 
 URI &URI::operator=(const URI &other) {

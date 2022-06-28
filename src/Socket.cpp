@@ -29,7 +29,7 @@ void Socket::send_header(const std::string & type)
 
 void Socket::send(const std::string & content) throw (IOException)
 {
-	if (write(_fd, content.data(), content.size()) < 0)
+	if (write(_fd, content.c_str(), content.size()) < 0)
 		throw IOException("Could not send the data! Data: " + content);
 }
 

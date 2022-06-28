@@ -13,9 +13,7 @@ Configuration::Configuration(std::string location) : e_line(0), _accept_file(fal
 		load_config_file(location);
 }
 
-std::string Configuration::getword(Configuration::vectorString& line) {
 
-}
 
 bool catch_special(std::string& line, size_t li) {
 	switch (line[li]) {
@@ -57,6 +55,17 @@ std::vector<std::string>	split_line(std::string& line) {
 	return ret;
 }
 
+void Configuration::gettokens(std::fstream &file, vectorString& line) {
+	std::string tmp;
+	if (file.eof())
+		throw UnexpectedToken(e_line, "EOF");
+	std::getline(file, tmp);
+	line = split_line(tmp);
+	e_line++;
+
+
+}
+
 Configuration::word Configuration::conf_token_cmp(Configuration::vectorString &line, size_t index) {
 	if (line[index] == "server" || line[index] == "Server")
 		return server;
@@ -65,14 +74,11 @@ Configuration::word Configuration::conf_token_cmp(Configuration::vectorString &l
 
 size_t	Configuration::parse_vec_str(std::fstream& file, vectorString& line, size_t index, vectorString& output) {
 	bool	ob = false;
-	std::string	gstr;
 
 	index++;
 	if (index >= line.size() || line[index] == "#") {
 		index = 0;
-		std::getline(file, gstr);
-		line = split_line(gstr);
-		e_line++;
+		gettokens(file, line);
 	}
 	if (line[index++] == "{")
 		ob = true;
@@ -80,9 +86,7 @@ size_t	Configuration::parse_vec_str(std::fstream& file, vectorString& line, size
 	while ((ob && line[index] != "}") || (!ob && line[index] != ";")) {
 		if (index >= line.size() || line[index] == "#") {
 			index = 0;
-			std::getline(file, gstr);
-			line = split_line(gstr);
-			e_line++;
+			gettokens(file, line);
 		} else {
 			if (!del && line[index] == ",")
 				del = true;
@@ -104,14 +108,11 @@ size_t	Configuration::parse_vec_str(std::fstream& file, vectorString& line, size
 
 size_t	Configuration::parse_vec_int(std::fstream& file, vectorString& line, size_t index, vectorInt& output) {
 	bool	ob = false;
-	std::string	gstr;
 
 	index++;
 	if (index >= line.size() || line[index] == "#") {
 		index = 0;
-		std::getline(file, gstr);
-		line = split_line(gstr);
-		e_line++;
+		gettokens(file, line);
 	}
 	if (line[index++] == "{")
 		ob = true;
@@ -119,9 +120,7 @@ size_t	Configuration::parse_vec_int(std::fstream& file, vectorString& line, size
 	while ((ob && line[index] != "}") || (!ob && line[index] != ";")) {
 		if (index >= line.size() || line[index] == "#") {
 			index = 0;
-			std::getline(file, gstr);
-			line = split_line(gstr);
-			e_line++;
+			gettokens(file, line);
 		} else {
 			if (!del && line[index] == ",")
 				del = true;
@@ -143,15 +142,12 @@ size_t	Configuration::parse_vec_int(std::fstream& file, vectorString& line, size
 
 size_t	Configuration::parse_map_int_str(std::fstream& file, vectorString& line, size_t index, intMapString& output) {
 	bool	ob = false;
-	std::string	gstr;
 	std::string	first;
 
 	index++;
 	if (index >= line.size() || line[index] == "#") {
 		index = 0;
-		std::getline(file, gstr);
-		line = split_line(gstr);
-		e_line++;
+		gettokens(file, line);
 	}
 	if (line[index++] == "{")
 		ob = true;
@@ -161,9 +157,52 @@ size_t	Configuration::parse_map_int_str(std::fstream& file, vectorString& line, 
 	while ((ob && line[index] != "}") || (!ob && line[index] != ";")) {
 		if (index >= line.size() || line[index] == "#") {
 			index = 0;
-			std::getline(file, gstr);
-			line = split_line(gstr);
-			e_line++;
+			gettokens(file, line);
+		} else {
+			if (del && !page && line[index] != ":")
+				throw UnexpectedToken(e_line, line[index]);
+			else if (del && !page && line[index] == ":")
+				index++;
+			if (!del && line[index] == ",")
+				del = true;
+			else if ((del && line[index] == ",")
+					|| (!ob && delim_token("{}", line[index]))
+					|| (ob && delim_token("{;", line[index])))
+				throw UnexpectedToken(e_line, line[index]);
+			else {
+				if (page) {
+					first = line[index];
+					page = false;
+				} else {
+					output.insert(std::pair<int, std::string>(atoi(first.c_str()), line[index]));
+					del = false;
+					page = true;
+				}
+			}
+			index++;
+		}
+	}
+	return ++index;
+}
+
+size_t	Configuration::parse_str(std::fstream& file, vectorString& line, size_t index, std::string& output) {
+	bool	ob = false;
+	std::string	first;
+
+	index++;
+	if (index >= line.size() || line[index] == "#") {
+		index = 0;
+		gettokens(file, line);
+	}
+	if (line[index++] == "{")
+		ob = true;
+	bool	del = true;
+	bool	page = true;
+
+	while ((ob && line[index] != "}") || (!ob && line[index] != ";")) {
+		if (index >= line.size() || line[index] == "#") {
+			index = 0;
+			gettokens(file, line);
 		} else {
 			if (del && !page && line[index] != ":")
 				throw UnexpectedToken(e_line, line[index]);
@@ -178,14 +217,52 @@ size_t	Configuration::parse_map_int_str(std::fstream& file, vectorString& line, 
 			else if (ob && delim_token("{;", line[index]))
 				throw UnexpectedToken(e_line, line[index]);
 			else {
-				if (page) {
-					first = line[index];
-					page = false;
-				} else {
-					output.insert(std::pair<int, std::string>(atoi(first.c_str()), line[index]));
-					del = false;
-					page = true;
-				}
+				output = line[index];
+			}
+			index++;
+		}
+	}
+	return ++index;
+}
+
+size_t	Configuration::parse_bool(std::fstream& file, vectorString& line, size_t index, bool& output) {
+	bool	ob = false;
+	std::string	first;
+
+	index++;
+	if (index >= line.size() || line[index] == "#") {
+		index = 0;
+		gettokens(file, line);
+	}
+	if (line[index++] == "{")
+		ob = true;
+	bool	del = true;
+	bool	page = true;
+
+	while ((ob && line[index] != "}") || (!ob && line[index] != ";")) {
+		if (index >= line.size() || line[index] == "#") {
+			index = 0;
+			gettokens(file, line);
+		} else {
+			if (del && !page && line[index] != ":")
+				throw UnexpectedToken(e_line, line[index]);
+			else if (del && !page && line[index] == ":")
+				index++;
+			if (!del && line[index] == ",")
+				del = true;
+			else if (del && line[index] == ",")
+				throw UnexpectedToken(e_line, line[index]);
+			else if (!ob && delim_token("{}", line[index]))
+				throw UnexpectedToken(e_line, line[index]);
+			else if (ob && delim_token("{;", line[index]))
+				throw UnexpectedToken(e_line, line[index]);
+			else {
+				if (line[index] == "true" || line[index] == "TRUE" || line[index] == "1")
+					output = true;
+				else if (line[index] == "false" || line[index] == "False" || line[index] == "0")
+					output = false;
+				else
+					throw UnexpectedToken(e_line, line[index]);
 			}
 			index++;
 		}
@@ -215,19 +292,17 @@ void Configuration::load_config_file(std::string &path) {
 			default:
 				throw UnexpectedToken(e_line, splitted_line[index]);
 		}
+
 	}
 }
 size_t	Configuration::parse_server(std::fstream& file, vectorString& s_line, size_t index) {
-	std::string	line;
 	if (!delim_token("{", s_line[++index]))
 		throw UnexpectedToken(e_line, s_line[index]);
 	index++;
 	while (!file.eof()) {
 		if (index >= s_line.size() || s_line[index] == "#") {
 			index = 0;
-			std::getline(file, line);
-			s_line = split_line(line);
-			e_line++;
+			gettokens(file, s_line);
 		}
 		while (index < s_line.size() && s_line[index] != "#") {
 			if (delim_token("}", s_line[index]))
@@ -239,16 +314,24 @@ size_t	Configuration::parse_server(std::fstream& file, vectorString& s_line, siz
 						index = parse_vec_str(file, s_line, index, _server_names);
 						break;
 					case port:
+						std::cout << "port" << std::endl;
 						index = parse_vec_int(file, s_line, index, _ports);
 						break;
 					case location:
+						std::cout << "loc" << std::endl;
 						index = parse_vec_str(file, s_line, index, _server_locations);
 						break;
 					case location_error:
+						std::cout << "loc err" << std::endl;
 						index = parse_map_int_str(file, s_line, index, _server_locations_error_pages);
 						break;
-					case location_log://TODO
-					case file_acc://TODO
+					case location_log:
+						std::cout << "log" << std::endl;
+						index = parse_str(file, s_line, index, _server_location_log);
+						break;
+					case file_acc:
+						index = parse_bool(file, s_line, index, _accept_file);
+						break;
 					default:
 						throw UnexpectedToken(e_line, s_line[index]);
 			}}
@@ -268,7 +351,7 @@ Configuration::server_word Configuration::server_token_cmp(const std::string &wo
 		return location_error;
 	else if (word == "log" || word == "log_loc" || word == "log_location" || word == "Log")
 		return location_log;
-	else if (word == "upload" || word == "uploads" || word ==  "user_upload" || word == "user_uploads" || word == "Upload" || word == "Uploads" || word ==  "User_Upload" || word == "User_Uploads")
+	else if (word == "Accept_Files" || word == "accept_files" || word == "upload" || word == "uploads" || word ==  "user_upload" || word == "user_uploads" || word == "Upload" || word == "Uploads" || word ==  "User_Upload" || word == "User_Uploads")
 		return file_acc;
 	return s_errortype;
 }
@@ -318,16 +401,24 @@ bool Configuration::get_server_file_acceptance() const {
 
 
 //CLASS UNEXPECTED-TOKEN
-Configuration::UnexpectedToken::UnexpectedToken(size_t _in_line, std::string& tok) _NOEXCEPT : _line(_in_line) {
-    std::stringstream ret;
-    ret << "line: " << _line << " unexpected token: " << tok;
-    _token  = ret.str();
+//Configuration::UnexpectedToken::UnexpectedToken(size_t _in_line, std::string& tok) _NOEXCEPT : _line(_in_line) {
+//    std::stringstream ret;
+//    ret << "line: " << _line << " unexpected token: " << tok;
+//    _token  = ret.str();
+//}
+
+Configuration::UnexpectedToken::UnexpectedToken(size_t _in_line, std::string tok) _NOEXCEPT : _line(_in_line){
+	std::stringstream ret;
+	ret << "line: " << _line << " unexpected token: " << tok;
+	_token  = ret.str();
 }
 
 const char *Configuration::UnexpectedToken::what() const _NOEXCEPT {
 
     return _token.c_str();
 }
+
+
 
 Configuration::BadConfig::BadConfig() _NOEXCEPT {
 	_token = "unknown configuration error";

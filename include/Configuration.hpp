@@ -35,9 +35,11 @@ private:
 	size_t	parse_vec_str(std::fstream& file, vectorString& input, size_t index, vectorString& output);
 	size_t	parse_vec_int(std::fstream& file, vectorString& input, size_t index, vectorInt& output);
 	size_t	parse_map_int_str(std::fstream& file, vectorString& input, size_t index, intMapString& output);
-	size_t	parse_str(std::string& output, std::string& c_line);
-	size_t	parse_bool(bool& output, std::string& c_line);
+	size_t	parse_str(std::fstream& file, vectorString& input, size_t index, std::string& output);
+	size_t	parse_bool(std::fstream& file, vectorString& input, size_t index, bool& output);
 
+
+	void gettokens(std::fstream &file, vectorString& line);
 public:
 	Configuration();
 	Configuration(std::string location);
@@ -56,7 +58,8 @@ public:
 		size_t	_line;
 		std::string _token;
 	public:
-		UnexpectedToken(size_t _in_line, std::string& tok) _NOEXCEPT;
+		//UnexpectedToken(size_t _in_line, std::string& tok) _NOEXCEPT;
+		UnexpectedToken(size_t _in_line, std::string tok) _NOEXCEPT;
 		~UnexpectedToken() _NOEXCEPT {}
 		const char *what() const _NOEXCEPT;
 	};

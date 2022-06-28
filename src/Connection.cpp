@@ -5,30 +5,35 @@
 #include <netdb.h>
 
 #define INFTIM -1
+#define NUM_PORT 2
 
 Connection::Connection() : _timeout(INFTIM), address(), _fds()
 {
-    addrlen = sizeof(address);
-    address.sin_family = AF_INET;
-    address.sin_addr.s_addr = INADDR_ANY;
-    address.sin_port = htons( PORT );
+    int ports[NUM_PORT] = { 81, 80 };
+    int server_fd;
+    for (int i = 0; i < NUM_PORT; ++i) {
+        addrlen = sizeof(address);
+        address.sin_family = AF_INET;
+        address.sin_addr.s_addr = INADDR_ANY;
+        address.sin_port = htons(ports[i]);
 
-    if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0)
-        throw IOException("Could not create socket!");
-    on = 1;
-    setsockopt (server_fd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof (on));
-    fcntl(server_fd, F_SETFL, O_NONBLOCK);
-    if (bind(server_fd, (struct sockaddr *)&address, sizeof(address)) < 0)
-        throw IOException("Could not bind file descriptor to the address!");
-    if (listen(server_fd, 10) < 0)
-        throw IOException("Cannot listen on the socket descriptor!");
-    _initialization_poll();
+        if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0)
+            throw IOException("Could not create socket!");
+        on = 1;
+        setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
+        fcntl(server_fd, F_SETFL, O_NONBLOCK);
+        if (bind(server_fd, (struct sockaddr *) &address, sizeof(address)) < 0)
+            throw IOException("Could not bind file descriptor to the address!");
+        if (listen(server_fd, 10) < 0)
+            throw IOException("Cannot listen on the socket descriptor!");
+        _fds[i].fd = server_fd;
+        std::cerr << "ServerFD: " << server_fd << std::endl;
+        _fds[i].events = POLLIN;
+        server_fds.push_back(server_fd);
+    }
 }
 
-void Connection::_initialization_poll()
-{
-    _fds[0].fd = server_fd;
-    _fds[0].events = POLLIN;
+void Connection::_initialization_poll() {
 }
 
 static void forceRemoveHTTPReader(HTTPReader* & reader) {
@@ -42,7 +47,7 @@ Connection::~Connection() {
 void Connection::establishConnection()
 {
     int rc;
-    int nfds = 1;
+    int nfds = NUM_PORT;
     int current_size;
     bool end_server = false;
 
@@ -78,10 +83,10 @@ void Connection::establishConnection()
                 _fds[i].fd = -1;
                 continue;
             }
-            if (_fds[i].fd == server_fd)
+            if (isServingFD(_fds[i].fd))
       	    {
                 int socketDescriptor;
-                while ((socketDescriptor = accept(server_fd, (struct sockaddr *) &address, (socklen_t *) &addrlen)) >= 0) {
+                while ((socketDescriptor = accept(_fds[i].fd, NULL, NULL)) >= 0) {
                     _fds[nfds].fd = socketDescriptor;
                     _fds[nfds].events = POLLIN;
                     nfds++;
@@ -118,6 +123,11 @@ static void maybeDeleteReader(HTTPReader* & reader) {
 void Connection::cleanReaders() {
     std::for_each(list.begin(), list.end(), maybeDeleteReader);
     list.remove(NULL);
+}
+
+bool Connection::isServingFD(int fd) {
+    std::vector<int>::iterator it = std::find(server_fds.begin(), server_fds.end(), fd);
+    return it != server_fds.end();
 }
 
 // R E A D E R B Y F D F I N D E R   I M P L E M E N T A T I O N

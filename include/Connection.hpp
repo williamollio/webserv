@@ -13,7 +13,7 @@
 #define PORT 80
 class Connection {
 	private:
-		int                     server_fd;
+        std::vector<int>        server_fds;
 		int                     addrlen;
 		int                     on;
 		int                     _timeout;
@@ -23,6 +23,7 @@ class Connection {
 
 		void _initialization_poll();
         void cleanReaders();
+        bool isServingFD(int fd);
 
         class ReaderByFDFinder {
         public:

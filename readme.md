@@ -16,7 +16,7 @@
 1. Setting up the connection/sockets ✅
 2. I/O Multiplexing ✅
 3. HTTPReader (c.f. RFC 7230 - 7235)
-4. CGI
+4. CGI ✅
 5. HTTPSender (c.f. RFC 7230 - 7235)
 6. ConfigReader
 
@@ -29,4 +29,4 @@
 # To do
 - <strong> HTTPReader </strong>: POST Request on Safari & Chrome throwing error (Jascha)
 - <strong> HTTPSender </strong> : Handle rules for locations/methods (William), Directory listing (William)
-- <strong> HTTPReader </strong> : Chunked request (William)
+- <strong> HTTPReader </strong> : File creation on chunked request/without filename (William)

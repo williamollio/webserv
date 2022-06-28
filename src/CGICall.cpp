@@ -155,10 +155,6 @@ bool CGICall::isRunning() {
     ret = running;
     pthread_mutex_unlock(&runningMutex);
     return ret;
-//    if (child == -1) return false;
-//    int status;
-//    const pid_t result = waitpid(child, &status, WNOHANG);
-//    return result == 0;
 }
 
 void CGICall::waitOrThrow() {
@@ -170,7 +166,6 @@ void CGICall::waitOrThrow() {
         usleep(100000);
         gettimeofday(&now, NULL);
         timeElapsed = ((now.tv_sec - start.tv_sec) * 1000) + ((now.tv_usec - start.tv_usec) / 1000);
-        std::cerr << timeElapsed << std::endl;
         ret = waitpid(child, &status, WNOHANG);
     } while (ret == 0 && timeElapsed <= (TIMEOUT * 1000));
     if (ret == 0) {

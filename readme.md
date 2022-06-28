@@ -27,8 +27,6 @@
 - <strong>wollio</strong> : HTTPSender
 
 # To do
-- <strong> HTTPReader </strong>: POST Request on Safari & Chrome throwing error
-- <strong> HTTPSender </strong> : Handle rules for locations/methods
-- <strong> HTTPReader & CGI </strong> : chunked request
-
-Turn on/off directory listing ?¿
+- <strong> HTTPReader </strong>: POST Request on Safari & Chrome throwing error (Jascha)
+- <strong> HTTPSender </strong> : Handle rules for locations/methods (William), Directory listing 
+- <strong> HTTPReader </strong> : Chunked request (William)

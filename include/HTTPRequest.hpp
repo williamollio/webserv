@@ -17,6 +17,11 @@ public:
     enum TYPE {
         GET, POST, DELETE
     };
+	enum REQ_INFO {
+		USER_AGENT, HOSTNAME, LANG_SUPP, ENCODING, CON_TYPE, CONTENT_TYPE, CON_LENGTH
+	};
+
+	static int		checktype(std::string& word);
 
     TYPE                getType() const;
     void                set_payload(const std::string& data) throw(std::exception);
@@ -31,8 +36,11 @@ public:
     const std::string &  getPeerName() const;
     void                 setPeerName(const std::string & peerName);
 
-protected:
-    explicit HTTPRequest(TYPE);
+	explicit HTTPRequest(TYPE, std::vector<std::string>& file);
+	REQ_INFO http_token_comp(std::string& word);
+
+	protected:
+	explicit HTTPRequest(TYPE);
 
 private:
     const TYPE  _type;
@@ -51,7 +59,7 @@ public:	//TODO: make private with get and set
     bool			_keep_alive;
     bool			_content;
 	size_t			_content_length;
-	vectorString		_content_type;
+	vectorString	_content_type;
 	std::string		_payload;
 };
 

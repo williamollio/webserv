@@ -23,7 +23,7 @@ std::string CGIResponseGet::set_file(std::string path)
 		if (pos == std::string::npos)
 			_file_extension = "";
 		else
-			_file_extension = tmp.substr(pos);
+			_file_extension = tmp.substr(pos+1);
 	}
 	return (tmp);
 }
@@ -50,7 +50,6 @@ void CGIResponseGet::run(Socket & socket) {
 	header.set_content_length(body.size());
     header.setStatusCode(200);
     header.setStatusMessage("OK");
-    std::cout << "header sent back :\n" << header.tostring() << std::endl;
 	socket.send(header.tostring() + "\r\n\r\n" + body);
 }
 

@@ -18,8 +18,7 @@
 3. HTTPReader (c.f. RFC 7230 - 7235)
 4. CGI
 5. HTTPSender (c.f. RFC 7230 - 7235)
-
-6. Configuration
+6. ConfigReader
 
 # On-going tasks
 
@@ -28,5 +27,8 @@
 - <strong>wollio</strong> : HTTPSender
 
 # To do
-- <strong> HTTPReader </strong>: POST Request on Safari throwing error
-- <strong> HTTPSender </strong> : POST Request uploading files (upload) + implement DELETE request/response + Deep test
+- <strong> HTTPReader </strong>: POST Request on Safari & Chrome throwing error
+- <strong> HTTPSender </strong> : Handle rules for locations/methods
+- <strong> HTTPReader & CGI </strong> : chunked request
+
+Turn on/off directory listing ?¿

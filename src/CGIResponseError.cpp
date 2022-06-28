@@ -16,8 +16,6 @@ void CGIResponseError::run(Socket & socket)
 	code << header.getStatusCode();
 	std::string body = read_file("error.html");
 	header.set_content_length(body.length());
-	std::cout << "header sent back :\n$" << header.tostring() << "$" << std::endl;
-	std::cout << "body sent back :\n$" << body << "$" << std::endl;
 	socket.send(header.tostring() + "\r\n\r\n" + body);
 }
 

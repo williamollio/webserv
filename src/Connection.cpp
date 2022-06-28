@@ -33,9 +33,6 @@ Connection::Connection() : _timeout(INFTIM), address(), _fds()
     }
 }
 
-void Connection::_initialization_poll() {
-}
-
 static void forceRemoveHTTPReader(HTTPReader* & reader) {
     delete reader;
 }

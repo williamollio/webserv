@@ -41,12 +41,18 @@ private:
     char **         arguments;
 
     void execute(int, int, const std::string &);
-    void sendError() _NOEXCEPT;
+    void waitOrThrow();
+    void sendError(int errorCode) _NOEXCEPT;
 
     static std::string   nextLine(int);
     static HTTPHeader    parseCGIResponse(int);
     static unsigned long skipWhitespaces(const std::string &, unsigned long);
     static void          async(CGICall *);
+
+    /**
+     * The time in seconds after which child processes are killed if they did not finish.
+     */
+    static const unsigned int TIMEOUT = 5;
 };
 
 

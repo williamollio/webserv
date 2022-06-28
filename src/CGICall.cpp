@@ -4,6 +4,7 @@
 
 #include <map>
 #include <csignal>
+#include <sys/time.h>
 #include "CGICall.hpp"
 #include "HTTPException.hpp"
 #include "CGIResponseError.hpp"
@@ -86,11 +87,7 @@ void CGICall::run(Socket & _socket) {
 
 void CGICall::async(CGICall * self) {
     try {
-        int status;
-        waitpid(self->child, &status, WUNTRACED);
-        close(self->in[0]);
-        close(self->out[1]);
-        if (status != 0) throw HTTPException(500);
+        self->waitOrThrow();
         self->socket.send(parseCGIResponse(self->out[0]).tostring());
         self->socket.send("\r\n\r\n");
         ssize_t r, w;
@@ -100,7 +97,7 @@ void CGICall::async(CGICall * self) {
         }
         if (r < 0 || w < 0) throw IOException("Could not send or read!");
     } catch (HTTPException & httpException) {
-        self->sendError();
+        self->sendError(httpException.get_error_code());
     } catch (std::exception & exception) {
         std::clog << "INFO: Socket has been closed" << std::endl
                   << "INFO: " << exception.what()   << std::endl;
@@ -112,10 +109,10 @@ void CGICall::async(CGICall * self) {
     pthread_mutex_unlock(&self->runningMutex);
 }
 
-void CGICall::sendError() _NOEXCEPT {
+void CGICall::sendError(const int errorCode) _NOEXCEPT {
     try {
         CGIResponseError error;
-        error.set_error_code(500);
+        error.set_error_code(errorCode);
         error.run(socket);
     } catch (std::exception & exception) {
         std::clog << "INFO: Socket has been closed" << std::endl
@@ -162,6 +159,27 @@ bool CGICall::isRunning() {
 //    int status;
 //    const pid_t result = waitpid(child, &status, WNOHANG);
 //    return result == 0;
+}
+
+void CGICall::waitOrThrow() {
+    int status, ret;
+    unsigned int timeElapsed;
+    struct timeval start, now;
+    gettimeofday(&start, NULL);
+    do {
+        usleep(100000);
+        gettimeofday(&now, NULL);
+        timeElapsed = ((now.tv_sec - start.tv_sec) * 1000) + ((now.tv_usec - start.tv_usec) / 1000);
+        std::cerr << timeElapsed << std::endl;
+        ret = waitpid(child, &status, WNOHANG);
+    } while (ret == 0 && timeElapsed <= (TIMEOUT * 1000));
+    if (ret == 0) {
+        kill(child, SIGTERM);
+    }
+    close(in[0]);
+    close(out[1]);
+    if (ret == 0) throw HTTPException(408);
+    else if (status != 0) throw HTTPException(500);
 }
 
 HTTPHeader CGICall::parseCGIResponse(const int fd) {

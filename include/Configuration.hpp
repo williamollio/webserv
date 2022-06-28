@@ -38,6 +38,7 @@ private:
 	size_t	parse_str(std::fstream& file, vectorString& input, size_t index, std::string& output);
 	size_t	parse_bool(std::fstream& file, vectorString& input, size_t index, bool& output);
 
+	void fill_default();
 
 	void gettokens(std::fstream &file, vectorString& line);
 public:
@@ -66,10 +67,11 @@ public:
 
 	class BadConfig : public std::exception {
 	private:
-		const char*	_token;
+		std::string	_token;
 	public:
 		BadConfig() _NOEXCEPT;
-		explicit BadConfig(const std::string& where) _NOEXCEPT;
+		BadConfig(std::string where) _NOEXCEPT;
+		~BadConfig() _NOEXCEPT {}
 		const char *what() const _NOEXCEPT;
 	};
 };

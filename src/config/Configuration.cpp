@@ -75,13 +75,15 @@ Configuration::word Configuration::conf_token_cmp(Configuration::vectorString &l
 size_t	Configuration::parse_vec_str(std::fstream& file, vectorString& line, size_t index, vectorString& output) {
 	bool	ob = false;
 
-	index++;
+	index += 2;
 	if (index >= line.size() || line[index] == "#") {
 		index = 0;
 		gettokens(file, line);
 	}
-	if (line[index++] == "{")
+	if (line[index] == "{") {
 		ob = true;
+		index++;
+	}
 	bool	del = false;
 	while ((ob && line[index] != "}") || (!ob && line[index] != ";")) {
 		if (index >= line.size() || line[index] == "#") {
@@ -92,9 +94,9 @@ size_t	Configuration::parse_vec_str(std::fstream& file, vectorString& line, size
 				del = true;
 			else if (del && line[index] == ",")
 				throw UnexpectedToken(e_line, line[index]);
-			else if (!ob && delim_token("{}", line[index]))
+			else if (!ob && delim_token(":{}", line[index]))
 				throw UnexpectedToken(e_line, line[index]);
-			else if (ob && delim_token("{;", line[index]))
+			else if (ob && delim_token(":{;", line[index]))
 				throw UnexpectedToken(e_line, line[index]);
 			else {
 				output.push_back(line[index]);
@@ -109,13 +111,15 @@ size_t	Configuration::parse_vec_str(std::fstream& file, vectorString& line, size
 size_t	Configuration::parse_vec_int(std::fstream& file, vectorString& line, size_t index, vectorInt& output) {
 	bool	ob = false;
 
-	index++;
+	index += 2;
 	if (index >= line.size() || line[index] == "#") {
 		index = 0;
 		gettokens(file, line);
 	}
-	if (line[index++] == "{")
+	if (line[index] == "{") {
 		ob = true;
+		index++;
+	}
 	bool	del = false;
 	while ((ob && line[index] != "}") || (!ob && line[index] != ";")) {
 		if (index >= line.size() || line[index] == "#") {
@@ -144,13 +148,15 @@ size_t	Configuration::parse_map_int_str(std::fstream& file, vectorString& line, 
 	bool	ob = false;
 	std::string	first;
 
-	index++;
+	index += 2;
 	if (index >= line.size() || line[index] == "#") {
 		index = 0;
 		gettokens(file, line);
 	}
-	if (line[index++] == "{")
+	if (line[index] == "{") {
 		ob = true;
+		index++;
+	}
 	bool	del = true;
 	bool	page = true;
 
@@ -166,8 +172,8 @@ size_t	Configuration::parse_map_int_str(std::fstream& file, vectorString& line, 
 			if (!del && line[index] == ",")
 				del = true;
 			else if ((del && line[index] == ",")
-					|| (!ob && delim_token("{}", line[index]))
-					|| (ob && delim_token("{;", line[index])))
+					|| (!ob && delim_token(":{}", line[index]))
+					|| (ob && delim_token(":{;", line[index])))
 				throw UnexpectedToken(e_line, line[index]);
 			else {
 				if (page) {
@@ -189,28 +195,22 @@ size_t	Configuration::parse_str(std::fstream& file, vectorString& line, size_t i
 	bool	ob = false;
 	std::string	first;
 
-	index++;
+	index += 2;
 	if (index >= line.size() || line[index] == "#") {
 		index = 0;
 		gettokens(file, line);
 	}
-	if (line[index++] == "{")
+	if (line[index] == "{") {
 		ob = true;
-	bool	del = true;
-	bool	page = true;
-
+		index++;
+	}
 	while ((ob && line[index] != "}") || (!ob && line[index] != ";")) {
 		if (index >= line.size() || line[index] == "#") {
 			index = 0;
 			gettokens(file, line);
 		} else {
-			if (del && !page && line[index] != ":")
-				throw UnexpectedToken(e_line, line[index]);
-			else if (del && !page && line[index] == ":")
-				index++;
-			if (!del && line[index] == ",")
-				del = true;
-			else if (del && line[index] == ",")
+
+			if (line[index] == ",")
 				throw UnexpectedToken(e_line, line[index]);
 			else if (!ob && delim_token("{}", line[index]))
 				throw UnexpectedToken(e_line, line[index]);
@@ -229,28 +229,22 @@ size_t	Configuration::parse_bool(std::fstream& file, vectorString& line, size_t 
 	bool	ob = false;
 	std::string	first;
 
-	index++;
+	index += 2;
 	if (index >= line.size() || line[index] == "#") {
 		index = 0;
 		gettokens(file, line);
 	}
-	if (line[index++] == "{")
+	if (line[index] == "{") {
 		ob = true;
-	bool	del = true;
-	bool	page = true;
+		index++;
+	}
 
 	while ((ob && line[index] != "}") || (!ob && line[index] != ";")) {
 		if (index >= line.size() || line[index] == "#") {
 			index = 0;
 			gettokens(file, line);
 		} else {
-			if (del && !page && line[index] != ":")
-				throw UnexpectedToken(e_line, line[index]);
-			else if (del && !page && line[index] == ":")
-				index++;
-			if (!del && line[index] == ",")
-				del = true;
-			else if (del && line[index] == ",")
+			if (line[index] == ",")
 				throw UnexpectedToken(e_line, line[index]);
 			else if (!ob && delim_token("{}", line[index]))
 				throw UnexpectedToken(e_line, line[index]);
@@ -270,6 +264,14 @@ size_t	Configuration::parse_bool(std::fstream& file, vectorString& line, size_t 
 	return ++index;
 }
 
+void	Configuration::fill_default() {
+	if (_server_names.empty())
+		_server_names.push_back("localhost");
+	if (_ports.empty())
+		_ports.push_back(80);
+	if (_server_locations.empty())
+		_server_locations.push_back("./");
+}
 
 void Configuration::load_config_file(std::string &path) {
 	std::fstream	file(path, std::fstream::in | std::fstream::out);
@@ -284,49 +286,47 @@ void Configuration::load_config_file(std::string &path) {
 			std::getline(file, line);
 			splitted_line = split_line(line);
 			e_line++;
+		} else {
+			switch (conf_token_cmp(splitted_line, index)) {
+				case server:
+					index = parse_server(file, splitted_line, index);
+					check_portnum();
+					break;
+				default:
+					throw UnexpectedToken(e_line, splitted_line[index]);
+			}
 		}
-		switch (conf_token_cmp(splitted_line, index)) {
-			case server:
-				index = parse_server(file, splitted_line, index);
-				break;
-			default:
-				throw UnexpectedToken(e_line, splitted_line[index]);
-		}
-
 	}
+	fill_default();
 }
+
 size_t	Configuration::parse_server(std::fstream& file, vectorString& s_line, size_t index) {
 	if (!delim_token("{", s_line[++index]))
 		throw UnexpectedToken(e_line, s_line[index]);
 	index++;
-	while (!file.eof()) {
+	while (s_line[index] != "}") {
 		if (index >= s_line.size() || s_line[index] == "#") {
 			index = 0;
 			gettokens(file, s_line);
 		}
 		while (index < s_line.size() && s_line[index] != "#") {
 			if (delim_token("}", s_line[index]))
-				return index;
+				return ++index;
 			else {
 				switch(server_token_cmp(s_line[index])) {
 					case name:
-						std::cout << "server names: " << "[WARNING]	" << "cannot parse <name>:<portnumber>" << std::endl;
 						index = parse_vec_str(file, s_line, index, _server_names);
 						break;
 					case port:
-						std::cout << "port" << std::endl;
 						index = parse_vec_int(file, s_line, index, _ports);
 						break;
 					case location:
-						std::cout << "loc" << std::endl;
 						index = parse_vec_str(file, s_line, index, _server_locations);
 						break;
 					case location_error:
-						std::cout << "loc err" << std::endl;
 						index = parse_map_int_str(file, s_line, index, _server_locations_error_pages);
 						break;
 					case location_log:
-						std::cout << "log" << std::endl;
 						index = parse_str(file, s_line, index, _server_location_log);
 						break;
 					case file_acc:
@@ -393,11 +393,11 @@ bool Configuration::get_server_file_acceptance() const {
 
 
 
-//void Configuration::check_portnum() {
-//	for (vectorInt::iterator it = _ports.begin(); it != _ports.end(); it++)
-//		if (*it > 65535 || *it < 0)
-//			throw BadConfig("Bad Portnumber");
-//}
+void Configuration::check_portnum() {
+	for (vectorInt::iterator it = _ports.begin(); it != _ports.end(); it++)
+		if (*it > 65535 || *it < 0)
+			throw BadConfig("Bad Portnumber");
+}
 
 
 //CLASS UNEXPECTED-TOKEN
@@ -424,12 +424,14 @@ Configuration::BadConfig::BadConfig() _NOEXCEPT {
 	_token = "unknown configuration error";
 }
 
-Configuration::BadConfig::BadConfig(const std::string& where) _NOEXCEPT {
-	_token = where.c_str();
+Configuration::BadConfig::BadConfig(std::string where) _NOEXCEPT {
+	std::stringstream ret;
+	ret << where;
+	_token = ret.str();
 }
 
 const char *Configuration::BadConfig::what() const _NOEXCEPT {
-	return _token;
+	return _token.c_str();
 }
 
 

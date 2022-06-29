@@ -56,7 +56,7 @@ void Connection::establishConnection()
         current_size = nfds;
         for (int i = 0; i < current_size; i++)
         {
-      	    if (_fds[i].revents == 0)
+            if (_fds[i].revents == 0)
                 continue;
             else if (_fds[i].revents == POLLERR || _fds[i].revents == POLL_HUP) {
                 ReaderByFDFinder finder(_fds[i].fd);

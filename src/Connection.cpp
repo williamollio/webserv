@@ -1,22 +1,22 @@
 #include "Connection.hpp"
 #include "HTTPReader.hpp"
 #include "IOException.hpp"
+#include "Configuration.hpp"
 #include <poll.h>
 #include <netdb.h>
 
 #define INFTIM -1
-#define NUM_PORT 2
 
 Connection::Connection() : _timeout(INFTIM), address(), _fds()
 {
-    int ports[NUM_PORT] = { 81, 80 };
-    int server_fd;
-    for (int i = 0; i < NUM_PORT; ++i) {
+    const std::vector<int> & ports = Configuration::getInstance().get_server_ports();
+    for (unsigned long i = 0; i < ports.size(); ++i) {
         addrlen = sizeof(address);
         address.sin_family = AF_INET;
         address.sin_addr.s_addr = INADDR_ANY;
         address.sin_port = htons(ports[i]);
 
+        int server_fd;
         if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0)
             throw IOException("Could not create socket!");
         on = 1;
@@ -43,8 +43,8 @@ Connection::~Connection() {
 void Connection::establishConnection()
 {
     int rc;
-    int nfds = NUM_PORT;
-    int current_size;
+    unsigned long nfds = Configuration::getInstance().get_server_ports().size();
+    unsigned long current_size;
     bool end_server = false;
 
     do {
@@ -54,7 +54,7 @@ void Connection::establishConnection()
             break;
         }
         current_size = nfds;
-        for (int i = 0; i < current_size; i++)
+        for (unsigned long i = 0; i < current_size; i++)
         {
             if (_fds[i].revents == 0)
                 continue;
@@ -97,7 +97,7 @@ void Connection::establishConnection()
         }
         cleanReaders();
     } while (!end_server);
-    for (int i = 0; i < nfds; i++) {
+    for (unsigned long i = 0; i < nfds; i++) {
     	if(_fds[i].fd >= 0)
     	    close(_fds[i].fd);
     }

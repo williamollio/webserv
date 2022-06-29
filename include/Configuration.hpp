@@ -49,12 +49,12 @@ private:
 public:
 	void	load_config_file(const std::string& path);
 
-	vectorString	get_server_names()					const;
-	vectorInt		get_server_ports()					const;
-	vectorString	get_server_location()				const;
-	intMapString	get_server_error_page_location()	const;
-	std::string		get_server_log_location()			const;
-	bool			get_server_file_acceptance()		const;
+	const vectorString & get_server_names()               const;
+	const vectorInt &    get_server_ports()               const;
+	const vectorString & get_server_location()            const;
+	const intMapString & get_server_error_page_location() const;
+	const std::string &  get_server_log_location()        const;
+	bool                 get_server_file_acceptance()     const;
 
     static Configuration & getInstance();
 

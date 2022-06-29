@@ -372,23 +372,23 @@ bool Configuration::delim_token(const std::string& delims, std::string &word) {
 
 //GETTER FUNCTIONS
 
-Configuration::vectorString Configuration::get_server_names() const {
+const Configuration::vectorString & Configuration::get_server_names() const {
 	return _server_names;
 }
 
-Configuration::vectorInt Configuration::get_server_ports() const {
+const Configuration::vectorInt & Configuration::get_server_ports() const {
 	return _ports;
 }
 
-Configuration::vectorString Configuration::get_server_location() const {
+const Configuration::vectorString & Configuration::get_server_location() const {
 	return _server_locations;
 }
 
-Configuration::intMapString Configuration::get_server_error_page_location() const {
+const Configuration::intMapString & Configuration::get_server_error_page_location() const {
 	return _server_locations_error_pages;
 }
 
-std::string Configuration::get_server_log_location() const {
+const std::string & Configuration::get_server_log_location() const {
 	return _server_location_log;
 }
 

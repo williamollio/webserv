@@ -8,30 +8,37 @@
 #include "CGICall.hpp"
 #include "HTTPException.hpp"
 #include "CGIResponseError.hpp"
+#include "Configuration.hpp"
 
 CGICall::CGICall(HTTPRequest * request)
         : CGIResponse(request),
           uri(request->getURI()),
           method("REQUEST_METHOD="),
+          protocol("SERVER_PROTOCOL=HTTP/1.1"),
+          pathinfo("PATH_INFO="),
+          gatewayInterface("GATEWAY_INTERFACE=CGI/1.1"),
+          queryString("QUERY_STRING="),
+          scriptName("SCRIPT_NAME="),
+          serverName("SERVER_NAME="),
+          serverSoftware("SERVER_SOFTWARE=webserv/1.0 (2022/06)"),
+          remoteAddress("REMOTE_ADDR="),
+          remoteHost("REMOTE_HOST="),
           child(-1),
           threadID(),
           in(),
           out(),
           running(false),
-          runningMutex(),
-          environment(NULL), arguments(NULL) {
+          runningMutex() {
     pthread_mutex_init(&runningMutex, NULL);
 }
 
 CGICall::~CGICall() {
-    pthread_cancel(threadID);
-    pthread_join(threadID, NULL);
     if (child > -1) {
         kill(child, SIGTERM);
     }
+    pthread_cancel(threadID);
+    pthread_join(threadID, NULL);
     pthread_mutex_destroy(&runningMutex);
-    if (environment != NULL) delete[] environment;
-    if (arguments != NULL) delete[] arguments;
 }
 
 void CGICall::run(Socket & _socket) {
@@ -41,20 +48,13 @@ void CGICall::run(Socket & _socket) {
         case HTTPRequest::POST:   method += "POST";   break;
         case HTTPRequest::DELETE: method += "DELETE"; break;
     }
-    const char * c_pwd = getcwd(NULL, 0);
-    const std::string pwd = c_pwd;
-    delete c_pwd;
-    protocol = "SERVER_PROTOCOL=HTTP/1.1";
-    gatewayInterface = "GATEWAY_INTERFACE=CGI/1.1";
-    pathinfo = "PATH_INFO=" + uri.getPathInfo();
-    queryString = "QUERY_STRING=" + uri.getQuery();
-    remoteAddress = "REMOTE_ADDR=" + int_to_ipv4(_request->getPeerAddress());
-    remoteHost = "REMOTE_HOST=" + _request->getPeerName();
-    scriptName = "SCRIPT_NAME=" + pwd + uri.getFile();
-    serverName = "SERVER_NAME=" + _request->_host;
-    arguments = new char * [2]();
-    environment = new char * [_request->_content ? 14 : 12]();
-    serverSoftware = "SERVER_SOFTWARE=webserv/1.0 (2022/06)";
+    pathinfo += uri.getPathInfo();
+    queryString += uri.getQuery();
+    remoteAddress += int_to_ipv4(_request->getPeerAddress());
+    remoteHost += _request->getPeerName();
+    char * c_pwd = getcwd(NULL, 0);
+    scriptName += c_pwd + uri.getFile();
+    serverName += Configuration::getInstance().get_server_names().at(0);
     {
         std::stringstream s;
         s << "SERVER_PORT=" << 80; // TODO: Get the correct port!
@@ -69,7 +69,8 @@ void CGICall::run(Socket & _socket) {
             contentType += *it + ",";
         }
     }
-    const std::string & requestedFile = pwd + uri.getFile();
+    const std::string & requestedFile = c_pwd + uri.getFile();
+    free(c_pwd);
     if (access(requestedFile.c_str(), F_OK) < 0) throw HTTPException(404);
     if (access(requestedFile.c_str(), X_OK) < 0) throw HTTPException(403);
     if (pipe(in) < 0) throw HTTPException(500);
@@ -140,20 +141,22 @@ void CGICall::execute(const int in, const int out, const std::string & requested
     dup2(out, STDOUT_FILENO);
     close(in);
     close(out);
-    environment[0]  = const_cast<char *>(method.c_str());
-    environment[1]  = const_cast<char *>(protocol.c_str());
-    environment[2]  = const_cast<char *>(pathinfo.c_str());
-    environment[3]  = const_cast<char *>(gatewayInterface.c_str());
-    environment[4]  = const_cast<char *>(queryString.c_str());
-    environment[5]  = const_cast<char *>(scriptName.c_str());
-    environment[6]  = const_cast<char *>(serverName.c_str());
-    environment[7]  = const_cast<char *>(serverPort.c_str());
-    environment[8]  = const_cast<char *>(serverSoftware.c_str());
-    environment[9]  = const_cast<char *>(remoteHost.c_str());
-    environment[10] = const_cast<char *>(remoteAddress.c_str());
+    char ** arguments = new char * [2]();
+    char ** environment = new char * [_request->_content ? 14 : 12]();
+    environment[0]  = strdup(method.c_str());
+    environment[1]  = strdup(protocol.c_str());
+    environment[2]  = strdup(pathinfo.c_str());
+    environment[3]  = strdup(gatewayInterface.c_str());
+    environment[4]  = strdup(queryString.c_str());
+    environment[5]  = strdup(scriptName.c_str());
+    environment[6]  = strdup(serverName.c_str());
+    environment[7]  = strdup(serverPort.c_str());
+    environment[8]  = strdup(serverSoftware.c_str());
+    environment[9]  = strdup(remoteHost.c_str());
+    environment[10] = strdup(remoteAddress.c_str());
     if (_request->_content) {
-        environment[11] = const_cast<char *>(contentLength.c_str());
-        environment[12] = const_cast<char *>(contentType.c_str());
+        environment[11] = strdup(contentLength.c_str());
+        environment[12] = strdup(contentType.c_str());
     }
     arguments[0] = const_cast<char *>(requestedFile.c_str());
     if (execve(requestedFile.c_str(), arguments, environment) < 0) {

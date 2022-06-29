@@ -43,7 +43,7 @@ void HTTPReader::run() {
                 case HTTPRequest::GET:    response = new CGIResponseGet(request);    break;
                 case HTTPRequest::POST:   response = new CGIResponsePost(request);   break;
                 case HTTPRequest::DELETE: response = new CGIResponseDelete(request); break;
-                default:
+                default: std::cerr  << "AAA" << std::endl;
                     throw HTTPException(400);
             }
         }
@@ -162,7 +162,7 @@ HTTPRequest* HTTPReader::_parse() throw(std::exception) {
 			return new HTTPRequest(HTTPRequest::POST, file, raw, _socket);
 		case HTTPRequest::DELETE:
 			return new HTTPRequest(HTTPRequest::DELETE, file, raw, _socket);
-		default:
+        default:
 			throw HTTPException(400);
 	}
 

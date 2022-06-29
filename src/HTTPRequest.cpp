@@ -75,7 +75,7 @@ size_t	HTTPRequest::load_size(std::vector<std::string> &file, size_t index, size
 }
 
 size_t	HTTPRequest::ff_newline(std::vector<std::string>& file, size_t index) {
-	while (file[index] != "\n" && !is_payload(file, index))
+	while (index < file.size() && file[index] != "\n" && !is_payload(file, index))
 		index++;
 	return index += 1;
 }
@@ -117,8 +117,11 @@ HTTPRequest::HTTPRequest(HTTPRequest::TYPE type, std::vector<std::string> &file,
 				index = ff_newline(file, index);
 		}
 	}
-	if (_content_length != 0 && _content_type.empty())
+
+	if (_content_length != 0 && _content_type.empty()) {
+
 		throw HTTPException(400);
+    }
 	else if (_content_length != 0) {
 		_content = true;
 		set_payload(raw, _socket);
@@ -137,11 +140,13 @@ void HTTPRequest::setURI(const URI &uri) {
 
 void HTTPRequest::set_payload(const std::string& data, Socket& _socket) throw(std::exception) {
 	size_t	cursor = data.find("\r\n\r\n", 0);
-	if (cursor == std::string::npos)
+	if (cursor == std::string::npos) {
+        std::cerr << "error 4000 here" <<std::endl;
 		throw HTTPException(400);
+    }
 	cursor += 2;
 	_payload = data.substr(cursor);
-	if (data.length() < _content_length) {
+	if (data.length() < _content_length && _content_length - (BUFFER - cursor) >= 0) {
 		char buf[_content_length - (BUFFER - cursor) + 1];
 		if (!read(_socket.get_fd(), buf, _content_length - (BUFFER - cursor)))
 			throw HTTPException(504);

@@ -42,8 +42,10 @@ void CGIResponsePost::trim_payload(std::string &payload) {
 	posbegin += 4;
 
 	posend = tmp.find(delimiter, posbegin);
-	if (posend == std::string::npos)
+	if (posend == std::string::npos) {
+		std::cerr << "no delim found" << std::endl;
 		throw HTTPException(400);
+	}
 	posend -= 4;
 
 	payload = tmp.substr(posbegin, posend - posbegin);

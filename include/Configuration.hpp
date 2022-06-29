@@ -41,10 +41,13 @@ private:
 	void fill_default();
 
 	void gettokens(std::fstream &file, vectorString& line);
-public:
+
+    static Configuration instance;
+
 	Configuration();
 	Configuration(std::string location);
-	void	load_config_file(std::string& path);
+public:
+	void	load_config_file(const std::string& path);
 
 	vectorString	get_server_names()					const;
 	vectorInt		get_server_ports()					const;
@@ -52,6 +55,8 @@ public:
 	intMapString	get_server_error_page_location()	const;
 	std::string		get_server_log_location()			const;
 	bool			get_server_file_acceptance()		const;
+
+    static Configuration & getInstance();
 
 	//EXCEPTIONS
 	class UnexpectedToken : public std::exception {

@@ -6,7 +6,8 @@ int main() {
     signal(SIGPIPE, SIG_IGN);
 	try
 	{
-		Configuration	config("server.conf");
+//		Configuration	config("server.conf");
+        Configuration::getInstance().load_config_file("server.conf");
 		// std::cout << config;
 		// std::cout << "config loaded!" << std::endl;
 		Connection	server_connection;

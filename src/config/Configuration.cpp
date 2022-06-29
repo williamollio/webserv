@@ -4,6 +4,11 @@
 #include <cstdlib>
 #include "Configuration.hpp"
 
+Configuration Configuration::instance = Configuration();
+
+Configuration & Configuration::getInstance() {
+    return instance;
+}
 
 Configuration::Configuration() : e_line(0), _accept_file(false) {
 	///TODO: initialize standard values
@@ -273,7 +278,7 @@ void	Configuration::fill_default() {
 		_server_locations.push_back("./");
 }
 
-void Configuration::load_config_file(std::string &path) {
+void Configuration::load_config_file(const std::string &path) {
 	std::fstream	file(path, std::fstream::in | std::fstream::out);
 	std::string		line;
 	vectorString	splitted_line;

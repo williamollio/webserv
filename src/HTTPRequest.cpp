@@ -179,11 +179,9 @@ void HTTPRequest::set_payload(const std::string& data, Socket& _socket) throw(st
   }
 	else
 		_payload = data.substr(cursor);
-	char buf[BUFFER + 1];
-	std::cout << _payload.length() << " " << _content_length << std::endl;
-	size_t old = _payload.length();
-	while (_payload.length() <= 12 * _content_length + old) {
-		if (!read(_socket.get_fd(), buf,BUFFER))
+	char buf[2];
+	while (_payload.length() < _content_length) {
+		if (!read(_socket.get_fd(), buf, 1))
 			throw HTTPException(504);
 		_payload += buf;
 	}

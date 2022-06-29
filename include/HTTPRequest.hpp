@@ -41,6 +41,10 @@ public:
 
     const std::string &  getPeerName() const;
     void                 setPeerName(const std::string & peerName);
+
+    int                  getUsedPort() const;
+    void                 setUsedPort(int);
+
 	std::string          unchunkedPayload(const std::string &data, size_t cursor);
 	bool                 isChunkedRequest(const std::string &data);
 
@@ -62,6 +66,7 @@ private:
     URI          uri;
     unsigned int peerAddress;
     std::string  peerName;
+    int          port;
 
 public:	//TODO: make private with get and set
 	std::string		_copy_raw;

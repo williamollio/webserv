@@ -57,7 +57,7 @@ void CGICall::run(Socket & _socket) {
     serverName += Configuration::getInstance().get_server_names().at(0);
     {
         std::stringstream s;
-        s << "SERVER_PORT=" << 80; // TODO: Get the correct port!
+        s << "SERVER_PORT=" << _request->getUsedPort();
         serverPort = s.str();
     }
     if (_request->_content) {

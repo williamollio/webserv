@@ -28,7 +28,7 @@ Connection::Connection() : _timeout(INFTIM), address(), _fds()
             throw IOException("Cannot listen on the socket descriptor!");
         _fds[i].fd = server_fd;
         _fds[i].events = POLLIN;
-        server_fds.push_back(server_fd);
+        server_fds[server_fd] = ports[i];
     }
 }
 
@@ -77,6 +77,7 @@ void Connection::establishConnection()
       	    {
                 int socketDescriptor;
                 while ((socketDescriptor = accept(_fds[i].fd, NULL, NULL)) >= 0) {
+                    connectionPairs[socketDescriptor] = _fds[i].fd;
                     _fds[nfds].fd = socketDescriptor;
                     _fds[nfds].events = POLLIN;
                     nfds++;
@@ -89,6 +90,7 @@ void Connection::establishConnection()
                 char * host = new char[50]();
                 getnameinfo((struct sockaddr *) &address, (socklen_t) addrlen, host, (socklen_t) 50, NULL, 0, 0);
                 reader->setPeerName(host);
+                reader->setUsedPort(server_fds[connectionPairs[socket.get_fd()]]);
                 delete[] host;
                 list.push_back(reader);
                 reader->run();
@@ -116,7 +118,7 @@ void Connection::cleanReaders() {
 }
 
 bool Connection::isServingFD(int fd) {
-    std::vector<int>::iterator it = std::find(server_fds.begin(), server_fds.end(), fd);
+    std::map<int, int>::const_iterator it = server_fds.find(fd);
     return it != server_fds.end();
 }
 

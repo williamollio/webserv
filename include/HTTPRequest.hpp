@@ -39,6 +39,8 @@ public:
 	explicit HTTPRequest(TYPE, std::vector<std::string>& file);
 	REQ_INFO http_token_comp(std::string& word);
 
+	size_t	load_string(std::vector<std::string>& file, size_t index, std::string& target);
+	size_t	load_vec_str(std::vector<std::string>& file, size_t index, vectorString& target);
 	protected:
 	explicit HTTPRequest(TYPE);
 

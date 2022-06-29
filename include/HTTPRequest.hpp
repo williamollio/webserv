@@ -9,7 +9,12 @@
 #include <vector>
 #include <iostream>
 #include <sstream>
+#include "Socket.hpp"
 #include "URI.hpp"
+
+#ifndef BUFFER
+# define BUFFER 30000
+#endif /* BUFFER */
 
 class HTTPRequest {
 private:
@@ -18,9 +23,14 @@ public:
     enum TYPE {
         GET, POST, DELETE
     };
+	enum REQ_INFO {
+		USER_AGENT, HOSTNAME, LANG_SUPP, ENCODING, CON_TYPE, CONTENT_TYPE, CON_LENGTH
+	};
+
+	static int		checktype(std::string& word);
 
     TYPE                getType() const;
-    void                set_payload(const std::string& data) throw(std::exception);
+    void                set_payload(const std::string& data, Socket& _socket) throw(std::exception);
     const std::string & get_payload() const;
 
     const URI &         getURI() const;
@@ -34,8 +44,18 @@ public:
 	std::string          unchunkedPayload(const std::string &data, size_t cursor);
 	bool                 isChunkedRequest(const std::string &data);
 
-protected:
-    explicit HTTPRequest(TYPE);
+	explicit HTTPRequest(TYPE, std::vector<std::string>& file, std::string& raw, Socket& _socket);
+	REQ_INFO http_token_comp(std::string& word);
+
+	size_t	load_string(std::vector<std::string>& file, size_t index, std::string& target);
+	size_t	load_vec_str(std::vector<std::string>& file, size_t index, vectorString& target);
+	size_t	load_connection(std::vector<std::string>& file, size_t index, bool& target);
+	size_t	load_size(std::vector<std::string>& file, size_t index, size_t& target);
+
+	bool	is_payload(vectorString& file, size_t index);
+	size_t	ff_newline(std::vector<std::string>& file, size_t index);
+	protected:
+	explicit HTTPRequest(TYPE);
 
 private:
     const TYPE  _type;

@@ -58,8 +58,6 @@ size_t HTTPRequest::load_vec_str(std::vector<std::string> &file, size_t index, v
 
 size_t	HTTPRequest::load_connection(std::vector<std::string> &file, size_t index, bool &target) {
 	index += 2;
-	for (int i = 0; file[index].c_str()[i] != '\0'; i++)
-		std:: cout << static_cast<int>(file[index].c_str()[i]) << std::endl;
 	if (!file[index].compare(0, 10, "keep-alive") || !file[index].compare(0, 10, "Keep-Alive")) {
 		target = true;
 	}
@@ -174,18 +172,21 @@ void HTTPRequest::set_payload(const std::string& data, Socket& _socket) throw(st
 		throw HTTPException(400);
     }
 	cursor += 2;
+
 	if (isChunkedRequest(data)) {
     _payload = unchunkedPayload(data, cursor);
     return;
   }
 	else
 		_payload = data.substr(cursor);
-	if (data.length() < _content_length && _content_length - (BUFFER - cursor) >= 0) {
-		char buf[_content_length - (BUFFER - cursor) + 1];
-		if (!read(_socket.get_fd(), buf, _content_length - (BUFFER - cursor)))
+	char buf[BUFFER + 1];
+	std::cout << _payload.length() << " " << _content_length << std::endl;
+	while (_payload.length() <= _content_length) {
+		if (!read(_socket.get_fd(), buf,BUFFER))
 			throw HTTPException(504);
 		_payload += buf;
 	}
+	std::cout << _payload.length() << " " << _content_length << std::endl;
 }
 
 const std::string & HTTPRequest::get_payload() const {

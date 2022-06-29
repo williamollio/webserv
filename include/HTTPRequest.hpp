@@ -8,7 +8,12 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include "Socket.hpp"
 #include "URI.hpp"
+
+#ifndef BUFFER
+# define BUFFER 30000
+#endif /* BUFFER */
 
 class HTTPRequest {
 private:
@@ -24,7 +29,7 @@ public:
 	static int		checktype(std::string& word);
 
     TYPE                getType() const;
-    void                set_payload(const std::string& data) throw(std::exception);
+    void                set_payload(const std::string& data, Socket& _socket) throw(std::exception);
     const std::string & get_payload() const;
 
     const URI &         getURI() const;
@@ -36,7 +41,7 @@ public:
     const std::string &  getPeerName() const;
     void                 setPeerName(const std::string & peerName);
 
-	explicit HTTPRequest(TYPE, std::vector<std::string>& file, std::string& raw);
+	explicit HTTPRequest(TYPE, std::vector<std::string>& file, std::string& raw, Socket& _socket);
 	REQ_INFO http_token_comp(std::string& word);
 
 	size_t	load_string(std::vector<std::string>& file, size_t index, std::string& target);
@@ -45,6 +50,7 @@ public:
 	size_t	load_size(std::vector<std::string>& file, size_t index, size_t& target);
 
 	bool	is_payload(vectorString& file, size_t index);
+	size_t	ff_newline(std::vector<std::string>& file, size_t index);
 	protected:
 	explicit HTTPRequest(TYPE);
 

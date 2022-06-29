@@ -74,13 +74,13 @@ size_t	HTTPRequest::load_size(std::vector<std::string> &file, size_t index, size
 	return index + 2;
 }
 
-size_t	ff_newline(std::vector<std::string>& file, size_t index) {
-	while (file[index] != "\n")
+size_t	HTTPRequest::ff_newline(std::vector<std::string>& file, size_t index) {
+	while (file[index] != "\n" && !is_payload(file, index))
 		index++;
 	return index += 1;
 }
 
-HTTPRequest::HTTPRequest(HTTPRequest::TYPE type, std::vector<std::string> &file, std::string& raw) : _type(type), _keep_alive(false), _content(false), _content_length(0) {
+HTTPRequest::HTTPRequest(HTTPRequest::TYPE type, std::vector<std::string> &file, std::string& raw, Socket& _socket) : _type(type), _keep_alive(false), _content(false), _content_length(0) {
 	size_t	index = 1;
 	_copy_raw = raw;
 	_path = file[index++];
@@ -121,7 +121,7 @@ HTTPRequest::HTTPRequest(HTTPRequest::TYPE type, std::vector<std::string> &file,
 		throw HTTPException(400);
 	else if (_content_length != 0) {
 		_content = true;
-		set_payload(raw);
+		set_payload(raw, _socket);
 	}
 	else
 		_content = false;
@@ -135,12 +135,18 @@ void HTTPRequest::setURI(const URI &uri) {
     HTTPRequest::uri = uri;
 }
 
-void HTTPRequest::set_payload(const std::string& data) throw(std::exception) {
+void HTTPRequest::set_payload(const std::string& data, Socket& _socket) throw(std::exception) {
 	size_t	cursor = data.find("\r\n\r\n", 0);
 	if (cursor == std::string::npos)
 		throw HTTPException(400);
 	cursor += 2;
 	_payload = data.substr(cursor);
+	if (data.length() < _content_length) {
+		char buf[_content_length - (BUFFER - cursor) + 1];
+		if (!read(_socket.get_fd(), buf, _content_length - (BUFFER - cursor)))
+			throw HTTPException(504);
+		_payload += buf;
+	}
 }
 
 const std::string & HTTPRequest::get_payload() const {

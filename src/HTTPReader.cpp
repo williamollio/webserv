@@ -51,6 +51,7 @@ void HTTPReader::run() {
     }
 	catch (HTTPException & ex) {
 		CGIResponseError error;
+		std::cerr << "error: " << ex.get_error_code() << std::endl;
 		error.set_error_code(ex.get_error_code());
 		error.run(_socket);
     }
@@ -142,21 +143,25 @@ int	HTTPRequest::checktype(std::string& word) {
 
 
 HTTPRequest* HTTPReader::_parse() throw(std::exception) {
-	char buff[30001];
-	if (!read(_socket.get_fd(), buff, 30000)) {
+	char buff[BUFFER + 1];
+	if (!read(_socket.get_fd(), buff, BUFFER)) {
 		throw HTTPException(504);
 	}
 	std::string raw(buff);
-	std::vector<std::string>	file = split_line(raw);
+	size_t	cursor = raw.find("\r\n\r\n", 0);
+	if (cursor == raw.npos)
+		cursor = raw.length();
+	std::string	head = raw.substr(0, cursor);
+	std::vector<std::string> file = split_line(head);
 	for (auto i = file.begin(); i != file.end(); i++)
 		std::cout << *i << std::endl;
 	switch(HTTPRequest::checktype(file[0])) {
 		case HTTPRequest::GET:
-			return new HTTPRequest(HTTPRequest::GET, file, raw);
+			return new HTTPRequest(HTTPRequest::GET, file, raw, _socket);
 		case HTTPRequest::POST:
-			return new HTTPRequest(HTTPRequest::POST, file, raw);
+			return new HTTPRequest(HTTPRequest::POST, file, raw, _socket);
 		case HTTPRequest::DELETE:
-			return new HTTPRequest(HTTPRequest::DELETE, file, raw);
+			return new HTTPRequest(HTTPRequest::DELETE, file, raw, _socket);
 		default:
 			throw HTTPException(400);
 	}

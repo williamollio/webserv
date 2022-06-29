@@ -36,7 +36,7 @@ std::string HTTPRequest::unchunkedPayload(const std::string &data, size_t cursor
 			buffer.append(line);
 			line.clear();
 		}
-		getline(tmp, line);
+		 getline(tmp, line);
 	}
 	payload.clear();
 	payload = buffer;

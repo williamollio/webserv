@@ -138,6 +138,35 @@ void HTTPRequest::setURI(const URI &uri) {
     HTTPRequest::uri = uri;
 }
 
+std::string HTTPRequest::unchunkedPayload(const std::string &data, size_t cursor)
+{
+	std::string payload;
+	std::string line;
+	std::string buffer;
+
+	payload = data.substr(cursor);
+	std::istringstream tmp(payload);
+	getline(tmp, line);
+	for (int i = 1; line.front() != '0'; i++)
+	{
+		if (i % 2)
+		{
+			line.pop_back();
+			buffer.append(line);
+			line.clear();
+		}
+		 getline(tmp, line);
+	}
+	payload.clear();
+	payload = buffer;
+	return (payload);
+}
+
+bool HTTPRequest::isChunkedRequest(const std::string &data)
+{
+	return (data.find("Transfer-Encoding: chunked") != std::string::npos);
+}
+
 void HTTPRequest::set_payload(const std::string& data, Socket& _socket) throw(std::exception) {
 	size_t	cursor = data.find("\r\n\r\n", 0);
 	if (cursor == std::string::npos) {

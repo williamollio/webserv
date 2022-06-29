@@ -8,6 +8,7 @@
 #include "CGICall.hpp"
 #include "HTTPException.hpp"
 #include "CGIResponseError.hpp"
+#include "Configuration.hpp"
 
 CGICall::CGICall(HTTPRequest * request)
         : CGIResponse(request),
@@ -53,7 +54,7 @@ void CGICall::run(Socket & _socket) {
     remoteHost += _request->getPeerName();
     char * c_pwd = getcwd(NULL, 0);
     scriptName += c_pwd + uri.getFile();
-    serverName += _request->_host;
+    serverName += Configuration::getInstance().get_server_names().at(0);
     {
         std::stringstream s;
         s << "SERVER_PORT=" << 80; // TODO: Get the correct port!

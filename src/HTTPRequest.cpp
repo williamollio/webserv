@@ -121,8 +121,7 @@ HTTPRequest::HTTPRequest(HTTPRequest::TYPE type, std::vector<std::string> &file,
 	if (_content_length != 0 && _content_type.empty()) {
 
 		throw HTTPException(400);
-    }
-	else if (_content_length != 0  || this->isChunkedRequest(raw)) {
+	else if (_content_length != 0  || isChunkedRequest(raw)) {
 		_content = true;
 		set_payload(raw, _socket);
 	}

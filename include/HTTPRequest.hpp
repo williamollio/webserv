@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <sstream>
 #include "Socket.hpp"
 #include "URI.hpp"
 
@@ -40,6 +41,8 @@ public:
 
     const std::string &  getPeerName() const;
     void                 setPeerName(const std::string & peerName);
+	std::string          unchunkedPayload(const std::string &data, size_t cursor);
+	bool                 isChunkedRequest(const std::string &data);
 
 	explicit HTTPRequest(TYPE, std::vector<std::string>& file, std::string& raw, Socket& _socket);
 	REQ_INFO http_token_comp(std::string& word);

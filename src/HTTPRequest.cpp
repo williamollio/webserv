@@ -122,7 +122,7 @@ HTTPRequest::HTTPRequest(HTTPRequest::TYPE type, std::vector<std::string> &file,
 
 		throw HTTPException(400);
     }
-	else if (_content_length != 0) {
+	else if (_content_length != 0  || retval->isChunkedRequest(raw)) {
 		_content = true;
 		set_payload(raw, _socket);
 	}
@@ -145,7 +145,12 @@ void HTTPRequest::set_payload(const std::string& data, Socket& _socket) throw(st
 		throw HTTPException(400);
     }
 	cursor += 2;
-	_payload = data.substr(cursor);
+	if (isChunkedRequest(data)) {
+    _payload = unchunkedPayload(data, cursor);
+    return;
+  }
+	else
+		_payload = data.substr(cursor);
 	if (data.length() < _content_length && _content_length - (BUFFER - cursor) >= 0) {
 		char buf[_content_length - (BUFFER - cursor) + 1];
 		if (!read(_socket.get_fd(), buf, _content_length - (BUFFER - cursor)))

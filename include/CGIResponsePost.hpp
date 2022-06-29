@@ -22,7 +22,7 @@ private:
 	std::string _filename;
 
 	void saveFile(std::string payload);
-	std::string setFilename(std::string payload);
+	std::string setFilename(std::string &payload);
 	void trim_payload(std::string &payload);
 	std::string get_delimiter(std::string &tmp);
 	void create_file(std::string &payload);

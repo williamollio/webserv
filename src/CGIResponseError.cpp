@@ -10,6 +10,7 @@ void CGIResponseError::run(Socket & socket)
 {
 	HTTPHeader header;
 
+	PRINT_ERROR_CODE("Error code : ", _error_code);
 	header.setStatusCode(_error_code);
 	header.setStatusMessage(get_message(_error_code));
 	std::stringstream code;

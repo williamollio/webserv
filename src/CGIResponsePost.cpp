@@ -4,7 +4,7 @@
 
 #include "../include/CGIResponsePost.hpp"
 
-std::string CGIResponsePost::setFilename(std::string payload) {
+std::string CGIResponsePost::setFilename(std::string &payload) {
 	std::string filename;
 
 	size_t posbegin, posend;
@@ -14,6 +14,7 @@ std::string CGIResponsePost::setFilename(std::string payload) {
 	posbegin += 10;
 	posend = payload.find("\"", posbegin + 1);
 	filename = payload.substr(posbegin, posend - posbegin);
+	trim_payload(payload);
 	return (filename);
 }
 
@@ -57,23 +58,23 @@ void CGIResponsePost::create_file(std::string &payload) {
 void CGIResponsePost::saveFile(std::string payload) {
 	const char *upload;
 	DIR* dir;
-	char buf[256];
+	std::string path_string(get_current_path());
+	const char *path = path_string.c_str();
 
-	_filename = setFilename(payload);
-	trim_payload(payload);
+	// TO DO REFACTOR : when Request from Curl
+	if (_request->_copy_raw.find("Transfer-Encoding: chunked") != std::string::npos)
+		_filename = _request->_user_agent + ".txt";
+	else
+		_filename = setFilename(payload);
 
 	upload = _upload.c_str();
 	dir = opendir(upload);
 	if (dir) {
-
-		if (getcwd(buf, sizeof(buf)) == NULL)
-			throw HTTPException(404);
-
 		if (chdir(upload) != 0)
 			throw HTTPException(404);
 
 		create_file(payload);
-		if (chdir(buf) != 0)
+		if (chdir(path) != 0)
 			throw HTTPException(404);
 		closedir(dir);
 	}

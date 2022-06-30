@@ -11,6 +11,8 @@
 #include "HTTPException.hpp"
 #include "URI.hpp"
 #include "CGICall.hpp"
+#include "HTTPRequest.hpp"
+
 #include <cstdlib>
 #include <iostream>
 
@@ -34,6 +36,7 @@ void HTTPReader::run() {
         request->setURI(URI(request->_path));
         request->setPeerAddress(peerAddress);
         request->setPeerName(peerName);
+        request->setUsedPort(port);
         if (request->getURI().isCGIIdentifier()) {
             response = new CGICall(request);
         } else {
@@ -68,76 +71,100 @@ std::vector<std::string>	split_str_vector(const std::string& tosplit, const std:
 	return str;
 }
 
+static bool catch_special(std::string& line, size_t li) {
+	switch (line[li]) {
+		case '\n':
+			return false;
+		case ':':
+			return false;
+		case '#':
+			return false;
+		case ';':
+			return false;
+		case '{':
+			return false;
+		case '}':
+			return false;
+		case ',':
+			return false;
+		default:
+			return true;
+	}
+}
+
+static std::vector<std::string>	split_line(std::string& line) {
+	size_t i = 0;
+	size_t li = 0;
+	size_t fl = line.find('\n', 0);
+	int		br = 0;
+	std::vector<std::string>	ret;
+	while (li != line.length()) {
+		i = li;
+		if (i < fl) {
+			while (i != line.length() && (line[i] == ' ' || line[i] == '\t')) { i++; }
+			li = i;
+			while (li != line.length() && line[li] != ' ' && line[li] != '\t' && catch_special(line, li)) {
+				li++;
+			}
+			if (li != i)
+				ret.push_back(line.substr(i, li - i));
+			if (!catch_special(line, li)) {
+				ret.push_back(line.substr(li, 1));
+				li++;
+			}
+		} else  {
+			while (line[i] == ' ') { i++; }
+			while (li != line.length() && (br != 0 || catch_special(line, li))) {
+				if (line[li] == '(')
+					br++;
+				if (line[li] == ')' && br > 0)
+					br--;
+				li++;
+			}
+			if (li != i)
+				ret.push_back(line.substr(i, li - i));
+			if (!catch_special(line, li)) {
+				ret.push_back(line.substr(li, 1));
+				li++;
+			}
+		}
+	}
+	return ret;
+}
+
+int	HTTPRequest::checktype(std::string& word) {
+	if (word == "GET")
+		return GET;
+	if (word == "POST")
+		return POST;
+	if (word == "DELETE")
+		return DELETE;
+	return ERROR;
+}
+
+
 HTTPRequest* HTTPReader::_parse() throw(std::exception) {
-	char buff[30001];
-	if (!read(_socket.get_fd(), buff, 30000)) {
+	char buff[BUFFER + 1];
+	if (!read(_socket.get_fd(), buff, BUFFER)) {
 		throw HTTPException(504);
 	}
 	std::string raw(buff);
-	size_t old_nl;
-	old_nl = raw.find('\n');
-	if (raw.npos == old_nl) {
-		throw HTTPException(400);
-	}
-	HTTPRequest*	retval;
-	if (!raw.compare(0, 3, "GET"))
-		retval = new HTTPRequestGet();
-	else if (!raw.compare(0, 4, "POST"))
-		retval = new HTTPRequestPost();
-	else if (!raw.compare(0, 6, "DELETE"))
-		retval = new HTTPRequestDelete();
-	else
-		throw HTTPException(400);
-	if (raw.find("HTTP/1.1", 0, 8) == raw.npos)
-		throw HTTPException(400);
-	retval->_copy_raw = raw;
-	retval->_http_version = "1.1";
-	{///path
-		size_t	first;
-		size_t	last;
-		if (!raw.compare(0, 3, "GET"))
-			first = 4;
-		else if (!raw.compare(0, 4, "POST"))
-			first = 5;
-		else if (!raw.compare(0, 6, "DELETE"))
-			first = 6;
-		else
+	size_t	cursor = raw.find("\r\n\r\n", 0);
+	if (cursor == raw.npos)
+		cursor = raw.length();
+	std::string	head = raw.substr(0, cursor);
+	std::vector<std::string> file = split_line(head);
+	switch(HTTPRequest::checktype(file[0])) {
+		case HTTPRequest::GET:
+			return new HTTPRequest(HTTPRequest::GET, file, raw, _socket);
+		case HTTPRequest::POST:
+			return new HTTPRequest(HTTPRequest::POST, file, raw, _socket);
+		case HTTPRequest::DELETE:
+			return new HTTPRequest(HTTPRequest::DELETE, file, raw, _socket);
+        default:
 			throw HTTPException(400);
-		last = raw.find("HTTP/1.1", 0, 8) - 1;
-		retval->_path = raw.substr(first, last - first);
 	}
 
-	size_t	new_nl = raw.find('\n', old_nl + 2);
-	while (new_nl != raw.npos) {
-		if (raw.find("User-Agent:", old_nl, 11) < new_nl)
-		{
-			retval->_user_agent = raw.substr(old_nl + 13, new_nl - (old_nl + 14));
-			std::cout << "retval->_user_agent: " << retval->_user_agent << std::endl;
-		}
-		else if (raw.find("Host:", old_nl, 5) < new_nl)
-			retval->_host = raw.substr(old_nl + 7, new_nl - (old_nl + 8));
-		else if (raw.find("Accept-Language:", old_nl, 16) < new_nl)
-			retval->_lang = split_str_vector(raw.substr(old_nl + 18, new_nl - (old_nl + 19)), ", ");
-		else if (raw.find("Accept-Encoding:", old_nl, 16) < new_nl)
-			retval->_encoding = split_str_vector(raw.substr(old_nl + 18, new_nl - (old_nl + 19)), ", ");
-		else if (raw.find("Accept:", old_nl, 7)  < new_nl)
-			retval->_content_type =  split_str_vector(raw.substr(old_nl + 8, new_nl - (old_nl + 9)), ",");
-		else if (raw.find("Content-Length:", old_nl, 15) < new_nl)
-			retval->_content_length = strtol(raw.substr(old_nl + 17, new_nl - (old_nl + 18)).c_str(), NULL, 0);
-		else if (raw.find("Connection:", old_nl, 11) < new_nl && raw.find("keep-alive", old_nl, 10) != raw.npos)
-			retval->_keep_alive = true;
-		old_nl = new_nl;
-		new_nl = raw.find('\n', old_nl + 1);
-	}
-	if (retval->_content_length != 0 && retval->_content_type.empty())
-		throw HTTPException(400);
-	else if (retval->_content_length != 0 || retval->isChunkedRequest(raw)) {
-		retval->_content = true;
-		retval->set_payload(raw);
-	}
-	else
-		retval->_content = false;
-	return retval;
 }
 
 bool HTTPReader::isRunning() const {
@@ -166,4 +193,12 @@ const Socket & HTTPReader::getSocket() const {
 
 void HTTPReader::setSocket(const Socket & socket) {
     _socket = socket;
+}
+
+int HTTPReader::getUsedPort() const {
+    return port;
+}
+
+void HTTPReader::setUsedPort(const int port) {
+    HTTPReader::port = port;
 }

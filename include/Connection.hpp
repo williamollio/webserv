@@ -13,7 +13,11 @@
 #define PORT 80
 class Connection {
 	private:
-        std::vector<int>        server_fds;
+        // First: Port --- Second: server_fd
+        std::map<int, int>      server_fds;
+
+        // First: client fd --- Second: server fd
+        std::map<int, int>      connectionPairs;
 		int                     addrlen;
 		int                     on;
 		int                     _timeout;

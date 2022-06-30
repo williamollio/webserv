@@ -7,5 +7,6 @@
 
 std::string	get_message(int error_code);
 std::string int_to_ipv4(unsigned int address);
+std::string int_to_string(int nbr);
 
 #endif

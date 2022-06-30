@@ -4,6 +4,7 @@
 
 #include "URI.hpp"
 #include "URISyntaxException.hpp"
+#include "Configuration.hpp"
 
 URI::URI(const std::string & uri): original(uri), tokens(), stream(original), syntaxThrowing(false) {
     tokenize();
@@ -18,13 +19,39 @@ URI::URI(): original(), tokens(), syntaxThrowing(false) {}
 URI::~URI() {}
 
 bool URI::isCGIIdentifier() const {
-    std::string cgiFile = determineFileWithExtension();
-    if (!cgiFile.empty()) {
-        // TODO Ask configuration for CGI file extensions
-        return true;
-    } else {
-        return false;
+    if (isInCGIPath()) return true;
+    else {
+        const std::vector<std::string> & exts = Configuration::getInstance().get_cgi_extensions();
+        std::string cgiFile = determineFileWithExtension();
+        if (!cgiFile.empty()) {
+            for (std::vector<std::string>::const_iterator it = exts.begin();
+                 it != exts.end();
+                 ++it) {
+                unsigned long i, j;
+                for (i = it->size() - 1,
+                             j = cgiFile.size() - 1;
+                     i > 0 && j > 0; --i, --j) {
+                    if (it->at(i) != cgiFile.at(j)) break;
+                }
+                if (i == 0) return true;
+            }
+        }
     }
+    return false;
+}
+
+bool URI::isInCGIPath() const {
+    const std::string & cgiFile = determineFile(),
+                        cgiRoot = Configuration::getInstance().get_cgi_root();
+
+    if (!cgiFile.empty()) {
+        unsigned int i, j;
+        for (i = 0, j = 0; i < cgiFile.size() && j < cgiRoot.size(); ++i, ++j) {
+            if (cgiFile[i] != cgiRoot[i]) break;
+        }
+        if (j == cgiRoot.size()) return true;
+    }
+    return false;
 }
 
 std::string URI::determineFileWithExtension() const {

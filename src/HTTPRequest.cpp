@@ -4,12 +4,144 @@
 
 #include "HTTPRequest.hpp"
 #include "HTTPException.hpp"
+#include <cstdlib>
+
 
 HTTPRequest::TYPE HTTPRequest::getType() const {
     return _type;
 }
 
 HTTPRequest::HTTPRequest(HTTPRequest::TYPE type): _type(type), _keep_alive(false), _content(false), _chunked(false), _content_length(0){}
+
+bool	HTTPRequest::is_payload(size_t index) {
+	return 	_copy_raw.find("\r\n\r\n", 0) <= index;
+}
+
+HTTPRequest::REQ_INFO HTTPRequest::http_token_comp(std::string &word) {
+	if (word == "user-agent" || word == "User-Agent")
+		return USER_AGENT;
+	if (word == "host" || word == "Host")
+		return HOSTNAME;
+	if (word == "Accept-Language" || word == "accept-language")
+		return LANG_SUPP;
+	if (word == "Accept-Encoding" || word == "accept-encoding")
+		return ENCODING;
+	if (word == "Accept" || word == "accept")
+		return CONTENT_TYPE;
+	if (word == "Content-Length" || word == "content-length")
+		return CON_LENGTH;
+	if (word == "Connection" || word == "connection")
+		return CON_TYPE;
+	return DEFAULT;
+}
+
+size_t	HTTPRequest::load_string(std::vector<std::string>& file, size_t index, std::string& target) {
+	index += 2;
+	while (index < file.size() && file.at(index) != "\n" && file.at(index) != ";")
+		target += file.at(index++);
+	while (file.at(index) != "\n")
+		index++;
+	return index + 1;
+}
+
+size_t HTTPRequest::load_vec_str(std::vector<std::string> &file, size_t index, vectorString &target) {
+	index += 2;
+	while (index < file.size() && file.at(index) != "\n" && file.at(index) != ";") {
+		if (file.at(index) == ",")
+			index++;
+		else
+			target.push_back(file.at(index++));
+	}
+	while (index < file.size() && file.at(index) != "\n")
+		index++;
+	return index + 1;
+}
+
+size_t	HTTPRequest::load_connection(std::vector<std::string> &file, size_t index, bool &target) {
+	index += 2;
+	if (!file.at(index).compare(0, 10, "keep-alive") || !file.at(index).compare(0, 10, "Keep-Alive")) {
+		target = true;
+	}
+	else
+		target = false;
+	return index + 2;
+}
+
+size_t	HTTPRequest::load_size(std::vector<std::string> &file, size_t index, size_t &target) {
+	index += 2;
+	target = strtol(file.at(index).c_str(), NULL, 0);
+	return index + 2;
+}
+
+size_t	HTTPRequest::ff_newline(std::vector<std::string>& file, size_t index) {
+	while (index < file.size() && file.at(index) != "\n" && !is_payload(index))
+		index++;
+	return index + 1;
+}
+
+HTTPRequest::HTTPRequest(HTTPRequest::TYPE type, std::vector<std::string> &file, std::string& raw, Socket& _socket) : _type(type), _keep_alive(false), _content(false), _content_length(0) {
+	size_t	index = 1;
+	_copy_raw = raw;
+	_path = file[index++];
+	if (file[index].compare(0, 5, "HTTP/") == 0 && file[index + 1] == "\n") {
+		_http_version = file[index].substr(5);
+		index += 2;
+	}
+	else
+		throw HTTPException(400);
+	while (file.size() > index + 2 && !is_payload(index)) {
+		switch(http_token_comp(file[index])) {
+			case USER_AGENT:
+//				std::cerr << "passed USERAGENT" << std::endl;
+				index = load_string(file, index, _user_agent);
+//				std::cerr << "passed USERAGENT" << std::endl;
+				break;
+			case HOSTNAME:
+//				std::cerr << "passed HOSTNAME" << std::endl;
+				index = load_string(file, index, _host);
+//				std::cerr << "passed HOSTNAME" << std::endl;
+				break;
+			case LANG_SUPP:
+//				std::cerr << "passed LANGUAGE" << std::endl;
+				index = load_vec_str(file, index, _lang);
+//				std::cerr << "passed LANGUAGE" << std::endl;
+				break;
+			case ENCODING:
+//				std::cerr << "passed ENCODING" << std::endl;
+				index = load_vec_str(file, index, _encoding);
+//				std::cerr << "passed ENCODING" << std::endl;
+				break;
+			case CON_TYPE:
+//				std::cerr << "passed CONNECTION_TYPE" << std::endl;
+				index = load_connection(file, index, _keep_alive);
+//				std::cerr << "passed CONNECTION_TYPE" << std::endl;
+				break;
+			case CON_LENGTH:
+//				std::cerr << "passed CONTENT_LENGTH" << std::endl;
+				index = load_size(file, index, _content_length);
+//				std::cerr << "passed CONTENT_LENGTH" << std::endl;
+				break;
+			case CONTENT_TYPE:
+//				std::cerr << "passed CONTENT_TYPE" << std::endl;
+				index = load_vec_str(file, index, _content_type);
+//				std::cerr << "passed CONTENT_TYPE" << std::endl;
+				break;
+			default:
+				index = ff_newline(file, index);
+		}
+	}
+
+	if (_content_length != 0 && _content_type.empty()) {
+
+        throw HTTPException(400);
+    }
+	else if (_content_length != 0  || isChunkedRequest(raw)) {
+		_content = true;
+		set_payload(raw, _socket);
+	}
+	else
+		_content = false;
+}
 
 const URI &HTTPRequest::getURI() const {
     return uri;
@@ -36,7 +168,7 @@ std::string HTTPRequest::unchunkedPayload(const std::string &data, size_t cursor
 			buffer.append(line);
 			line.clear();
 		}
-		getline(tmp, line);
+		 getline(tmp, line);
 	}
 	payload.clear();
 	payload = buffer;
@@ -49,10 +181,12 @@ bool HTTPRequest::isChunkedRequest(const std::string &data)
 	return (data.find("Transfer-Encoding: chunked") != std::string::npos);
 }
 
-void HTTPRequest::set_payload(const std::string& data) throw(std::exception) {
+void HTTPRequest::set_payload(const std::string& data, Socket& _socket) throw(std::exception) {
 	size_t	cursor = data.find("\r\n\r\n", 0);
-	if (cursor == std::string::npos)
+	if (cursor == std::string::npos) {
+        std::cerr << "error 4000 here" <<std::endl;
 		throw HTTPException(400);
+    }
 	cursor += 2;
 
 	if (_chunked) {
@@ -61,6 +195,12 @@ void HTTPRequest::set_payload(const std::string& data) throw(std::exception) {
   }
 	else
 		_payload = data.substr(cursor);
+	char buf[2];
+	while (_payload.length() < _content_length) {
+		if (!read(_socket.get_fd(), buf, 1))
+			throw HTTPException(504);
+		_payload += buf;
+	}
 }
 
 const std::string & HTTPRequest::get_payload() const {
@@ -81,4 +221,12 @@ const std::string &HTTPRequest::getPeerName() const {
 
 void HTTPRequest::setPeerName(const std::string &peerName) {
     HTTPRequest::peerName = peerName;
+}
+
+int HTTPRequest::getUsedPort() const {
+    return port;
+}
+
+void HTTPRequest::setUsedPort(const int port) {
+    HTTPRequest::port = port;
 }

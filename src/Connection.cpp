@@ -1,22 +1,22 @@
 #include "Connection.hpp"
 #include "HTTPReader.hpp"
 #include "IOException.hpp"
+#include "Configuration.hpp"
 #include <poll.h>
 #include <netdb.h>
 
 #define INFTIM -1
-#define NUM_PORT 2
 
 Connection::Connection() : _timeout(INFTIM), address(), _fds()
 {
-    int ports[NUM_PORT] = { 81, 80 };
-    int server_fd;
-    for (int i = 0; i < NUM_PORT; ++i) {
+    const std::vector<int> & ports = Configuration::getInstance().get_server_ports();
+    for (unsigned long i = 0; i < ports.size(); ++i) {
         addrlen = sizeof(address);
         address.sin_family = AF_INET;
         address.sin_addr.s_addr = INADDR_ANY;
         address.sin_port = htons(ports[i]);
 
+        int server_fd;
         if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0)
             throw IOException("Could not create socket!");
         on = 1;
@@ -28,7 +28,7 @@ Connection::Connection() : _timeout(INFTIM), address(), _fds()
             throw IOException("Cannot listen on the socket descriptor!");
         _fds[i].fd = server_fd;
         _fds[i].events = POLLIN;
-        server_fds.push_back(server_fd);
+        server_fds[server_fd] = ports[i];
     }
 }
 
@@ -43,8 +43,8 @@ Connection::~Connection() {
 void Connection::establishConnection()
 {
     int rc;
-    int nfds = NUM_PORT;
-    int current_size;
+    unsigned long nfds = Configuration::getInstance().get_server_ports().size();
+    unsigned long current_size;
     bool end_server = false;
 
     do {
@@ -54,9 +54,9 @@ void Connection::establishConnection()
             break;
         }
         current_size = nfds;
-        for (int i = 0; i < current_size; i++)
+        for (unsigned long i = 0; i < current_size; i++)
         {
-      	    if (_fds[i].revents == 0)
+            if (_fds[i].revents == 0)
                 continue;
             else if (_fds[i].revents == POLLERR || _fds[i].revents == POLL_HUP) {
                 ReaderByFDFinder finder(_fds[i].fd);
@@ -77,6 +77,7 @@ void Connection::establishConnection()
       	    {
                 int socketDescriptor;
                 while ((socketDescriptor = accept(_fds[i].fd, NULL, NULL)) >= 0) {
+                    connectionPairs[socketDescriptor] = _fds[i].fd;
                     _fds[nfds].fd = socketDescriptor;
                     _fds[nfds].events = POLLIN;
                     nfds++;
@@ -89,6 +90,7 @@ void Connection::establishConnection()
                 char * host = new char[50]();
                 getnameinfo((struct sockaddr *) &address, (socklen_t) addrlen, host, (socklen_t) 50, NULL, 0, 0);
                 reader->setPeerName(host);
+                reader->setUsedPort(server_fds[connectionPairs[socket.get_fd()]]);
                 delete[] host;
                 list.push_back(reader);
                 reader->run();
@@ -97,7 +99,7 @@ void Connection::establishConnection()
         }
         cleanReaders();
     } while (!end_server);
-    for (int i = 0; i < nfds; i++) {
+    for (unsigned long i = 0; i < nfds; i++) {
     	if(_fds[i].fd >= 0)
     	    close(_fds[i].fd);
     }
@@ -116,7 +118,7 @@ void Connection::cleanReaders() {
 }
 
 bool Connection::isServingFD(int fd) {
-    std::vector<int>::iterator it = std::find(server_fds.begin(), server_fds.end(), fd);
+    std::map<int, int>::const_iterator it = server_fds.find(fd);
     return it != server_fds.end();
 }
 

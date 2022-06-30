@@ -4,6 +4,8 @@
 
 #include "../include/CGIResponsePost.hpp"
 
+bool CGIResponsePost::isUploadAccepted() {return _accept_file;}
+
 std::string CGIResponsePost::setFilename(std::string &payload) {
 	std::string filename;
 
@@ -51,8 +53,10 @@ void CGIResponsePost::trimPayload(std::string &payload) {
 	posbegin += 4;
 
 	posend = tmp.find(delimiter, posbegin);
-	if (posend == std::string::npos)
+	if (posend == std::string::npos) {
+		std::cerr << "no delim found" << std::endl;
 		throw HTTPException(400);
+	}
 	posend -= 4;
 
 	payload = tmp.substr(posbegin, posend - posbegin);
@@ -93,14 +97,16 @@ void CGIResponsePost::saveFile(std::string payload) {
 
 void CGIResponsePost::run(Socket &socket) {
 
-	HTTPHeader header;
+	HTTPHeader	header;
+	int			code;
 
-	header.setStatusCode(201);
-	header.setStatusMessage(get_message(201));
+	if (!isUploadAccepted())
+		throw HTTPException(405);
+	code = 201;
 	saveFile(_request->_payload);
-	std::stringstream code;
-	code << header.getStatusCode();
-	std::string body = code.str() + " " + header.getStatusMessage();
+	header.setStatusCode(code);
+	header.setStatusMessage(get_message(code));
+	std::string body = int_to_string(code) + " " + header.getStatusMessage();
 	header.set_content_length(body.length());
 	socket.send(header.tostring() + "\r\n\r\n" + body);
 }

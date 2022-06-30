@@ -447,7 +447,7 @@ Configuration::loc_word		Configuration::loc_inf_token_cmp(const std::string& wor
 	if (word == "method" || word == "methods")
 		return methods;
 	else if (word == "root" || word == "directory" || word == "dir")
-		return skip;
+		return local_root;
 	else if (word == "def_file" || word == "default" || word == "default_file")
 		return default_file;
 	else if (word == "directory_listing" || word == "listing" || word == "dir_listing")
@@ -566,6 +566,9 @@ size_t Configuration::parse_loc_info(std::fstream &file, vectorString &line, siz
 					case default_file:
 						index = parse_str(file, line, index, data.def_file);
 						break;
+					case local_root:
+						index = parse_str(file, line, index, data.root);
+						break;
 					case skip:
 						index = skip_token(file, line, index);
 						break;
@@ -633,7 +636,7 @@ bool Configuration::get_server_file_acceptance() const {
 void Configuration::check_portnum() {
 	for (vectorInt::iterator it = _ports.begin(); it != _ports.end(); it++)
 		if (*it > 65535 || *it < 0)
-			throw BadConfig("Bad Portnumber");
+			throw std::invalid_argument("Configuration-File: Error: Bad Portnumber");
 }
 
 const Configuration::vectorString & Configuration::get_cgi_extensions() const {
@@ -644,18 +647,26 @@ const std::string & Configuration::get_cgi_root() const {
     return _cgi_root;
 }
 
+size_t Configuration::get_server_max_upload_size() const {
+	return _cmbs;
+}
 
+const std::string Configuration::get_server_root_folder() const {
+	return _server_root;
+}
 
-//CLASS UNEXPECTED-TOKEN
-//Configuration::UnexpectedToken::UnexpectedToken(size_t _in_line, std::string& tok) _NOEXCEPT : _line(_in_line) {
-//    std::stringstream ret;
-//    ret << "line: " << _line << " unexpected token: " << tok;
-//    _token  = ret.str();
-//}
+const std::string Configuration::get_upload_location_cl() const {
+	return _client_upload_location;
+}
+
+const std::vector<Configuration::loc_inf> &Configuration::get_location_specifier() const{
+	return _server_location_info;
+}
+
 
 Configuration::UnexpectedToken::UnexpectedToken(size_t _in_line, std::string tok) _NOEXCEPT : _line(_in_line){
 	std::stringstream ret;
-	ret << "line: " << _line << " unexpected token: " << tok;
+	ret << "Configuration-File: Error: Line: " << _line << ", unexpected token: " << tok;
 	_token  = ret.str();
 }
 
@@ -691,6 +702,8 @@ std::ostream& operator<<(std::ostream& os, const Configuration& conf) {
 	std::vector<int> ports = conf.get_server_ports();
 	for (std::vector<int>::iterator it = ports.begin(); it != ports.end(); it++)
 		os << "	" << *it << std::endl;
+	os << "server root:" << std::endl;
+	os << "	" << conf.get_server_root_folder() << std::endl;
 	os << "server locations:" << std::endl;
 	std::vector<std::string> servloc = conf.get_server_location();
 	for (std::vector<std::string>::iterator it = servloc.begin(); it != servloc.end(); it++)
@@ -703,5 +716,31 @@ std::ostream& operator<<(std::ostream& os, const Configuration& conf) {
 	os << "	" << conf.get_server_log_location() << std::endl;
 	os << "server accepts files:" << std::endl;
 	os << "	" << conf.get_server_file_acceptance() << std::endl;
+	os << "server client upload location:" << std::endl;
+	os << "	" << conf.get_upload_location_cl() << std::endl;
+	if (conf.get_server_file_acceptance()) {
+		os << "server max file size:" << std::endl;
+		os << "	" << conf.get_server_max_upload_size() << std::endl;
+	}
+	for (std::vector<Configuration::loc_inf>::const_iterator it = conf.get_location_specifier().begin(); it != conf.get_location_specifier().end(); it++) {
+		os << "location: " << std::endl;
+			os << (*it).directory << std::endl;
+		os << "	root:" << std::endl;
+		os << "		" << (*it).root << std::endl;
+		os << "	Get:" << std::endl;
+		os << "		" << (*it).GET << std::endl;
+		os << "	Post:" << std::endl;
+		os << "		" << (*it).POST << std::endl;
+		os << "	Delete:" << std::endl;
+		os << "		" << (*it).DELETE << std::endl;
+		os << "	listing:" << std::endl;
+		os << "		" << (*it).dir_listing << std::endl;
+		os << "	default file:" << std::endl;
+		os << "		" << (*it).def_file << std::endl;
+		os << "	id:" << std::endl;
+		os << (*it).id << std::endl;
+
+	}
+
 	return os;
 }

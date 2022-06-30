@@ -1,5 +1,4 @@
 #include "Connection.hpp"
-#include "Socket.hpp"
 #include "Configuration.hpp"
 
 int main(int argc, char **argv) {

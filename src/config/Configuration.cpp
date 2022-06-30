@@ -256,12 +256,46 @@ size_t	Configuration::parse_bool(std::fstream& file, vectorString& line, size_t 
 			else if (ob && delim_token("{;", line[index]))
 				throw UnexpectedToken(e_line, line[index]);
 			else {
-				if (line[index] == "true" || line[index] == "TRUE" || line[index] == "1")
+				if (line[index] == "true" || line[index] == "TRUE" || line[index] == "1" || line[index] == "on")
 					output = true;
-				else if (line[index] == "false" || line[index] == "False" || line[index] == "0")
+				else if (line[index] == "false" || line[index] == "False" || line[index] == "0" || line[index] == "off")
 					output = false;
 				else
 					throw UnexpectedToken(e_line, line[index]);
+			}
+			index++;
+		}
+	}
+	return ++index;
+}
+
+size_t	Configuration::parse_sizet(std::fstream& file, vectorString& line, size_t index, size_t& output) {
+	bool	ob = false;
+	std::string	first;
+
+	index += 2;
+	if (index >= line.size() || line[index] == "#") {
+		index = 0;
+		gettokens(file, line);
+	}
+	if (line[index] == "{") {
+		ob = true;
+		index++;
+	}
+	while ((ob && line[index] != "}") || (!ob && line[index] != ";")) {
+		if (index >= line.size() || line[index] == "#") {
+			index = 0;
+			gettokens(file, line);
+		} else {
+
+			if (line[index] == ",")
+				throw UnexpectedToken(e_line, line[index]);
+			else if (!ob && delim_token("{}", line[index]))
+				throw UnexpectedToken(e_line, line[index]);
+			else if (ob && delim_token("{;", line[index]))
+				throw UnexpectedToken(e_line, line[index]);
+			else {
+				output = strtol(line[index].c_str(), NULL, 0);
 			}
 			index++;
 		}
@@ -337,8 +371,23 @@ size_t	Configuration::parse_server(std::fstream& file, vectorString& s_line, siz
 					case file_acc:
 						index = parse_bool(file, s_line, index, _accept_file);
 						break;
+					case upload_cmbs:
+						index = parse_sizet(file, s_line, index, _cmbs);
+						break;
+					case root:
+						index = parse_str(file, s_line, index, _server_root);
+						break;
+					case upload_location_cl:
+						index = parse_str(file, s_line, index, _client_upload_location);
+						break;
+					case cgi_ext:
+						index = parse_vec_str(file, s_line, index, _cgi_extensions);
+					case cgi_loc:
+						index = parse_str(file, s_line, index, _cgi_root);
 					default:
-						throw UnexpectedToken(e_line, s_line[index]);
+						if (find_n_fill_loc(file, s_line, index))
+							throw UnexpectedToken(e_line, s_line[index]);
+						break;
 			}}
 		}
 	}
@@ -348,17 +397,185 @@ size_t	Configuration::parse_server(std::fstream& file, vectorString& s_line, siz
 Configuration::server_word Configuration::server_token_cmp(const std::string &word) {
 	if (word == "server_names" || word == "server_name" || word == "Server_Names" || word == "Server_names" || word == "names"|| word == "Names")
 		return name;
-	else if (word == "port" || word == "Port" || word == "Ports" || word == "ports")
+	else if (word == "port" || word == "Port" || word == "Ports" || word == "ports" || word == "listen" || word == "Listen")
 		return port;
 	else if (word == "location" || word == "locations" || word == "loc" || word == "files" || word == "Files" || word == "server_location" || word == "server_locations")
 		return location;
+	else if (word == "root" || word == "root_location" || word == "Root")
+		return root;
 	else if (word == "error_location" || word == "error_locations" || word == "error_loc" || word == "error_pages" || word == "Error_Pages" || word == "error_page_location" || word == "error_page_locations")
 		return location_error;
 	else if (word == "log" || word == "log_loc" || word == "log_location" || word == "Log")
 		return location_log;
 	else if (word == "Accept_Files" || word == "accept_files" || word == "upload" || word == "uploads" || word ==  "user_upload" || word == "user_uploads" || word == "Upload" || word == "Uploads" || word ==  "User_Upload" || word == "User_Uploads")
 		return file_acc;
+	else if (word == "upload" || word == "Upload" || word == "client-upload")
+		return upload_location_cl;
+	else if (word == "client_max_body_size")
+		return upload_cmbs;
+	else if (word == "cgi_ext" || word == "CGI_ext" || word == "cgi_extension" || word == "CGI_extension")
+		return cgi_ext;
+	else if (word == "cgi_path" || word == "CGI_path" || word == "CGI_root" || word == "cgi_root")
+		return cgi_loc;
 	return s_errortype;
+}
+
+Configuration::loc_word		Configuration::loc_inf_token_cmp(const std::string& word) {
+	if (word == "method" || word == "methods")
+		return methods;
+	else if (word == "root" || word == "directory" || word == "dir")
+		return skip;
+	else if (word == "def_file" || word == "default" || word == "default_file")
+		return default_file;
+	else if (word == "directory_listing" || word == "listing" || word == "dir_listing")
+		return directory_listing;
+	return l_errortype;
+}
+
+size_t	Configuration::parse_methods(std::fstream &file, vectorString &line, size_t index, loc_inf& output) {
+	bool	ob = false;
+
+	index += 2;
+	if (index >= line.size() || line[index] == "#") {
+		index = 0;
+		gettokens(file, line);
+	}
+	if (line[index] == "{") {
+		ob = true;
+		index++;
+	}
+	bool	del = false;
+	while ((ob && line[index] != "}") || (!ob && line[index] != ";")) {
+		if (index >= line.size() || line[index] == "#") {
+			index = 0;
+			gettokens(file, line);
+		} else {
+			if (!del && line[index] == ",")
+				del = true;
+			else if (del && line[index] == ",")
+				throw UnexpectedToken(e_line, line[index]);
+			else if (!ob && delim_token(":{}", line[index]))
+				throw UnexpectedToken(e_line, line[index]);
+			else if (ob && delim_token(":{;", line[index]))
+				throw UnexpectedToken(e_line, line[index]);
+			else {
+				if (line[index] == "GET" || line[index] == "get")
+					output.GET = true;
+				else if (line[index] == "DELETE" || line[index] == "delete")
+					output.DELETE = true;
+				else if (line[index] == "POST" || line[index] == "post")
+					output.POST = true;
+				else
+					throw UnexpectedToken(e_line, line[index]);
+				del = false;
+			}
+			index++;
+		}
+	}
+	return ++index;
+}
+
+static void	init_data(Configuration::loc_inf& data, size_t id, const std::string& loc) {
+	data.GET = false;
+	data.DELETE = false;
+	data.POST = false;
+	data.id = id;
+	data.directory = loc;
+}
+
+size_t	Configuration::skip_token(std::fstream& file, vectorString& line, size_t index) {
+	bool	ob = false;
+
+	index += 2;
+	if (index >= line.size() || line[index] == "#") {
+		index = 0;
+		gettokens(file, line);
+	}
+	if (line[index] == "{") {
+		ob = true;
+		index++;
+	}
+	bool	del = false;
+	while ((ob && line[index] != "}") || (!ob && line[index] != ";")) {
+		if (index >= line.size() || line[index] == "#") {
+			index = 0;
+			gettokens(file, line);
+		} else {
+			if (!del && line[index] == ",")
+				del = true;
+			else if (del && line[index] == ",")
+				throw UnexpectedToken(e_line, line[index]);
+			else if (!ob && delim_token(":{}", line[index]))
+				throw UnexpectedToken(e_line, line[index]);
+			else if (ob && delim_token(":{;", line[index]))
+				throw UnexpectedToken(e_line, line[index]);
+			else
+				del = false;
+			index++;
+		}
+	}
+	return ++index;
+}
+
+size_t Configuration::parse_loc_info(std::fstream &file, vectorString &line, size_t index, size_t id) {
+	if (!delim_token("{", line[++index]))
+		throw UnexpectedToken(e_line, line[index]);
+	index++;
+	loc_inf	data;
+	init_data(data, id, _server_locations[id]);
+	while (line[index] != "}") {
+		if (index >= line.size() || line[index] == "#") {
+			index = 0;
+			gettokens(file, line);
+		}
+		while (index < line.size() && line[index] != "#") {
+			if (delim_token("}", line[index])) {
+				_server_location_info.push_back(data);
+				return ++index;
+			}
+			else {
+				switch (loc_inf_token_cmp(line[index])) {
+					case methods:
+						index = parse_methods(file, line, index, data);
+						break;
+					case directory_listing:
+						index = parse_bool(file, line, index, data.dir_listing);
+						break;
+					case default_file:
+						index = parse_str(file, line, index, data.def_file);
+						break;
+					case skip:
+						index = skip_token(file, line, index);
+						break;
+					default:
+						throw UnexpectedToken(e_line, line[index]);
+				}
+			}
+		}
+	}
+	_server_location_info.push_back(data);
+	return index;
+}
+
+bool Configuration::find_n_fill_loc(std::fstream &file, vectorString &line, size_t &index) {
+	size_t	id = 0;
+	for (vectorString::iterator name = _server_locations.begin(); name != _server_locations.end(); name++) {
+		if (*name == _server_locations[index]) {
+			index = parse_loc_info(file, line, index, id);
+			for (std::vector<loc_inf>::iterator i = _server_location_info.begin(); i != _server_location_info.end(); i++) {
+				std::cout << "vector: " << (*i).GET << std::endl
+						  << "	" << (*i).POST << std::endl
+						  << "	" << (*i).DELETE << std::endl
+						  << "	" << (*i).directory << std::endl
+						  << "	" << (*i).def_file << std::endl
+						  << "	" << (*i).dir_listing << std::endl
+						<< "	"<< (*i).id << std::endl;
+			}
+			return false;
+		}
+		id++;
+	}
+	return true;
 }
 
 bool Configuration::delim_token(const std::string& delims, std::string &word) {
@@ -403,6 +620,7 @@ void Configuration::check_portnum() {
 		if (*it > 65535 || *it < 0)
 			throw BadConfig("Bad Portnumber");
 }
+
 
 
 //CLASS UNEXPECTED-TOKEN

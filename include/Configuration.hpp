@@ -5,6 +5,17 @@
 #include <iostream>
 
 class Configuration {
+public:
+	typedef struct location_info {
+		std::string	directory;
+		bool		GET;
+		bool		POST;
+		bool		DELETE;
+
+		bool		dir_listing;
+		std::string	def_file;
+		size_t		id;
+	} loc_inf;
 private:
 	typedef unsigned long				fsize_type;
 	typedef std::vector<std::string>	vectorString;
@@ -12,18 +23,26 @@ private:
 	typedef std::map<int, std::string>	intMapString;
 
 	enum word {server, w_errortype};
-	enum server_word {name, port, location, location_error, location_log, file_acc, eos, s_errortype};
+	enum server_word {name, port, root, upload_location_cl, location, location_error, location_log, file_acc, upload_cmbs, cgi_ext, cgi_loc, s_errortype};
+	enum loc_word {methods, directory_listing, default_file, skip, l_errortype};
 	size_t			e_line;
 
-	enum word	conf_token_cmp(vectorString& line, size_t index);
+	enum word			conf_token_cmp(vectorString& line, size_t index);
 	enum server_word	server_token_cmp(const std::string& word);
+	enum loc_word		loc_inf_token_cmp(const std::string& word);
 
-	vectorString	_server_names;					///standard localhost:PORT
-	vectorInt		_ports;							///standard 80
-	vectorString	_server_locations;
-	intMapString	_server_locations_error_pages;
-	std::string		_server_location_log;
-	bool			_accept_file;					///standard OFF
+	vectorString			_server_names;					///standard localhost:PORT
+	vectorInt				_ports;							///standard 80
+	vectorString			_cgi_extensions;
+	std::string				_cgi_root;
+	vectorString			_server_locations;
+	std::vector<loc_inf>	_server_location_info;
+	std::string				_server_root;
+	std::string				_client_upload_location;
+	intMapString			_server_locations_error_pages;
+	std::string				_server_location_log;
+	size_t					_cmbs;
+	bool					_accept_file;					///standard OFF
 
 	size_t	parse_server(std::fstream& file, vectorString& s_line, size_t index);
 	void	get_next_delim_char(std::fstream& file, char delim, bool ws);
@@ -37,7 +56,12 @@ private:
 	size_t	parse_map_int_str(std::fstream& file, vectorString& input, size_t index, intMapString& output);
 	size_t	parse_str(std::fstream& file, vectorString& input, size_t index, std::string& output);
 	size_t	parse_bool(std::fstream& file, vectorString& input, size_t index, bool& output);
+	size_t	parse_sizet(std::fstream& file, vectorString& line, size_t index, size_t& output);
+	size_t	parse_loc_info(std::fstream& file, vectorString& line, size_t index, size_t id);
+	size_t	parse_methods(std::fstream &file, std::vector<std::string> &line, size_t index, loc_inf& output);
 
+	bool	find_n_fill_loc(std::fstream& file, vectorString& line, size_t& index);
+	size_t	skip_token(std::fstream& file, vectorString& line, size_t index);
 	void fill_default();
 
 	void gettokens(std::fstream &file, vectorString& line);
@@ -55,6 +79,9 @@ public:
 	intMapString	get_server_error_page_location()	const;
 	std::string		get_server_log_location()			const;
 	bool			get_server_file_acceptance()		const;
+	size_t			get_server_max_upload_size()		const;
+	std::string		get_server_root_folder()			const;
+	std::string		get_upload_location_cl()			const;
 
     static Configuration & getInstance();
 

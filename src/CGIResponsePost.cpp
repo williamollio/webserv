@@ -4,6 +4,8 @@
 
 #include "../include/CGIResponsePost.hpp"
 
+bool CGIResponsePost::isUploadAccepted() {return _accept_file;}
+
 std::string CGIResponsePost::setFilename(std::string &payload) {
 	std::string filename;
 
@@ -14,11 +16,11 @@ std::string CGIResponsePost::setFilename(std::string &payload) {
 	posbegin += 10;
 	posend = payload.find("\"", posbegin + 1);
 	filename = payload.substr(posbegin, posend - posbegin);
-	trim_payload(payload);
+	trimPayload(payload);
 	return (filename);
 }
 
-std::string CGIResponsePost::get_delimiter(std::string &tmp) {
+std::string CGIResponsePost::getDelimiter(std::string &tmp) {
 	std::string del;
 	size_t posbegin = 2, posend;
 
@@ -28,14 +30,14 @@ std::string CGIResponsePost::get_delimiter(std::string &tmp) {
 	return (del);
 }
 
-void CGIResponsePost::trim_payload(std::string &payload) {
+void CGIResponsePost::trimPayload(std::string &payload) {
 
 	std::string delimiter;
 	std::string tmp(payload);
 	payload.clear();
 	size_t posbegin, posend;
 
-	delimiter = get_delimiter(tmp);
+	delimiter = getDelimiter(tmp);
 	posbegin = tmp.find("\r\n\r\n");
 	if (posbegin == std::string::npos)
 		throw HTTPException(400);
@@ -51,7 +53,7 @@ void CGIResponsePost::trim_payload(std::string &payload) {
 	payload = tmp.substr(posbegin, posend - posbegin);
 }
 
-void CGIResponsePost::create_file(std::string &payload) {
+void CGIResponsePost::createFile(std::string &payload) {
 	std::ofstream ofs(_filename);
 	ofs << payload << std::endl;
 	ofs.close();
@@ -75,7 +77,7 @@ void CGIResponsePost::saveFile(std::string payload) {
 		if (chdir(upload) != 0)
 			throw HTTPException(404);
 
-		create_file(payload);
+		createFile(payload);
 		if (chdir(path) != 0)
 			throw HTTPException(404);
 		closedir(dir);
@@ -87,14 +89,16 @@ void CGIResponsePost::saveFile(std::string payload) {
 
 void CGIResponsePost::run(Socket &socket) {
 
-	HTTPHeader header;
+	HTTPHeader	header;
+	int			code;
 
-	header.setStatusCode(201);
-	header.setStatusMessage(get_message(201));
+	if (!isUploadAccepted())
+		throw HTTPException(405);
+	code = 201;
 	saveFile(_request->_payload);
-	std::stringstream code;
-	code << header.getStatusCode();
-	std::string body = code.str() + " " + header.getStatusMessage();
+	header.setStatusCode(code);
+	header.setStatusMessage(get_message(code));
+	std::string body = int_to_string(code) + " " + header.getStatusMessage();
 	header.set_content_length(body.length());
 	socket.send(header.tostring() + "\r\n\r\n" + body);
 }

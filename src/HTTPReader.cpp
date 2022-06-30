@@ -52,7 +52,6 @@ void HTTPReader::run() {
     }
 	catch (HTTPException & ex) {
 		CGIResponseError error;
-		std::cerr << "error: " << ex.get_error_code() << std::endl;
 		error.set_error_code(ex.get_error_code());
 		error.run(_socket);
     }

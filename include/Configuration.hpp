@@ -79,6 +79,8 @@ public:
 	const intMapString & get_server_error_page_location() const;
 	const std::string &  get_server_log_location()        const;
 	bool                 get_server_file_acceptance()     const;
+    const vectorString & get_cgi_extensions()             const;
+    const std::string &  get_cgi_root()                   const;
 	size_t					get_server_max_upload_size()  const;
 	const std::string		get_server_root_folder()      const;
 	const std::string		get_upload_location_cl()      const;

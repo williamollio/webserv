@@ -621,6 +621,14 @@ void Configuration::check_portnum() {
 			throw BadConfig("Bad Portnumber");
 }
 
+const Configuration::vectorString & Configuration::get_cgi_extensions() const {
+    return _cgi_extensions;
+}
+
+const std::string & Configuration::get_cgi_root() const {
+    return _cgi_root;
+}
+
 
 
 //CLASS UNEXPECTED-TOKEN

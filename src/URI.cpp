@@ -4,6 +4,7 @@
 
 #include "URI.hpp"
 #include "URISyntaxException.hpp"
+#include "Configuration.hpp"
 
 URI::URI(const std::string & uri): original(uri), tokens(), stream(original), syntaxThrowing(false) {
     tokenize();
@@ -18,10 +19,21 @@ URI::URI(): original(), tokens(), syntaxThrowing(false) {}
 URI::~URI() {}
 
 bool URI::isCGIIdentifier() const {
+    Configuration & c = Configuration::getInstance();
     std::string cgiFile = determineFileWithExtension();
     if (!cgiFile.empty()) {
-        // TODO Ask configuration for CGI file extensions
-        return true;
+        for (std::vector<std::string>::const_iterator it = c.get_cgi_extensions().begin();
+             it != c.get_cgi_extensions().end();
+             ++it) {
+            unsigned long i, j;
+            for (i = it->size(),
+                 j = cgiFile.size();
+                 i > 0 && j > 0; --i, --j) {
+                if (it->at(i) != cgiFile[j]) break;
+            }
+            if (i == 0) return true;
+        }
+        return false;
     } else {
         return false;
     }

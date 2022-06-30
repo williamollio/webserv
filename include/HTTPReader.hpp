@@ -28,11 +28,15 @@ class HTTPReader {
         const Socket & getSocket() const;
         void           setSocket(const Socket &);
 
+        int  getUsedPort() const;
+        void setUsedPort(int port);
+
 private:
         Socket        _socket;
         CGIResponse * response;
         unsigned int  peerAddress;
         std::string   peerName;
+        int           port;
 
         HTTPRequest * _parse() throw(std::exception);
 };

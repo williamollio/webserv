@@ -73,15 +73,15 @@ private:
 public:
 	void	load_config_file(const std::string& path);
 
-	vectorString	get_server_names()					const;
-	vectorInt		get_server_ports()					const;
-	vectorString	get_server_location()				const;
-	intMapString	get_server_error_page_location()	const;
-	std::string		get_server_log_location()			const;
-	bool			get_server_file_acceptance()		const;
-	size_t			get_server_max_upload_size()		const;
-	std::string		get_server_root_folder()			const;
-	std::string		get_upload_location_cl()			const;
+	const vectorString & get_server_names()               const;
+	const vectorInt &    get_server_ports()               const;
+	const vectorString & get_server_location()            const;
+	const intMapString & get_server_error_page_location() const;
+	const std::string &  get_server_log_location()        const;
+	bool                 get_server_file_acceptance()     const;
+	const size_t			get_server_max_upload_size()  const;
+	const std::string		get_server_root_folder()      const;
+	const std::string		get_upload_location_cl()      const;
 
     static Configuration & getInstance();
 

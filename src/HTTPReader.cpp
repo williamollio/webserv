@@ -36,6 +36,7 @@ void HTTPReader::run() {
         request->setURI(URI(request->_path));
         request->setPeerAddress(peerAddress);
         request->setPeerName(peerName);
+        request->setUsedPort(port);
         if (request->getURI().isCGIIdentifier()) {
             response = new CGICall(request);
         } else {
@@ -194,4 +195,12 @@ const Socket & HTTPReader::getSocket() const {
 
 void HTTPReader::setSocket(const Socket & socket) {
     _socket = socket;
+}
+
+int HTTPReader::getUsedPort() const {
+    return port;
+}
+
+void HTTPReader::setUsedPort(const int port) {
+    HTTPReader::port = port;
 }

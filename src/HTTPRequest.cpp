@@ -207,3 +207,11 @@ const std::string &HTTPRequest::getPeerName() const {
 void HTTPRequest::setPeerName(const std::string &peerName) {
     HTTPRequest::peerName = peerName;
 }
+
+int HTTPRequest::getUsedPort() const {
+    return port;
+}
+
+void HTTPRequest::setUsedPort(const int port) {
+    HTTPRequest::port = port;
+}

@@ -200,7 +200,6 @@ void HTTPRequest::set_payload(const std::string& data, Socket& _socket) throw(st
 			throw HTTPException(504);
 		_payload += buf;
 	}
-	std::cout << _payload.length() << " " << _content_length << std::endl;
 }
 
 const std::string & HTTPRequest::get_payload() const {

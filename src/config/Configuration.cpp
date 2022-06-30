@@ -561,15 +561,15 @@ bool Configuration::find_n_fill_loc(std::fstream &file, vectorString &line, size
 	for (vectorString::iterator name = _server_locations.begin(); name != _server_locations.end(); name++) {
 		if (*name == _server_locations[index]) {
 			index = parse_loc_info(file, line, index, id);
-			for (std::vector<loc_inf>::iterator i = _server_location_info.begin(); i != _server_location_info.end(); i++) {
-				std::cout << "vector: " << (*i).GET << std::endl
-						  << "	" << (*i).POST << std::endl
-						  << "	" << (*i).DELETE << std::endl
-						  << "	" << (*i).directory << std::endl
-						  << "	" << (*i).def_file << std::endl
-						  << "	" << (*i).dir_listing << std::endl
-						<< "	"<< (*i).id << std::endl;
-			}
+			// for (std::vector<loc_inf>::iterator i = _server_location_info.begin(); i != _server_location_info.end(); i++) {
+			// 	std::cout << "vector: " << (*i).GET << std::endl
+			// 			  << "	" << (*i).POST << std::endl
+			// 			  << "	" << (*i).DELETE << std::endl
+			// 			  << "	" << (*i).directory << std::endl
+			// 			  << "	" << (*i).def_file << std::endl
+			// 			  << "	" << (*i).dir_listing << std::endl
+			// 			<< "	"<< (*i).id << std::endl;
+			// }
 			return false;
 		}
 		id++;

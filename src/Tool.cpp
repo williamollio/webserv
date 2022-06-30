@@ -2,6 +2,16 @@
 #include <sstream>
 #include "Tool.hpp"
 
+std::string int_to_string(int nbr)
+{
+	std::stringstream s;
+	std::string str;
+
+	s << nbr;
+	str = s.str();
+	return (str);
+}
+
 std::string int_to_ipv4(unsigned int address) {
     std::stringstream s;
     s << static_cast<unsigned int>(static_cast<unsigned char>(address >> 24)) << ".";

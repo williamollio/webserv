@@ -26,10 +26,10 @@ bool URI::isCGIIdentifier() const {
              it != c.get_cgi_extensions().end();
              ++it) {
             unsigned long i, j;
-            for (i = it->size(),
-                 j = cgiFile.size();
+            for (i = it->size() - 1,
+                 j = cgiFile.size() - 1;
                  i > 0 && j > 0; --i, --j) {
-                if (it->at(i) != cgiFile[j]) break;
+                if (it->at(i) != cgiFile.at(j)) break;
             }
             if (i == 0) return true;
         }

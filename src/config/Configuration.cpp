@@ -176,7 +176,7 @@ size_t	Configuration::parse_map_int_str(std::fstream& file, vectorString& line, 
 				index++;
 			if (!del && line[index] == ",")
 				del = true;
-			else if ((del && line[index] == ",")
+			else if ((del && page && line[index] == ",")
 					|| (!ob && delim_token(":{}", line[index]))
 					|| (ob && delim_token(":{;", line[index])))
 				throw UnexpectedToken(e_line, line[index]);
@@ -215,11 +215,7 @@ size_t	Configuration::parse_str(std::fstream& file, vectorString& line, size_t i
 			gettokens(file, line);
 		} else {
 
-			if (line[index] == ",")
-				throw UnexpectedToken(e_line, line[index]);
-			else if (!ob && delim_token("{}", line[index]))
-				throw UnexpectedToken(e_line, line[index]);
-			else if (ob && delim_token("{;", line[index]))
+			if (line[index] == "," || (!ob && delim_token("{}", line[index])) || (ob && delim_token("{;", line[index])))
 				throw UnexpectedToken(e_line, line[index]);
 			else {
 				output = line[index];
@@ -382,11 +378,14 @@ size_t	Configuration::parse_server(std::fstream& file, vectorString& s_line, siz
 						break;
 					case cgi_ext:
 						index = parse_vec_str(file, s_line, index, _cgi_extensions);
+						break;
 					case cgi_loc:
 						index = parse_str(file, s_line, index, _cgi_root);
+						break;
 					default:
-						if (find_n_fill_loc(file, s_line, index))
+						if (find_n_fill_loc(file, s_line, index)) {
 							throw UnexpectedToken(e_line, s_line[index]);
+						}
 						break;
 			}}
 		}

@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <fstream>
 #include <iostream>
 
 class Configuration {
@@ -45,9 +46,7 @@ private:
 	bool					_accept_file;					///standard OFF
 
 	size_t	parse_server(std::fstream& file, vectorString& s_line, size_t index);
-	void	get_next_delim_char(std::fstream& file, char delim, bool ws);
 	void	check_portnum();
-	std::string	getword(vectorString& line);
 	bool	delim_token(const std::string& delims, std::string& word);
 
 
@@ -69,9 +68,10 @@ private:
     static Configuration instance;
 
 	Configuration();
-	Configuration(std::string location);
+	Configuration(std::string& location);
 public:
 	void	load_config_file(const std::string& path);
+	void	load_config_file();
 
 	const vectorString & get_server_names()               const;
 	const vectorInt &    get_server_ports()               const;

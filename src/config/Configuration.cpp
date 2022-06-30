@@ -2,6 +2,7 @@
 #include <iostream>
 #include <sstream>
 #include <cstdlib>
+#include <cstdio>
 #include "Configuration.hpp"
 
 Configuration Configuration::instance = Configuration();
@@ -10,11 +11,11 @@ Configuration & Configuration::getInstance() {
     return instance;
 }
 
-Configuration::Configuration() : e_line(0), _accept_file(false) {
+Configuration::Configuration() : e_line(0), _cmbs(0), _accept_file(false) {
 	///TODO: initialize standard values
 }
 
-Configuration::Configuration(std::string location) : e_line(0), _accept_file(false) {
+Configuration::Configuration(std::string& location) : e_line(0), _cmbs(0), _accept_file(false) {
 		load_config_file(location);
 }
 
@@ -62,8 +63,10 @@ std::vector<std::string>	split_line(std::string& line) {
 
 void Configuration::gettokens(std::fstream &file, vectorString& line) {
 	std::string tmp;
-	if (file.eof())
+	if (file.eof()) {
+		file.close();
 		throw UnexpectedToken(e_line, "EOF");
+	}
 	std::getline(file, tmp);
 	line = split_line(tmp);
 	e_line++;
@@ -97,12 +100,10 @@ size_t	Configuration::parse_vec_str(std::fstream& file, vectorString& line, size
 		} else {
 			if (!del && line[index] == ",")
 				del = true;
-			else if (del && line[index] == ",")
+			else if ((del && line[index] == ",") || (!ob && delim_token(":{}", line[index])) || (ob && delim_token(":{;", line[index]))) {
+				file.close();
 				throw UnexpectedToken(e_line, line[index]);
-			else if (!ob && delim_token(":{}", line[index]))
-				throw UnexpectedToken(e_line, line[index]);
-			else if (ob && delim_token(":{;", line[index]))
-				throw UnexpectedToken(e_line, line[index]);
+			}
 			else {
 				output.push_back(line[index]);
 				del = false;
@@ -133,13 +134,10 @@ size_t	Configuration::parse_vec_int(std::fstream& file, vectorString& line, size
 		} else {
 			if (!del && line[index] == ",")
 				del = true;
-			else if (del && line[index] == ",")
+			else if ((del && line[index] == ",") || (!ob && delim_token(":{}", line[index])) || (ob && delim_token(":{;", line[index]))) {
+				file.close();
 				throw UnexpectedToken(e_line, line[index]);
-			else if (!ob && delim_token(":{}", line[index]))
-				throw UnexpectedToken(e_line, line[index]);
-			else if (ob && delim_token(":{;", line[index]))
-				throw UnexpectedToken(e_line, line[index]);
-			else {
+			} else {
 				output.push_back(atoi(line[index].c_str()));
 				del = false;
 			}
@@ -170,16 +168,20 @@ size_t	Configuration::parse_map_int_str(std::fstream& file, vectorString& line, 
 			index = 0;
 			gettokens(file, line);
 		} else {
-			if (del && !page && line[index] != ":")
+			if (del && !page && line[index] != ":") {
+				file.close();
 				throw UnexpectedToken(e_line, line[index]);
+			}
 			else if (del && !page && line[index] == ":")
 				index++;
 			if (!del && line[index] == ",")
 				del = true;
 			else if ((del && page && line[index] == ",")
 					|| (!ob && delim_token(":{}", line[index]))
-					|| (ob && delim_token(":{;", line[index])))
+					|| (ob && delim_token(":{;", line[index]))) {
+				file.close();
 				throw UnexpectedToken(e_line, line[index]);
+			}
 			else {
 				if (page) {
 					first = line[index];
@@ -215,8 +217,10 @@ size_t	Configuration::parse_str(std::fstream& file, vectorString& line, size_t i
 			gettokens(file, line);
 		} else {
 
-			if (line[index] == "," || (!ob && delim_token("{}", line[index])) || (ob && delim_token("{;", line[index])))
+			if (line[index] == "," || (!ob && delim_token("{}", line[index])) || (ob && delim_token("{;", line[index]))) {
+				file.close();
 				throw UnexpectedToken(e_line, line[index]);
+			}
 			else {
 				output = line[index];
 			}
@@ -245,19 +249,19 @@ size_t	Configuration::parse_bool(std::fstream& file, vectorString& line, size_t 
 			index = 0;
 			gettokens(file, line);
 		} else {
-			if (line[index] == ",")
+			if ((line[index] == ",") || (!ob && delim_token("{}", line[index])) || (ob && delim_token("{;", line[index]))) {
+				file.close();
 				throw UnexpectedToken(e_line, line[index]);
-			else if (!ob && delim_token("{}", line[index]))
-				throw UnexpectedToken(e_line, line[index]);
-			else if (ob && delim_token("{;", line[index]))
-				throw UnexpectedToken(e_line, line[index]);
+			}
 			else {
 				if (line[index] == "true" || line[index] == "TRUE" || line[index] == "1" || line[index] == "on")
 					output = true;
 				else if (line[index] == "false" || line[index] == "False" || line[index] == "0" || line[index] == "off")
 					output = false;
-				else
+				else {
+					file.close();
 					throw UnexpectedToken(e_line, line[index]);
+				}
 			}
 			index++;
 		}
@@ -284,12 +288,10 @@ size_t	Configuration::parse_sizet(std::fstream& file, vectorString& line, size_t
 			gettokens(file, line);
 		} else {
 
-			if (line[index] == ",")
+			if ((line[index] == ",") || (!ob && delim_token("{}", line[index])) || (ob && delim_token("{;", line[index]))) {
+				file.close();
 				throw UnexpectedToken(e_line, line[index]);
-			else if (!ob && delim_token("{}", line[index]))
-				throw UnexpectedToken(e_line, line[index]);
-			else if (ob && delim_token("{;", line[index]))
-				throw UnexpectedToken(e_line, line[index]);
+			}
 			else {
 				output = strtol(line[index].c_str(), NULL, 0);
 			}
@@ -308,7 +310,23 @@ void	Configuration::fill_default() {
 		_server_locations.push_back("./");
 }
 
+void Configuration::load_config_file() {
+	try {
+		load_config_file("server.conf");
+	} catch (BadConfig& ex) {
+		remove("server.conf");
+		std::fstream	file("server.conf", std::ios::out);
+		if (!file.is_open())
+			throw BadConfig("cannot create configuration file");
+		fill_default();
+		file << "server {\n\tserver_names: localhost;\n\tport: 80;\n\troot: ./;\n\tloc: ./;\n\taccept_files: false;\n\tcgi_path: ./;\n\t./ {\n\t\tlisting: off;\n\t\tmethods: GET;\n\t}\n}\n";
+		file.close();
+	}
+}
+
 void Configuration::load_config_file(const std::string &path) {
+	if (path.find(".conf\0") == path.npos)
+		throw  BadConfig("Bad configuration file");
 	std::fstream	file(path, std::fstream::in | std::fstream::out);
 	std::string		line;
 	vectorString	splitted_line;
@@ -325,19 +343,24 @@ void Configuration::load_config_file(const std::string &path) {
 			switch (conf_token_cmp(splitted_line, index)) {
 				case server:
 					index = parse_server(file, splitted_line, index);
-					check_portnum();
 					break;
-				default:
+				default: {
+					file.close();
 					throw UnexpectedToken(e_line, splitted_line[index]);
+				}
 			}
 		}
 	}
+	file.close();
+	check_portnum();
 	fill_default();
 }
 
 size_t	Configuration::parse_server(std::fstream& file, vectorString& s_line, size_t index) {
-	if (!delim_token("{", s_line[++index]))
+	if (!delim_token("{", s_line[++index])) {
+		file.close();
 		throw UnexpectedToken(e_line, s_line[index]);
+	}
 	index++;
 	while (s_line[index] != "}") {
 		if (index >= s_line.size() || s_line[index] == "#") {
@@ -384,6 +407,7 @@ size_t	Configuration::parse_server(std::fstream& file, vectorString& s_line, siz
 						break;
 					default:
 						if (find_n_fill_loc(file, s_line, index)) {
+							file.close();
 							throw UnexpectedToken(e_line, s_line[index]);
 						}
 						break;
@@ -451,12 +475,10 @@ size_t	Configuration::parse_methods(std::fstream &file, vectorString &line, size
 		} else {
 			if (!del && line[index] == ",")
 				del = true;
-			else if (del && line[index] == ",")
+			else if ((del && line[index] == ",") || (!ob && delim_token(":{}", line[index])) || (ob && delim_token(":{;", line[index]))) {
+				file.close();
 				throw UnexpectedToken(e_line, line[index]);
-			else if (!ob && delim_token(":{}", line[index]))
-				throw UnexpectedToken(e_line, line[index]);
-			else if (ob && delim_token(":{;", line[index]))
-				throw UnexpectedToken(e_line, line[index]);
+			}
 			else {
 				if (line[index] == "GET" || line[index] == "get")
 					output.GET = true;
@@ -464,8 +486,10 @@ size_t	Configuration::parse_methods(std::fstream &file, vectorString &line, size
 					output.DELETE = true;
 				else if (line[index] == "POST" || line[index] == "post")
 					output.POST = true;
-				else
+				else {
+					file.close();
 					throw UnexpectedToken(e_line, line[index]);
+				}
 				del = false;
 			}
 			index++;
@@ -502,13 +526,10 @@ size_t	Configuration::skip_token(std::fstream& file, vectorString& line, size_t 
 		} else {
 			if (!del && line[index] == ",")
 				del = true;
-			else if (del && line[index] == ",")
+			else if ((del && line[index] == ",") || (!ob && delim_token(":{}", line[index])) || (ob && delim_token(":{;", line[index]))) {
+				file.close();
 				throw UnexpectedToken(e_line, line[index]);
-			else if (!ob && delim_token(":{}", line[index]))
-				throw UnexpectedToken(e_line, line[index]);
-			else if (ob && delim_token(":{;", line[index]))
-				throw UnexpectedToken(e_line, line[index]);
-			else
+			} else
 				del = false;
 			index++;
 		}
@@ -517,8 +538,10 @@ size_t	Configuration::skip_token(std::fstream& file, vectorString& line, size_t 
 }
 
 size_t Configuration::parse_loc_info(std::fstream &file, vectorString &line, size_t index, size_t id) {
-	if (!delim_token("{", line[++index]))
+	if (!delim_token("{", line[++index])) {
+		file.close();
 		throw UnexpectedToken(e_line, line[index]);
+	}
 	index++;
 	loc_inf	data;
 	init_data(data, id, _server_locations[id]);
@@ -546,8 +569,10 @@ size_t Configuration::parse_loc_info(std::fstream &file, vectorString &line, siz
 					case skip:
 						index = skip_token(file, line, index);
 						break;
-					default:
+					default: {
+						file.close();
 						throw UnexpectedToken(e_line, line[index]);
+					}
 				}
 			}
 		}
@@ -561,15 +586,6 @@ bool Configuration::find_n_fill_loc(std::fstream &file, vectorString &line, size
 	for (vectorString::iterator name = _server_locations.begin(); name != _server_locations.end(); name++) {
 		if (*name == _server_locations[index]) {
 			index = parse_loc_info(file, line, index, id);
-			for (std::vector<loc_inf>::iterator i = _server_location_info.begin(); i != _server_location_info.end(); i++) {
-				std::cout << "vector: " << (*i).GET << std::endl
-						  << "	" << (*i).POST << std::endl
-						  << "	" << (*i).DELETE << std::endl
-						  << "	" << (*i).directory << std::endl
-						  << "	" << (*i).def_file << std::endl
-						  << "	" << (*i).dir_listing << std::endl
-						<< "	"<< (*i).id << std::endl;
-			}
 			return false;
 		}
 		id++;

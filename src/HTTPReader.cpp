@@ -110,7 +110,10 @@ HTTPRequest* HTTPReader::_parse() throw(std::exception) {
 	size_t	new_nl = raw.find('\n', old_nl + 2);
 	while (new_nl != raw.npos) {
 		if (raw.find("User-Agent:", old_nl, 11) < new_nl)
+		{
 			retval->_user_agent = raw.substr(old_nl + 13, new_nl - (old_nl + 14));
+			std::cout << "retval->_user_agent: " << retval->_user_agent << std::endl;
+		}
 		else if (raw.find("Host:", old_nl, 5) < new_nl)
 			retval->_host = raw.substr(old_nl + 7, new_nl - (old_nl + 8));
 		else if (raw.find("Accept-Language:", old_nl, 16) < new_nl)

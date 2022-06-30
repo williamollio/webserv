@@ -23,9 +23,11 @@ private:
 
 	void saveFile(std::string payload);
 	std::string setFilename(std::string &payload);
-	void trim_payload(std::string &payload);
-	std::string get_delimiter(std::string &tmp);
-	void create_file(std::string &payload);
+	std::string setFilenameChunked(std::string extension);
+	void trimPayload(std::string &payload);
+	std::string getDelimiter(std::string &tmp);
+	void createFile(std::string &payload);
+	bool isUploadAccepted();
 };
 
 

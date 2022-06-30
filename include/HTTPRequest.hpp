@@ -53,6 +53,7 @@ public:	//TODO: make private with get and set
     vectorString	_encoding;
     bool			_keep_alive;
     bool			_content;
+    bool			_chunked;
 	size_t			_content_length;
 	vectorString	_content_type;
 	std::string		_payload;

@@ -78,7 +78,6 @@ void CGIResponsePost::saveFile(std::string payload) {
 		_filename = setFilenameChunked(".txt");
 	else
 		_filename = setFilename(payload);
-	std::cout << _filename << std::endl;
 	upload = _upload.c_str();
 	dir = opendir(upload);
 	if (dir) {

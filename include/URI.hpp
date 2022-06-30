@@ -67,6 +67,7 @@ private:
     URI::Token         nextToken();
     inline bool        ensureTokenIs(Token::Type, const Token &) const;
     inline bool        expect(Token::Type, const Token &) const;
+    inline bool        isInCGIPath() const;
     static bool        hasExtension(const std::string &);
     static bool        isCleanString(const std::string &, unsigned long pos);
     static inline bool isSpecial(char c);

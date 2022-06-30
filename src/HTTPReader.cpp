@@ -44,7 +44,7 @@ void HTTPReader::run() {
                 case HTTPRequest::GET:    response = new CGIResponseGet(request);    break;
                 case HTTPRequest::POST:   response = new CGIResponsePost(request);   break;
                 case HTTPRequest::DELETE: response = new CGIResponseDelete(request); break;
-                default: std::cerr  << "AAA" << std::endl;
+                default:
                     throw HTTPException(400);
             }
         }
@@ -140,6 +140,7 @@ int	HTTPRequest::checktype(std::string& word) {
 		return POST;
 	if (word == "DELETE")
 		return DELETE;
+	return ERROR;
 }
 
 
@@ -154,8 +155,6 @@ HTTPRequest* HTTPReader::_parse() throw(std::exception) {
 		cursor = raw.length();
 	std::string	head = raw.substr(0, cursor);
 	std::vector<std::string> file = split_line(head);
-	for (auto i = file.begin(); i != file.end(); i++)
-		std::cout << *i << std::endl;
 	switch(HTTPRequest::checktype(file[0])) {
 		case HTTPRequest::GET:
 			return new HTTPRequest(HTTPRequest::GET, file, raw, _socket);

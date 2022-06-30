@@ -21,10 +21,10 @@ private:
 	typedef std::vector<std::string>	vectorString;
 public:
     enum TYPE {
-        GET, POST, DELETE
+        GET, POST, DELETE, ERROR
     };
 	enum REQ_INFO {
-		USER_AGENT, HOSTNAME, LANG_SUPP, ENCODING, CON_TYPE, CONTENT_TYPE, CON_LENGTH
+		USER_AGENT, HOSTNAME, LANG_SUPP, ENCODING, CON_TYPE, CONTENT_TYPE, CON_LENGTH, DEFAULT
 	};
 
 	static int		checktype(std::string& word);
@@ -56,7 +56,7 @@ public:
 	size_t	load_connection(std::vector<std::string>& file, size_t index, bool& target);
 	size_t	load_size(std::vector<std::string>& file, size_t index, size_t& target);
 
-	bool	is_payload(vectorString& file, size_t index);
+	bool	is_payload(size_t index);
 	size_t	ff_newline(std::vector<std::string>& file, size_t index);
 	protected:
 	explicit HTTPRequest(TYPE);

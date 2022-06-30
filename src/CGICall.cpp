@@ -47,6 +47,7 @@ void CGICall::run(Socket & _socket) {
         case HTTPRequest::GET:    method += "GET";    break;
         case HTTPRequest::POST:   method += "POST";   break;
         case HTTPRequest::DELETE: method += "DELETE"; break;
+		default: throw HTTPException(500);
     }
     pathinfo += uri.getPathInfo();
     queryString += uri.getQuery();

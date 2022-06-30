@@ -13,7 +13,7 @@ HTTPRequest::TYPE HTTPRequest::getType() const {
 
 HTTPRequest::HTTPRequest(HTTPRequest::TYPE type): _type(type), _keep_alive(false), _content(false), _content_length(0) {}
 
-bool	HTTPRequest::is_payload(std::vector<std::string>& file, size_t index) {
+bool	HTTPRequest::is_payload(size_t index) {
 	return 	_copy_raw.find("\r\n\r\n", 0) <= index;
 }
 
@@ -32,33 +32,34 @@ HTTPRequest::REQ_INFO HTTPRequest::http_token_comp(std::string &word) {
 		return CON_LENGTH;
 	if (word == "Connection" || word == "connection")
 		return CON_TYPE;
+	return DEFAULT;
 }
 
 size_t	HTTPRequest::load_string(std::vector<std::string>& file, size_t index, std::string& target) {
 	index += 2;
-	while (file[index] != "\n" && file[index] != ";")
-		target += file[index++];
-	while (file[index] != "\n")
+	while (index < file.size() && file.at(index) != "\n" && file.at(index) != ";")
+		target += file.at(index++);
+	while (file.at(index) != "\n")
 		index++;
 	return index + 1;
 }
 
 size_t HTTPRequest::load_vec_str(std::vector<std::string> &file, size_t index, vectorString &target) {
 	index += 2;
-	while (file[index] != "\n" && file[index] != ";") {
-		if (file[index] == ",")
+	while (index < file.size() && file.at(index) != "\n" && file.at(index) != ";") {
+		if (file.at(index) == ",")
 			index++;
 		else
-			target.push_back(file[index++]);
+			target.push_back(file.at(index++));
 	}
-	while (file[index] != "\n")
+	while (index < file.size() && file.at(index) != "\n")
 		index++;
 	return index + 1;
 }
 
 size_t	HTTPRequest::load_connection(std::vector<std::string> &file, size_t index, bool &target) {
 	index += 2;
-	if (!file[index].compare(0, 10, "keep-alive") || !file[index].compare(0, 10, "Keep-Alive")) {
+	if (!file.at(index).compare(0, 10, "keep-alive") || !file.at(index).compare(0, 10, "Keep-Alive")) {
 		target = true;
 	}
 	else
@@ -68,14 +69,14 @@ size_t	HTTPRequest::load_connection(std::vector<std::string> &file, size_t index
 
 size_t	HTTPRequest::load_size(std::vector<std::string> &file, size_t index, size_t &target) {
 	index += 2;
-	target = strtol(file[index].c_str(), NULL, 0);
+	target = strtol(file.at(index).c_str(), NULL, 0);
 	return index + 2;
 }
 
 size_t	HTTPRequest::ff_newline(std::vector<std::string>& file, size_t index) {
-	while (index < file.size() && file[index] != "\n" && !is_payload(file, index))
+	while (index < file.size() && file.at(index) != "\n" && !is_payload(index))
 		index++;
-	return index += 1;
+	return index + 1;
 }
 
 HTTPRequest::HTTPRequest(HTTPRequest::TYPE type, std::vector<std::string> &file, std::string& raw, Socket& _socket) : _type(type), _keep_alive(false), _content(false), _content_length(0) {
@@ -88,28 +89,42 @@ HTTPRequest::HTTPRequest(HTTPRequest::TYPE type, std::vector<std::string> &file,
 	}
 	else
 		throw HTTPException(400);
-	while (file.size() > index + 2 && !is_payload(file, index)) {
+	while (file.size() > index + 2 && !is_payload(index)) {
 		switch(http_token_comp(file[index])) {
 			case USER_AGENT:
+//				std::cerr << "passed USERAGENT" << std::endl;
 				index = load_string(file, index, _user_agent);
+//				std::cerr << "passed USERAGENT" << std::endl;
 				break;
 			case HOSTNAME:
+//				std::cerr << "passed HOSTNAME" << std::endl;
 				index = load_string(file, index, _host);
+//				std::cerr << "passed HOSTNAME" << std::endl;
 				break;
 			case LANG_SUPP:
+//				std::cerr << "passed LANGUAGE" << std::endl;
 				index = load_vec_str(file, index, _lang);
+//				std::cerr << "passed LANGUAGE" << std::endl;
 				break;
 			case ENCODING:
+//				std::cerr << "passed ENCODING" << std::endl;
 				index = load_vec_str(file, index, _encoding);
+//				std::cerr << "passed ENCODING" << std::endl;
 				break;
 			case CON_TYPE:
+//				std::cerr << "passed CONNECTION_TYPE" << std::endl;
 				index = load_connection(file, index, _keep_alive);
+//				std::cerr << "passed CONNECTION_TYPE" << std::endl;
 				break;
 			case CON_LENGTH:
+//				std::cerr << "passed CONTENT_LENGTH" << std::endl;
 				index = load_size(file, index, _content_length);
+//				std::cerr << "passed CONTENT_LENGTH" << std::endl;
 				break;
 			case CONTENT_TYPE:
+//				std::cerr << "passed CONTENT_TYPE" << std::endl;
 				index = load_vec_str(file, index, _content_type);
+//				std::cerr << "passed CONTENT_TYPE" << std::endl;
 				break;
 			default:
 				index = ff_newline(file, index);

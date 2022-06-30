@@ -23,6 +23,7 @@ private:
 
 	void saveFile(std::string payload);
 	std::string setFilename(std::string &payload);
+	std::string setFilenameChunked(std::string extension);
 	void trimPayload(std::string &payload);
 	std::string getDelimiter(std::string &tmp);
 	void createFile(std::string &payload);

@@ -20,6 +20,15 @@ std::string CGIResponsePost::setFilename(std::string &payload) {
 	return (filename);
 }
 
+std::string CGIResponsePost::setFilenameChunked(std::string extension)
+{
+	std::string filenameChunked;
+
+	filenameChunked = _request->_user_agent;
+	filenameChunked += extension;
+
+	return (filenameChunked);
+}
 std::string CGIResponsePost::getDelimiter(std::string &tmp) {
 	std::string del;
 	size_t posbegin = 2, posend;
@@ -65,12 +74,11 @@ void CGIResponsePost::saveFile(std::string payload) {
 	std::string path_string(get_current_path());
 	const char *path = path_string.c_str();
 
-	// TO DO REFACTOR : when Request from Curl
-	if (_request->_copy_raw.find("Transfer-Encoding: chunked") != std::string::npos)
-		_filename = _request->_user_agent + ".txt";
+	if (_request->_chunked)
+		_filename = setFilenameChunked(".txt");
 	else
 		_filename = setFilename(payload);
-
+	std::cout << _filename << std::endl;
 	upload = _upload.c_str();
 	dir = opendir(upload);
 	if (dir) {

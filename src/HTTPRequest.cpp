@@ -11,7 +11,7 @@ HTTPRequest::TYPE HTTPRequest::getType() const {
     return _type;
 }
 
-HTTPRequest::HTTPRequest(HTTPRequest::TYPE type): _type(type), _keep_alive(false), _content(false), _content_length(0) {}
+HTTPRequest::HTTPRequest(HTTPRequest::TYPE type): _type(type), _keep_alive(false), _content(false), _chunked(false), _content_length(0){}
 
 bool	HTTPRequest::is_payload(size_t index) {
 	return 	_copy_raw.find("\r\n\r\n", 0) <= index;
@@ -177,6 +177,7 @@ std::string HTTPRequest::unchunkedPayload(const std::string &data, size_t cursor
 
 bool HTTPRequest::isChunkedRequest(const std::string &data)
 {
+	_chunked = true;
 	return (data.find("Transfer-Encoding: chunked") != std::string::npos);
 }
 
@@ -188,7 +189,7 @@ void HTTPRequest::set_payload(const std::string& data, Socket& _socket) throw(st
     }
 	cursor += 2;
 
-	if (isChunkedRequest(data)) {
+	if (_chunked) {
     _payload = unchunkedPayload(data, cursor);
     return;
   }

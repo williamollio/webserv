@@ -97,6 +97,7 @@ void Connection::establishConnection()
       	        _fds[i].fd = -1;
       	    }
         }
+        nfds = clearPollArray(nfds);
         cleanReaders();
     } while (!end_server);
     for (unsigned long i = 0; i < nfds; i++) {
@@ -120,6 +121,16 @@ void Connection::cleanReaders() {
 bool Connection::isServingFD(int fd) {
     std::map<int, int>::const_iterator it = server_fds.find(fd);
     return it != server_fds.end();
+}
+
+unsigned long Connection::clearPollArray(unsigned long nfds) {
+    unsigned long i, j;
+    for (i = 0, j = 0; i < nfds; ++i) {
+        if (_fds[i].fd != -1) {
+            _fds[j++] = _fds[i];
+        }
+    }
+    return j;
 }
 
 // R E A D E R B Y F D F I N D E R   I M P L E M E N T A T I O N

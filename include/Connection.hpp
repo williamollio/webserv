@@ -25,8 +25,9 @@ class Connection {
 		struct pollfd           _fds[200];
         std::list<HTTPReader *> list;
 
-        void cleanReaders();
-        bool isServingFD(int fd);
+        void          cleanReaders();
+        bool          isServingFD(int fd);
+        unsigned long clearPollArray(unsigned long nfds);
 
         class ReaderByFDFinder {
         public:

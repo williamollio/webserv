@@ -44,7 +44,7 @@ bool URI::isInCGIPath() const {
     const std::string & cgiFile = determineFile(),
                         cgiRoot = Configuration::getInstance().get_cgi_root();
 
-    if (!cgiFile.empty()) {
+    if (!cgiFile.empty() && !cgiRoot.empty()) {
         unsigned int i, j;
         for (i = 0, j = 0; i < cgiFile.size() && j < cgiRoot.size(); ++i, ++j) {
             if (cgiFile[i] != cgiRoot[i]) break;

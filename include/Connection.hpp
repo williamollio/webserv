@@ -10,9 +10,11 @@
 #include <sstream>
 #include <list>
 
+#define NUM_FDS 200
+
 class Connection {
 private:
-    // First: Port --- Second: server_fd
+    // First: Port --- Second: server fd
     std::map<int, int>      server_fds;
 
     // First: client fd --- Second: server fd
@@ -21,14 +23,15 @@ private:
     int                     on;
     int                     _timeout;
     struct sockaddr_in      address;
-    struct pollfd           _fds[200];
+    struct pollfd           _fds[NUM_FDS];
     std::list<HTTPReader *> list;
 
-    void          cleanReaders();
-    unsigned long clearPollArray(unsigned long nfds);
-    void          removeFD(unsigned long index);
-    void          handleConnection(unsigned long index) _NOEXCEPT;
-    bool          isServingFD(int fd);
+    void          cleanReaders()                                    _NOEXCEPT;
+    unsigned long clearPollArray(unsigned long nfds)                _NOEXCEPT;
+    void          denyConnection(int fd, unsigned int = 429) const  _NOEXCEPT;
+    void          handleConnection(unsigned long index)             _NOEXCEPT;
+    bool          isServingFD(int fd)                               _NOEXCEPT;
+    void          removeFD(unsigned long index)                     _NOEXCEPT;
 
     class ReaderByFDFinder {
     public:

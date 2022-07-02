@@ -74,11 +74,17 @@ void Connection::establishConnection()
             } else if (isServingFD(_fds[i].fd)) {
                 int socketDescriptor;
                 while ((socketDescriptor = accept(_fds[i].fd, NULL, NULL)) >= 0) {
+                    if (nfds == NUM_FDS) {
+                        nfds = clearPollArray(nfds);
+                        if (nfds == NUM_FDS) {
+                            denyConnection(socketDescriptor);
+                            continue;
+                        }
+                    }
                     connectionPairs[socketDescriptor] = _fds[i].fd;
                     _fds[nfds].fd = socketDescriptor;
                     _fds[nfds].events = POLLIN;
                     nfds++;
-                    // TODO: Too many requests!
                 }
       	    } else {
                 handleConnection(i);
@@ -93,14 +99,28 @@ void Connection::establishConnection()
     }
 }
 
-void Connection::removeFD(const unsigned long index) {
+void Connection::removeFD(const unsigned long index) _NOEXCEPT {
     connectionPairs.erase(_fds[index].fd);
     _fds[index].fd = -1;
 }
 
-void Connection::handleConnection(const unsigned long index) _NOEXCEPT {
-    Socket socket = _fds[index].fd;
+void Connection::denyConnection(const int fd, const unsigned int errorCode) const _NOEXCEPT {
     try {
+        Socket socket = fd;
+        CGIResponseError response;
+        response.set_error_code(errorCode);
+        response.run(socket);
+    } catch (std::exception & ex) {
+        std::cerr << "Could not send error " << errorCode << "!" << std::endl
+                  << "Exception: " << ex.what()                  << std::endl;
+    }
+    close(fd);
+}
+
+void Connection::handleConnection(const unsigned long index) _NOEXCEPT {
+    const int fd = _fds[index].fd;
+    try {
+        Socket socket = fd;
         HTTPReader * reader = new HTTPReader(socket);
         getpeername(socket.get_fd(), (struct sockaddr *) &address, (socklen_t *) &addrlen);
         reader->setPeerAddress(ntohl(address.sin_addr.s_addr));
@@ -112,13 +132,9 @@ void Connection::handleConnection(const unsigned long index) _NOEXCEPT {
         list.push_back(reader);
         reader->run();
     } catch (std::bad_alloc & ex) {
-        CGIResponseError response;
-        response.set_error_code(507);
-        response.run(socket);
+        denyConnection(fd, 507);
     } catch (std::exception & ex) {
-        CGIResponseError response;
-        response.set_error_code(500);
-        response.run(socket);
+        denyConnection(fd, 500);
     }
     removeFD(index);
 }
@@ -130,17 +146,17 @@ static void maybeDeleteReader(HTTPReader* & reader) {
     }
 }
 
-void Connection::cleanReaders() {
+void Connection::cleanReaders() _NOEXCEPT{
     std::for_each(list.begin(), list.end(), maybeDeleteReader);
     list.remove(NULL);
 }
 
-bool Connection::isServingFD(int fd) {
+bool Connection::isServingFD(int fd) _NOEXCEPT {
     std::map<int, int>::const_iterator it = server_fds.find(fd);
     return it != server_fds.end();
 }
 
-unsigned long Connection::clearPollArray(unsigned long nfds) {
+unsigned long Connection::clearPollArray(unsigned long nfds) _NOEXCEPT {
     unsigned long i, j;
     for (i = 0, j = 0; i < nfds; ++i) {
         if (_fds[i].fd != -1) {

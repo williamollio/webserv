@@ -2,6 +2,7 @@
 #include "HTTPReader.hpp"
 #include "IOException.hpp"
 #include "Configuration.hpp"
+#include "CGIResponseError.hpp"
 #include <poll.h>
 #include <netdb.h>
 
@@ -43,7 +44,7 @@ Connection::~Connection() {
 void Connection::establishConnection()
 {
     int rc;
-    unsigned long nfds = Configuration::getInstance().get_server_ports().size();
+    unsigned long nfds = server_fds.size();
     unsigned long current_size;
     bool end_server = false;
 
@@ -56,9 +57,9 @@ void Connection::establishConnection()
         current_size = nfds;
         for (unsigned long i = 0; i < current_size; i++)
         {
-            if (_fds[i].revents == 0)
-                continue;
-            else if (_fds[i].revents == POLLERR || _fds[i].revents == POLL_HUP) {
+            if (_fds[i].revents == 0) {
+                // Ignore...
+            } else if (_fds[i].revents == POLLERR || _fds[i].revents == POLL_HUP) {
                 ReaderByFDFinder finder(_fds[i].fd);
                 std::list<HTTPReader *>::iterator it = std::find_if(list.begin(), list.end(), finder);
                 if (it != list.end()) {
@@ -67,34 +68,20 @@ void Connection::establishConnection()
                 }
                 list.remove(NULL);
                 close(_fds[i].fd);
-                _fds[i].fd = -1;
-                continue;
+                removeFD(i);
             } else if (_fds[i].revents == POLLNVAL) {
-                _fds[i].fd = -1;
-                continue;
-            }
-            if (isServingFD(_fds[i].fd))
-      	    {
+                removeFD(i);
+            } else if (isServingFD(_fds[i].fd)) {
                 int socketDescriptor;
                 while ((socketDescriptor = accept(_fds[i].fd, NULL, NULL)) >= 0) {
                     connectionPairs[socketDescriptor] = _fds[i].fd;
                     _fds[nfds].fd = socketDescriptor;
                     _fds[nfds].events = POLLIN;
                     nfds++;
+                    // TODO: Too many requests!
                 }
       	    } else {
-                Socket socket = _fds[i].fd;
-                HTTPReader * reader = new HTTPReader(socket);
-                getpeername(socket.get_fd(), (struct sockaddr *) &address, (socklen_t *) &addrlen);
-                reader->setPeerAddress(ntohl(address.sin_addr.s_addr));
-                char * host = new char[50]();
-                getnameinfo((struct sockaddr *) &address, (socklen_t) addrlen, host, (socklen_t) 50, NULL, 0, 0);
-                reader->setPeerName(host);
-                reader->setUsedPort(server_fds[connectionPairs[socket.get_fd()]]);
-                delete[] host;
-                list.push_back(reader);
-                reader->run();
-      	        _fds[i].fd = -1;
+                handleConnection(i);
       	    }
         }
         nfds = clearPollArray(nfds);
@@ -104,6 +91,36 @@ void Connection::establishConnection()
     	if(_fds[i].fd >= 0)
     	    close(_fds[i].fd);
     }
+}
+
+void Connection::removeFD(const unsigned long index) {
+    connectionPairs.erase(_fds[index].fd);
+    _fds[index].fd = -1;
+}
+
+void Connection::handleConnection(const unsigned long index) _NOEXCEPT {
+    Socket socket = _fds[index].fd;
+    try {
+        HTTPReader * reader = new HTTPReader(socket);
+        getpeername(socket.get_fd(), (struct sockaddr *) &address, (socklen_t *) &addrlen);
+        reader->setPeerAddress(ntohl(address.sin_addr.s_addr));
+        char * host = new char[50]();
+        getnameinfo((struct sockaddr *) &address, (socklen_t) addrlen, host, (socklen_t) 50, NULL, 0, 0);
+        reader->setPeerName(host);
+        reader->setUsedPort(server_fds[connectionPairs[socket.get_fd()]]);
+        delete[] host;
+        list.push_back(reader);
+        reader->run();
+    } catch (std::bad_alloc & ex) {
+        CGIResponseError response;
+        response.set_error_code(507);
+        response.run(socket);
+    } catch (std::exception & ex) {
+        CGIResponseError response;
+        response.set_error_code(500);
+        response.run(socket);
+    }
+    removeFD(index);
 }
 
 static void maybeDeleteReader(HTTPReader* & reader) {

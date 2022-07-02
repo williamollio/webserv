@@ -10,38 +10,39 @@
 #include <sstream>
 #include <list>
 
-#define PORT 80
 class Connection {
-	private:
-        // First: Port --- Second: server_fd
-        std::map<int, int>      server_fds;
+private:
+    // First: Port --- Second: server_fd
+    std::map<int, int>      server_fds;
 
-        // First: client fd --- Second: server fd
-        std::map<int, int>      connectionPairs;
-		int                     addrlen;
-		int                     on;
-		int                     _timeout;
-		struct sockaddr_in      address;
-		struct pollfd           _fds[200];
-        std::list<HTTPReader *> list;
+    // First: client fd --- Second: server fd
+    std::map<int, int>      connectionPairs;
+    int                     addrlen;
+    int                     on;
+    int                     _timeout;
+    struct sockaddr_in      address;
+    struct pollfd           _fds[200];
+    std::list<HTTPReader *> list;
 
-        void          cleanReaders();
-        bool          isServingFD(int fd);
-        unsigned long clearPollArray(unsigned long nfds);
+    void          cleanReaders();
+    unsigned long clearPollArray(unsigned long nfds);
+    void          removeFD(unsigned long index);
+    void          handleConnection(unsigned long index) _NOEXCEPT;
+    bool          isServingFD(int fd);
 
-        class ReaderByFDFinder {
-        public:
-            explicit ReaderByFDFinder(int fd);
+    class ReaderByFDFinder {
+    public:
+        explicit ReaderByFDFinder(int fd);
 
-            bool operator()(HTTPReader* &) const;
+        bool operator()(HTTPReader* &) const;
 
-        private:
-            const int fd;
-        };
+    private:
+        const int fd;
+    };
 
-	public:
-		Connection();
-		~Connection();
+public:
+    Connection();
+    ~Connection();
 
-		void establishConnection();
+    void establishConnection();
 };

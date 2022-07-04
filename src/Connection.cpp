@@ -8,8 +8,7 @@
 
 #define INFTIM -1
 
-Connection::Connection() : _timeout(INFTIM), address(), _fds()
-{
+Connection::Connection() : _timeout(INFTIM), address(), _fds() {
     const std::vector<int> & ports = Configuration::getInstance().get_server_ports();
     for (unsigned long i = 0; i < ports.size(); ++i) {
         addrlen = sizeof(address);
@@ -18,15 +17,18 @@ Connection::Connection() : _timeout(INFTIM), address(), _fds()
         address.sin_port = htons(ports[i]);
 
         int server_fd;
-        if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0)
+        if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
             throw IOException("Could not create socket!");
+        }
         on = 1;
         setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
         fcntl(server_fd, F_SETFL, O_NONBLOCK);
-        if (bind(server_fd, (struct sockaddr *) &address, sizeof(address)) < 0)
+        if (bind(server_fd, (struct sockaddr *) &address, sizeof(address)) < 0) {
             throw IOException("Could not bind file descriptor to the address!");
-        if (listen(server_fd, 10) < 0)
+        }
+        if (listen(server_fd, 10) < 0) {
             throw IOException("Cannot listen on the socket descriptor!");
+        }
         _fds[i].fd = server_fd;
         _fds[i].events = POLLIN;
         server_fds[server_fd] = ports[i];
@@ -41,19 +43,12 @@ Connection::~Connection() {
     std::for_each(list.begin(), list.end(), forceRemoveHTTPReader);
 }
 
-void Connection::establishConnection()
-{
+void Connection::establishConnection() {
     int rc;
-    unsigned long nfds = server_fds.size();
-    unsigned long current_size;
-    bool end_server = false;
+    unsigned long current_size = 0,
+                  nfds         = server_fds.size();
 
-    do {
-        rc = poll(_fds, nfds, _timeout);
-        if (rc <= 0) {
-            std::cout << "poll() failed or timeout" << std::endl;
-            break;
-        }
+    while ((rc = poll(_fds, nfds, _timeout)) > 0) {
         current_size = nfds;
         for (unsigned long i = 0; i < current_size; i++) {
             if (_fds[i].revents == 0) {
@@ -85,17 +80,22 @@ void Connection::establishConnection()
                     _fds[nfds].events = POLLIN;
                     nfds++;
                 }
-      	    } else {
+            } else {
                 handleConnection(i);
-      	    }
+            }
         }
         nfds = clearPollArray(nfds);
         cleanReaders();
-    } while (!end_server);
+    }
     for (unsigned long i = 0; i < nfds; i++) {
     	if(_fds[i].fd >= 0) {
             close(_fds[i].fd);
         }
+    }
+    if (rc == 0) {
+        std::cout << "Time out, exiting..."      << std::endl;
+    } else {
+        std::cerr << "Polling error! Exiting..." << std::endl;
     }
 }
 

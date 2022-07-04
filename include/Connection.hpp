@@ -26,12 +26,12 @@ private:
     struct pollfd           _fds[NUM_FDS];
     std::list<HTTPReader *> list;
 
-    void          cleanReaders()                                    _NOEXCEPT;
-    unsigned long clearPollArray(unsigned long nfds)                _NOEXCEPT;
-    void          denyConnection(int fd, unsigned int = 429) const  _NOEXCEPT;
-    void          handleConnection(unsigned long index)             _NOEXCEPT;
-    bool          isServingFD(int fd)                               _NOEXCEPT;
-    void          removeFD(unsigned long index)                     _NOEXCEPT;
+    void          cleanReaders()                          _NOEXCEPT;
+    unsigned long clearPollArray(unsigned long nfds)      _NOEXCEPT;
+    void          denyConnection(int fd, int = 429) const _NOEXCEPT;
+    void          handleConnection(unsigned long index)   _NOEXCEPT;
+    bool          isServingFD(int fd)                     _NOEXCEPT;
+    void          removeFD(unsigned long index)           _NOEXCEPT;
 
     class ReaderByFDFinder {
     public:

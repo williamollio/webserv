@@ -55,8 +55,7 @@ void Connection::establishConnection()
             break;
         }
         current_size = nfds;
-        for (unsigned long i = 0; i < current_size; i++)
-        {
+        for (unsigned long i = 0; i < current_size; i++) {
             if (_fds[i].revents == 0) {
                 // Ignore...
             } else if (_fds[i].revents == POLLERR || _fds[i].revents == POLL_HUP) {
@@ -94,8 +93,9 @@ void Connection::establishConnection()
         cleanReaders();
     } while (!end_server);
     for (unsigned long i = 0; i < nfds; i++) {
-    	if(_fds[i].fd >= 0)
-    	    close(_fds[i].fd);
+    	if(_fds[i].fd >= 0) {
+            close(_fds[i].fd);
+        }
     }
 }
 
@@ -104,7 +104,7 @@ void Connection::removeFD(const unsigned long index) _NOEXCEPT {
     _fds[index].fd = -1;
 }
 
-void Connection::denyConnection(const int fd, const unsigned int errorCode) const _NOEXCEPT {
+void Connection::denyConnection(const int fd, const int errorCode) const _NOEXCEPT {
     try {
         Socket socket = fd;
         CGIResponseError response;
@@ -146,7 +146,7 @@ static void maybeDeleteReader(HTTPReader* & reader) {
     }
 }
 
-void Connection::cleanReaders() _NOEXCEPT{
+void Connection::cleanReaders() _NOEXCEPT {
     std::for_each(list.begin(), list.end(), maybeDeleteReader);
     list.remove(NULL);
 }

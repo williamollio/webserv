@@ -166,21 +166,15 @@ std::string HTTPRequest::unchunkedPayload(const std::string &data, size_t cursor
 
 	payload = data.substr(cursor);
 	std::istringstream tmp(payload);
-//	std::cout << "payload :" << std::endl;
 	getline(tmp, line);
 	for (int i = 1; line.front() != '0'; i++)
 	{
 		if (i % 2)
 		{
 			line.pop_back();
-//			std::cout << line << std::endl;
 			buffer.append(line);
 			line.clear();
 		}
-		else {
-            line.pop_back();
-            std::cout << line << std::endl;
-        }
 		getline(tmp, line);
 	}
 	payload.clear();

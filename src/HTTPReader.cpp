@@ -149,8 +149,6 @@ HTTPRequest* HTTPReader::_parse() throw(std::exception) {
 		throw HTTPException(504);
 	}
 	std::string raw(buff);
-
-	std::cout << raw << std::endl;
 	size_t	cursor = raw.find("\r\n\r\n", 0);
 	if (cursor == raw.npos)
 		cursor = raw.length();

@@ -24,12 +24,9 @@ std::string CGIResponsePost::setFilenameChunked(std::string extension)
 {
 	std::string filenameChunked;
 
-	std::string tmp (_request->_user_agent);
-	tmp.pop_back();
-	filenameChunked = tmp;
+	filenameChunked = "ft_atoi"; // insert date of the day
 	filenameChunked += extension;
 
-	std::cout << filenameChunked << std::endl;
 	return (filenameChunked);
 }
 std::string CGIResponsePost::getDelimiter(std::string &tmp) {
@@ -56,10 +53,10 @@ void CGIResponsePost::trimPayload(std::string &payload) {
 	posbegin += 4;
 
 	posend = tmp.find(delimiter, posbegin);
-	// if (posend == std::string::npos) {
-	// 	std::cerr << "no delim found" << std::endl;
-	// 	throw HTTPException(400);
-	// }
+	if (posend == std::string::npos) {
+		std::cerr << "no delim found" << std::endl;
+		throw HTTPException(400);
+	}
 	posend -= 4;
 
 	payload = tmp.substr(posbegin, posend - posbegin);
@@ -76,11 +73,10 @@ void CGIResponsePost::saveFile(std::string payload) {
 	DIR* dir;
 	std::string path_string(get_current_path());
 	const char *path = path_string.c_str();
-	// if (true)
-	// 	_filename = setFilenameChunked(".c");
-	// else
-	// 	_filename = setFilename(payload);
-	_filename = "ft_atoi.txt";
+	if (true)
+		_filename = setFilenameChunked(".txt");
+	else
+		_filename = setFilename(payload);
 	upload = _upload.c_str();
 	dir = opendir(upload);
 	if (dir) {

@@ -4,6 +4,7 @@
 
 #include "HTTPRequest.hpp"
 #include "HTTPException.hpp"
+#include "CGIResponseError.hpp"
 #include <cstdlib>
 
 
@@ -32,6 +33,8 @@ HTTPRequest::REQ_INFO HTTPRequest::http_token_comp(std::string &word) {
 		return CON_LENGTH;
 	if (word == "Connection" || word == "connection")
 		return CON_TYPE;
+	if (word == "Expect" || word == "expect")
+		return EXPECT;
 	return DEFAULT;
 }
 
@@ -39,7 +42,7 @@ size_t	HTTPRequest::load_string(std::vector<std::string>& file, size_t index, st
 	index += 2;
 	while (index < file.size() && file.at(index) != "\n" && file.at(index) != ";")
 		target += file.at(index++);
-	while (file.at(index) != "\n")
+	while (index < file.size() && file.at(index) != "\n")
 		index++;
 	return index + 1;
 }
@@ -126,16 +129,20 @@ HTTPRequest::HTTPRequest(HTTPRequest::TYPE type, std::vector<std::string> &file,
 				index = load_vec_str(file, index, _content_type);
 //				std::cerr << "passed CONTENT_TYPE" << std::endl;
 				break;
+			case EXPECT :
+				index = load_string(file, index, _expect);
+				break;
 			default:
 				index = ff_newline(file, index);
 		}
 	}
 
+	isChunkedRequest(raw);
 	if (_content_length != 0 && _content_type.empty()) {
 
         throw HTTPException(400);
     }
-	else if (_content_length != 0  || isChunkedRequest(raw)) {
+	else if (_content_length != 0 ) {
 		_content = true;
 		set_payload(raw, _socket);
 	}
@@ -159,16 +166,20 @@ std::string HTTPRequest::unchunkedPayload(const std::string &data, size_t cursor
 
 	payload = data.substr(cursor);
 	std::istringstream tmp(payload);
+	std::cout << "payload :" << std::endl;
 	getline(tmp, line);
-	for (int i = 1; line.front() != '0'; i++)
+	for (int i = 1; !tmp.eof() ; i++)
 	{
 		if (i % 2)
 		{
 			line.pop_back();
+			std::cout << line << std::endl;
 			buffer.append(line);
 			line.clear();
 		}
-		 getline(tmp, line);
+		else
+			std::cout << line << std::endl;
+		getline(tmp, line);
 	}
 	payload.clear();
 	payload = buffer;
@@ -177,8 +188,9 @@ std::string HTTPRequest::unchunkedPayload(const std::string &data, size_t cursor
 
 bool HTTPRequest::isChunkedRequest(const std::string &data)
 {
-	_chunked = true;
-	return (data.find("Transfer-Encoding: chunked") != std::string::npos);
+	if (data.find("Transfer-Encoding: chunked") != std::string::npos || data.find("Expect: 100-continue") != std::string::npos)
+		_chunked = true;
+	return (_chunked);
 }
 
 void HTTPRequest::set_payload(const std::string& data, Socket& _socket) throw(std::exception) {
@@ -190,7 +202,15 @@ void HTTPRequest::set_payload(const std::string& data, Socket& _socket) throw(st
 	cursor += 2;
 
 	if (_chunked) {
-    _payload = unchunkedPayload(data, cursor);
+		std::cout << "_expect: " << _expect << std::endl;
+		std::cout << "_content_length: " << _content_length << std::endl;
+		if (_expect == "100-continue" && _content_length == 0)
+		{
+			CGIResponseError tmp;
+			tmp.set_error_code(100);
+			tmp.run(_socket);
+		}
+    	_payload = unchunkedPayload(data, cursor);
     return;
   }
 	else

@@ -134,6 +134,7 @@ void Connection::handleConnection(const unsigned long index) _NOEXCEPT {
     } catch (std::bad_alloc & ex) {
         denyConnection(fd, 507);
     } catch (std::exception & ex) {
+		std::cerr<< ex.what() << std::endl;
         denyConnection(fd, 500);
     }
     removeFD(index);

@@ -142,7 +142,7 @@ HTTPRequest::HTTPRequest(HTTPRequest::TYPE type, std::vector<std::string> &file,
 
         throw HTTPException(400);
     }
-	else if (_content_length != 0 ) {
+	else if (_content_length != 0 || _chunked) {
 		_content = true;
 		set_payload(raw, _socket);
 	}
@@ -166,19 +166,21 @@ std::string HTTPRequest::unchunkedPayload(const std::string &data, size_t cursor
 
 	payload = data.substr(cursor);
 	std::istringstream tmp(payload);
-	std::cout << "payload :" << std::endl;
+//	std::cout << "payload :" << std::endl;
 	getline(tmp, line);
-	for (int i = 1; !tmp.eof() ; i++)
+	for (int i = 1; line.front() != '0'; i++)
 	{
 		if (i % 2)
 		{
 			line.pop_back();
-			std::cout << line << std::endl;
+//			std::cout << line << std::endl;
 			buffer.append(line);
 			line.clear();
 		}
-		else
-			std::cout << line << std::endl;
+		else {
+            line.pop_back();
+            std::cout << line << std::endl;
+        }
 		getline(tmp, line);
 	}
 	payload.clear();
@@ -202,17 +204,18 @@ void HTTPRequest::set_payload(const std::string& data, Socket& _socket) throw(st
 	cursor += 2;
 
 	if (_chunked) {
-		std::cout << "_expect: " << _expect << std::endl;
-		std::cout << "_content_length: " << _content_length << std::endl;
-		if (_expect == "100-continue" && _content_length == 0)
-		{
-			CGIResponseError tmp;
-			tmp.set_error_code(100);
-			tmp.run(_socket);
-		}
+//        char c;
+//        std::cerr << "Starting read" << std::endl;
+//        while (read(_socket.get_fd(), &c, 1) > 0) {
+//            std::cerr << c;
+//        }
+//        std::cerr << std::endl;
+//        std::cerr << "Original: \n" << data.substr(cursor);
     	_payload = unchunkedPayload(data, cursor);
-    return;
-  }
+//        std::cerr << std::endl << std::endl;
+//        std::cerr << "After: \n" << _payload << std::endl;
+        return;
+    }
 	else
 		_payload = data.substr(cursor);
 	char buf[2];

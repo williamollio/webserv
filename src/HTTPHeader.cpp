@@ -33,7 +33,6 @@ std::string HTTPHeader::tostring() const
 		str << "Content-Type: " << _content_type << "\n";
 	if (_content_length != 0)
 		str << "Content-Length: " << _content_length << "\n";
-	str << "Date: " << "Mon, 18 Jul 2016 16:06:00 GMT\n";
 	if (_transfer_encoding != "")
 		str << "Transfer-Encoding: " << _transfer_encoding << "\n";
     std::string tmp = str.str();

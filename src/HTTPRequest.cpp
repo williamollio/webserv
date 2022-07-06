@@ -5,6 +5,7 @@
 #include "HTTPRequest.hpp"
 #include "HTTPException.hpp"
 #include "CGIResponseError.hpp"
+#include "Tool.hpp"
 #include <cstdlib>
 
 
@@ -161,25 +162,25 @@ void HTTPRequest::setURI(const URI &uri) {
 std::string HTTPRequest::unchunkedPayload(const std::string &data, size_t cursor)
 {
 	std::string payload;
-	std::string line;
 	std::string buffer;
-
-	payload = data.substr(cursor);
+	std::string line;
 	std::istringstream tmp(payload);
-	getline(tmp, line);
-	for (int i = 1; line.front() != '0'; i++)
+
+	payload = data.substr(cursor+2);
+	int i = 1;
+	do
 	{
-		if (i % 2)
+		getline(tmp, line);
+		if (i % 2 == 0)
 		{
 			line.pop_back();
 			buffer.append(line);
 			line.clear();
 		}
-		getline(tmp, line);
-	}
+		i++;
+	} while (line.front() != '0' && !tmp.eof());
 	payload.clear();
-	payload = buffer;
-	return (payload);
+	return (buffer);
 }
 
 bool HTTPRequest::isChunkedRequest(const std::string &data)

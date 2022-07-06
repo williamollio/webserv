@@ -12,7 +12,7 @@ std::string CGIResponsePost::setFilename(std::string &payload) {
 	size_t posbegin, posend;
 	posbegin = payload.find("filename=\"");
 	if (posbegin == std::string::npos)
-		throw HTTPException(400);
+		return setFilenameUnknown(".txt");
 	posbegin += 10;
 	posend = payload.find("\"", posbegin + 1);
 	filename = payload.substr(posbegin, posend - posbegin);
@@ -20,11 +20,11 @@ std::string CGIResponsePost::setFilename(std::string &payload) {
 	return (filename);
 }
 
-std::string CGIResponsePost::setFilenameChunked(std::string extension)
+std::string CGIResponsePost::setFilenameUnknown(std::string extension)
 {
 	std::string filenameChunked;
 
-	filenameChunked = "ft_atoi"; // insert date of the day
+	filenameChunked = "test"; // insert date of the day
 	filenameChunked += extension;
 
 	return (filenameChunked);
@@ -73,10 +73,7 @@ void CGIResponsePost::saveFile(std::string payload) {
 	DIR* dir;
 	std::string path_string(get_current_path());
 	const char *path = path_string.c_str();
-	if (true)
-		_filename = setFilenameChunked(".txt");
-	else
-		_filename = setFilename(payload);
+	_filename = setFilename(payload);
 	upload = _upload.c_str();
 	dir = opendir(upload);
 	if (dir) {

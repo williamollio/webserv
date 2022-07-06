@@ -93,7 +93,8 @@ size_t	Configuration::parse_vec_str(std::fstream& file, vectorString& line, size
 		index++;
 	}
 	bool	del = false;
-	while ((ob && line[index] != "}") || (!ob && line[index] != ";")) {
+//	while ((ob && line[index] != "}") || (!ob && line[index] != ";")) {
+    do {
 		if (index >= line.size() || line[index] == "#") {
 			index = 0;
 			gettokens(file, line);
@@ -110,8 +111,8 @@ size_t	Configuration::parse_vec_str(std::fstream& file, vectorString& line, size
 			}
 			index++;
 		}
-	}
-	return ++index;
+	} while ((ob && line[index] != "}") || (!ob && line[index] != ";"));
+    return ++index;
 }
 
 size_t	Configuration::parse_vec_int(std::fstream& file, vectorString& line, size_t index, vectorInt& output) {
@@ -127,7 +128,8 @@ size_t	Configuration::parse_vec_int(std::fstream& file, vectorString& line, size
 		index++;
 	}
 	bool	del = false;
-	while ((ob && line[index] != "}") || (!ob && line[index] != ";")) {
+//	while ((ob && line[index] != "}") || (!ob && line[index] != ";")) {
+    do {
 		if (index >= line.size() || line[index] == "#") {
 			index = 0;
 			gettokens(file, line);
@@ -143,8 +145,8 @@ size_t	Configuration::parse_vec_int(std::fstream& file, vectorString& line, size
 			}
 			index++;
 		}
-	}
-	return ++index;
+	} while ((ob && line[index] != "}") || (!ob && line[index] != ";"));
+    return ++index;
 }
 
 size_t	Configuration::parse_map_int_str(std::fstream& file, vectorString& line, size_t index, intMapString& output) {
@@ -163,7 +165,8 @@ size_t	Configuration::parse_map_int_str(std::fstream& file, vectorString& line, 
 	bool	del = true;
 	bool	page = true;
 
-	while ((ob && line[index] != "}") || (!ob && line[index] != ";")) {
+//	while ((ob && line[index] != "}") || (!ob && line[index] != ";")) {
+    do {
 		if (index >= line.size() || line[index] == "#") {
 			index = 0;
 			gettokens(file, line);
@@ -194,7 +197,7 @@ size_t	Configuration::parse_map_int_str(std::fstream& file, vectorString& line, 
 			}
 			index++;
 		}
-	}
+	} while ((ob && line[index] != "}") || (!ob && line[index] != ";"));
 	return ++index;
 }
 
@@ -211,7 +214,8 @@ size_t	Configuration::parse_str(std::fstream& file, vectorString& line, size_t i
 		ob = true;
 		index++;
 	}
-	while ((ob && line[index] != "}") || (!ob && line[index] != ";")) {
+//	while ((ob && line[index] != "}") || (!ob && line[index] != ";")) {
+    do {
 		if (index >= line.size() || line[index] == "#") {
 			index = 0;
 			gettokens(file, line);
@@ -226,7 +230,7 @@ size_t	Configuration::parse_str(std::fstream& file, vectorString& line, size_t i
 			}
 			index++;
 		}
-	}
+	} while ((ob && line[index] != "}") || (!ob && line[index] != ";"));
 	return ++index;
 }
 
@@ -244,7 +248,8 @@ size_t	Configuration::parse_bool(std::fstream& file, vectorString& line, size_t 
 		index++;
 	}
 
-	while ((ob && line[index] != "}") || (!ob && line[index] != ";")) {
+//	while ((ob && line[index] != "}") || (!ob && line[index] != ";")) {
+    do {
 		if (index >= line.size() || line[index] == "#") {
 			index = 0;
 			gettokens(file, line);
@@ -265,7 +270,7 @@ size_t	Configuration::parse_bool(std::fstream& file, vectorString& line, size_t 
 			}
 			index++;
 		}
-	}
+	} while ((ob && line[index] != "}") || (!ob && line[index] != ";"));
 	return ++index;
 }
 
@@ -282,7 +287,8 @@ size_t	Configuration::parse_sizet(std::fstream& file, vectorString& line, size_t
 		ob = true;
 		index++;
 	}
-	while ((ob && line[index] != "}") || (!ob && line[index] != ";")) {
+//	while ((ob && line[index] != "}") || (!ob && line[index] != ";")) {
+    do {
 		if (index >= line.size() || line[index] == "#") {
 			index = 0;
 			gettokens(file, line);
@@ -297,7 +303,7 @@ size_t	Configuration::parse_sizet(std::fstream& file, vectorString& line, size_t
 			}
 			index++;
 		}
-	}
+	} while ((ob && line[index] != "}") || (!ob && line[index] != ";"));
 	return ++index;
 }
 
@@ -362,58 +368,60 @@ size_t	Configuration::parse_server(std::fstream& file, vectorString& s_line, siz
 		throw UnexpectedToken(e_line, s_line[index]);
 	}
 	index++;
-	while (s_line[index] != "}") {
-		if (index >= s_line.size() || s_line[index] == "#") {
-			index = 0;
-			gettokens(file, s_line);
-		}
-		while (index < s_line.size() && s_line[index] != "#") {
-			if (delim_token("}", s_line[index]))
-				return ++index;
-			else {
-				switch(server_token_cmp(s_line[index])) {
-					case name:
-						index = parse_vec_str(file, s_line, index, _server_names);
-						break;
-					case port:
-						index = parse_vec_int(file, s_line, index, _ports);
-						break;
-					case location:
-						index = parse_vec_str(file, s_line, index, _server_locations);
-						break;
-					case location_error:
-						index = parse_map_int_str(file, s_line, index, _server_locations_error_pages);
-						break;
-					case location_log:
-						index = parse_str(file, s_line, index, _server_location_log);
-						break;
-					case file_acc:
-						index = parse_bool(file, s_line, index, _accept_file);
-						break;
-					case upload_cmbs:
-						index = parse_sizet(file, s_line, index, _cmbs);
-						break;
-					case root:
-						index = parse_str(file, s_line, index, _server_root);
-						break;
-					case upload_location_cl:
-						index = parse_str(file, s_line, index, _client_upload_location);
-						break;
-					case cgi_ext:
-						index = parse_vec_str(file, s_line, index, _cgi_extensions);
-						break;
-					case cgi_loc:
-						index = parse_str(file, s_line, index, _cgi_root);
-						break;
-					default:
-						if (find_n_fill_loc(file, s_line, index)) {
-							file.close();
-							throw UnexpectedToken(e_line, s_line[index]);
-						}
-						break;
-			}}
-		}
-	}
+//	while (s_line[index] != "}") {
+    do {
+        if (index >= s_line.size() || s_line[index] == "#") {
+            index = 0;
+            gettokens(file, s_line);
+        }
+        while (index < s_line.size() && s_line[index] != "#") {
+            if (delim_token("}", s_line[index]))
+                return ++index;
+            else {
+                switch (server_token_cmp(s_line[index])) {
+                    case name:
+                        index = parse_vec_str(file, s_line, index, _server_names);
+                        break;
+                    case port:
+                        index = parse_vec_int(file, s_line, index, _ports);
+                        break;
+                    case location:
+                        index = parse_vec_str(file, s_line, index, _server_locations);
+                        break;
+                    case location_error:
+                        index = parse_map_int_str(file, s_line, index, _server_locations_error_pages);
+                        break;
+                    case location_log:
+                        index = parse_str(file, s_line, index, _server_location_log);
+                        break;
+                    case file_acc:
+                        index = parse_bool(file, s_line, index, _accept_file);
+                        break;
+                    case upload_cmbs:
+                        index = parse_sizet(file, s_line, index, _cmbs);
+                        break;
+                    case root:
+                        index = parse_str(file, s_line, index, _server_root);
+                        break;
+                    case upload_location_cl:
+                        index = parse_str(file, s_line, index, _client_upload_location);
+                        break;
+                    case cgi_ext:
+                        index = parse_vec_str(file, s_line, index, _cgi_extensions);
+                        break;
+                    case cgi_loc:
+                        index = parse_str(file, s_line, index, _cgi_root);
+                        break;
+                    default:
+                        if (find_n_fill_loc(file, s_line, index)) {
+                            file.close();
+                            throw UnexpectedToken(e_line, s_line[index]);
+                        }
+                        break;
+                }
+            }
+        }
+    } while (s_line[index] != "}");
 	return index;
 }
 
@@ -468,7 +476,8 @@ size_t	Configuration::parse_methods(std::fstream &file, vectorString &line, size
 		index++;
 	}
 	bool	del = false;
-	while ((ob && line[index] != "}") || (!ob && line[index] != ";")) {
+//	while ((ob && line[index] != "}") || (!ob && line[index] != ";")) {
+    do {
 		if (index >= line.size() || line[index] == "#") {
 			index = 0;
 			gettokens(file, line);
@@ -494,7 +503,7 @@ size_t	Configuration::parse_methods(std::fstream &file, vectorString &line, size
 			}
 			index++;
 		}
-	}
+	} while ((ob && line[index] != "}") || (!ob && line[index] != ";"));
 	return ++index;
 }
 
@@ -519,7 +528,8 @@ size_t	Configuration::skip_token(std::fstream& file, vectorString& line, size_t 
 		index++;
 	}
 	bool	del = false;
-	while ((ob && line[index] != "}") || (!ob && line[index] != ";")) {
+//	while ((ob && line[index] != "}") || (!ob && line[index] != ";")) {
+    do {
 		if (index >= line.size() || line[index] == "#") {
 			index = 0;
 			gettokens(file, line);
@@ -533,7 +543,7 @@ size_t	Configuration::skip_token(std::fstream& file, vectorString& line, size_t 
 				del = false;
 			index++;
 		}
-	}
+	} while ((ob && line[index] != "}") || (!ob && line[index] != ";"));
 	return ++index;
 }
 
@@ -545,7 +555,8 @@ size_t Configuration::parse_loc_info(std::fstream &file, vectorString &line, siz
 	index++;
 	loc_inf	data;
 	init_data(data, id, _server_locations[id]);
-	while (line[index] != "}") {
+//	while (line[index] != "}") {
+    do {
 		if (index >= line.size() || line[index] == "#") {
 			index = 0;
 			gettokens(file, line);
@@ -579,7 +590,7 @@ size_t Configuration::parse_loc_info(std::fstream &file, vectorString &line, siz
 				}
 			}
 		}
-	}
+	} while (line[index] != "}");
 	_server_location_info.push_back(data);
 	return index;
 }

@@ -93,7 +93,7 @@ size_t	Configuration::parse_vec_str(std::fstream& file, vectorString& line, size
 		index++;
 	}
 	bool	del = false;
-//	while ((ob && line[index] != "}") || (!ob && line[index] != ";")) {
+//	while (index >= line.size() || ((ob && line[index] != "}") || (!ob && line[index] != ";"))) {
     do {
 		if (index >= line.size() || line[index] == "#") {
 			index = 0;
@@ -111,7 +111,7 @@ size_t	Configuration::parse_vec_str(std::fstream& file, vectorString& line, size
 			}
 			index++;
 		}
-	} while ((ob && line[index] != "}") || (!ob && line[index] != ";"));
+	} while (index >= line.size() || ((ob && line[index] != "}") || (!ob && line[index] != ";")));
     return ++index;
 }
 
@@ -128,7 +128,7 @@ size_t	Configuration::parse_vec_int(std::fstream& file, vectorString& line, size
 		index++;
 	}
 	bool	del = false;
-//	while ((ob && line[index] != "}") || (!ob && line[index] != ";")) {
+//	while (index >= line.size() || ((ob && line[index] != "}") || (!ob && line[index] != ";"))) {
     do {
 		if (index >= line.size() || line[index] == "#") {
 			index = 0;
@@ -145,7 +145,7 @@ size_t	Configuration::parse_vec_int(std::fstream& file, vectorString& line, size
 			}
 			index++;
 		}
-	} while ((ob && line[index] != "}") || (!ob && line[index] != ";"));
+	} while (index >= line.size() || ((ob && line[index] != "}") || (!ob && line[index] != ";")));
     return ++index;
 }
 
@@ -165,7 +165,7 @@ size_t	Configuration::parse_map_int_str(std::fstream& file, vectorString& line, 
 	bool	del = true;
 	bool	page = true;
 
-//	while ((ob && line[index] != "}") || (!ob && line[index] != ";")) {
+//	while (index >= line.size() || ((ob && line[index] != "}") || (!ob && line[index] != ";"))) {
     do {
 		if (index >= line.size() || line[index] == "#") {
 			index = 0;
@@ -197,7 +197,7 @@ size_t	Configuration::parse_map_int_str(std::fstream& file, vectorString& line, 
 			}
 			index++;
 		}
-	} while ((ob && line[index] != "}") || (!ob && line[index] != ";"));
+	} while (index >= line.size() || ((ob && line[index] != "}") || (!ob && line[index] != ";")));
 	return ++index;
 }
 
@@ -214,7 +214,7 @@ size_t	Configuration::parse_str(std::fstream& file, vectorString& line, size_t i
 		ob = true;
 		index++;
 	}
-//	while ((ob && line[index] != "}") || (!ob && line[index] != ";")) {
+//	while (index >= line.size() || ((ob && line[index] != "}") || (!ob && line[index] != ";"))) {
     do {
 		if (index >= line.size() || line[index] == "#") {
 			index = 0;
@@ -230,7 +230,7 @@ size_t	Configuration::parse_str(std::fstream& file, vectorString& line, size_t i
 			}
 			index++;
 		}
-	} while ((ob && line[index] != "}") || (!ob && line[index] != ";"));
+	} while (index >= line.size() || ((ob && line[index] != "}") || (!ob && line[index] != ";")));
 	return ++index;
 }
 
@@ -248,7 +248,7 @@ size_t	Configuration::parse_bool(std::fstream& file, vectorString& line, size_t 
 		index++;
 	}
 
-//	while ((ob && line[index] != "}") || (!ob && line[index] != ";")) {
+//	while (index >= line.size() || ((ob && line[index] != "}") || (!ob && line[index] != ";"))) {
     do {
 		if (index >= line.size() || line[index] == "#") {
 			index = 0;
@@ -270,7 +270,7 @@ size_t	Configuration::parse_bool(std::fstream& file, vectorString& line, size_t 
 			}
 			index++;
 		}
-	} while ((ob && line[index] != "}") || (!ob && line[index] != ";"));
+	} while (index >= line.size() || ((ob && line[index] != "}") || (!ob && line[index] != ";")));
 	return ++index;
 }
 
@@ -287,7 +287,7 @@ size_t	Configuration::parse_sizet(std::fstream& file, vectorString& line, size_t
 		ob = true;
 		index++;
 	}
-//	while ((ob && line[index] != "}") || (!ob && line[index] != ";")) {
+//	while (index >= line.size() || ((ob && line[index] != "}") || (!ob && line[index] != ";"))) {
     do {
 		if (index >= line.size() || line[index] == "#") {
 			index = 0;
@@ -303,7 +303,7 @@ size_t	Configuration::parse_sizet(std::fstream& file, vectorString& line, size_t
 			}
 			index++;
 		}
-	} while ((ob && line[index] != "}") || (!ob && line[index] != ";"));
+	} while (index >= line.size() || ((ob && line[index] != "}") || (!ob && line[index] != ";")));
 	return ++index;
 }
 
@@ -343,7 +343,7 @@ void Configuration::load_config_file(const std::string &path) {
 		if (index >= splitted_line.size()) {
 			index = 0;
 			std::getline(file, line);
-			splitted_line = split_line(line);
+ 			splitted_line = split_line(line);
 			e_line++;
 		} else {
 			switch (conf_token_cmp(splitted_line, index)) {
@@ -421,7 +421,7 @@ size_t	Configuration::parse_server(std::fstream& file, vectorString& s_line, siz
                 }
             }
         }
-    } while (s_line[index] != "}");
+    } while (index >= s_line.size() || s_line[index] != "}");
 	return index;
 }
 
@@ -476,7 +476,7 @@ size_t	Configuration::parse_methods(std::fstream &file, vectorString &line, size
 		index++;
 	}
 	bool	del = false;
-//	while ((ob && line[index] != "}") || (!ob && line[index] != ";")) {
+//	while (index >= line.size() || ((ob && line[index] != "}") || (!ob && line[index] != ";"))) {
     do {
 		if (index >= line.size() || line[index] == "#") {
 			index = 0;
@@ -503,7 +503,7 @@ size_t	Configuration::parse_methods(std::fstream &file, vectorString &line, size
 			}
 			index++;
 		}
-	} while ((ob && line[index] != "}") || (!ob && line[index] != ";"));
+	} while (index >= line.size() || ((ob && line[index] != "}") || (!ob && line[index] != ";")));
 	return ++index;
 }
 
@@ -528,7 +528,7 @@ size_t	Configuration::skip_token(std::fstream& file, vectorString& line, size_t 
 		index++;
 	}
 	bool	del = false;
-//	while ((ob && line[index] != "}") || (!ob && line[index] != ";")) {
+//	while (index >= line.size() || ((ob && line[index] != "}") || (!ob && line[index] != ";"))) {
     do {
 		if (index >= line.size() || line[index] == "#") {
 			index = 0;
@@ -543,7 +543,7 @@ size_t	Configuration::skip_token(std::fstream& file, vectorString& line, size_t 
 				del = false;
 			index++;
 		}
-	} while ((ob && line[index] != "}") || (!ob && line[index] != ";"));
+	} while (index >= line.size() || ((ob && line[index] != "}") || (!ob && line[index] != ";")));
 	return ++index;
 }
 
@@ -590,7 +590,7 @@ size_t Configuration::parse_loc_info(std::fstream &file, vectorString &line, siz
 				}
 			}
 		}
-	} while (line[index] != "}");
+	} while (index >= line.size() || line[index] != "}");
 	_server_location_info.push_back(data);
 	return index;
 }

@@ -37,8 +37,9 @@
     return $retval;
   }
 ?>
+Content-Type: text/html
 
-<h1>List PDF files with links</h1>
+<h1>List all files with links</h1>
 
 <table class="collapse" border="1">
 <thead>
@@ -48,7 +49,6 @@
 <?PHP
   $dirlist = getFileList("./");
   foreach($dirlist as $file) {
-    if($file['type'] != "application/pdf") continue;
     echo "<tr>\n";
     echo "<td><a href=\"{$file['name']}\">",basename($file['name']),"</a></td>\n";
     echo "<td>{$file['type']}</td>\n";

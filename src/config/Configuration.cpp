@@ -430,7 +430,7 @@ Configuration::server_word Configuration::server_token_cmp(const std::string &wo
 		return location_error;
 	else if (word == "log" || word == "log_loc" || word == "log_location" || word == "Log")
 		return location_log;
-	else if (word == "Accept_Files" || word == "accept_files" || word == "upload" || word == "uploads" || word ==  "user_upload" || word == "user_uploads" || word == "Upload" || word == "Uploads" || word ==  "User_Upload" || word == "User_Uploads")
+	else if (word == "Accept_Files" || word == "accept_files" || word ==  "accept_upload" || word == "accept_uploads" || word ==  "Accept_Upload" || word == "Accept_Uploads")
 		return file_acc;
 	else if (word == "upload" || word == "Upload" || word == "client-upload")
 		return upload_location_cl;

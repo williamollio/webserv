@@ -199,16 +199,7 @@ void HTTPRequest::set_payload(const std::string& data, Socket& _socket) throw(st
 	cursor += 2;
 
 	if (_chunked) {
-//        char c;
-//        std::cerr << "Starting read" << std::endl;
-//        while (read(_socket.get_fd(), &c, 1) > 0) {
-//            std::cerr << c;
-//        }
-//        std::cerr << std::endl;
-//        std::cerr << "Original: \n" << data.substr(cursor);
     	_payload = unchunkedPayload(data, cursor);
-//        std::cerr << std::endl << std::endl;
-//        std::cerr << "After: \n" << _payload << std::endl;
         return;
     }
 	else

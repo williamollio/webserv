@@ -10,6 +10,7 @@
 #include "HTTPException.hpp"
 #include "HTTPHeader.hpp"
 #include "Tool.hpp"
+#include "Configuration.hpp"
 
 class CGIResponse {
 public:
@@ -31,6 +32,7 @@ protected:
 	std::string         _upload;
 	bool                _accept_file;
 	std::map<int, std::string> _error_pages;
+	std::vector<Configuration::loc_inf> _server_location_info;
 };
 
 

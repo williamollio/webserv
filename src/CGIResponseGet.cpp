@@ -41,12 +41,13 @@ std::string CGIResponseGet::construct_content_type()
 }
 
 void CGIResponseGet::run(Socket & socket) {
+	HTTPHeader header;
 	std::string body;
 	/*
 	if request == default_file && _directory_listing == true
 		CGICall cgicall = CGICallBuiltin(_request);
 	*/
-	HTTPHeader header;
+	std::cout << "_request->_path: " << _request->_path << std::endl;
 	std::string file = set_file(_request->_path);
 	body = read_file(file);
 	header.set_content_type(construct_content_type());

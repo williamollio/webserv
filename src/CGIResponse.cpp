@@ -61,12 +61,12 @@ CGIResponse::CGIResponse(HTTPRequest *request): _request(request)
 
 	Configuration config = Configuration::getInstance();
 
-	//std::cout << config << std::endl;
+	std::cout << config << std::endl;
 
 	/* CONFIGURATION */
 	_accept_file = config.get_server_file_acceptance();
 	_error_pages  = config.get_server_error_page_location();
-
+	_server_location_info = config.get_location_specifier();
 
 	/* TEMPORARY */
 	_server_location_log = set_server_location("/server");

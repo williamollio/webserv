@@ -23,16 +23,23 @@ public:
 	std::string  set_default_file(std::string file);
 	std::string  read_file(std::string file);
 	std::string  get_current_path();
+	void set_rules_location();
 
 protected:
-	const HTTPRequest * _request;
-	std::string         _current_path;
-	std::string         _server_location_log;
-	std::string         _default_file;
-	std::string         _upload;
-	bool                _accept_file;
-	std::map<int, std::string> _error_pages;
-	std::vector<Configuration::loc_inf> _server_location_info;
+	const HTTPRequest *	_request;
+	std::string			_current_path;
+	std::string			_server_location_log;
+	std::string			_default_file;
+	std::string			_upload;
+	std::string			_server_root;
+	std::string			_server_index;
+	bool				_accept_file;
+	bool				_GET;
+	bool				_POST;
+	bool				_DELETE;
+	bool				_dir_listing;
+	std::map<int, std::string>	_error_pages;
+	std::vector<Configuration::loc_inf>	_server_location_info;
 };
 
 

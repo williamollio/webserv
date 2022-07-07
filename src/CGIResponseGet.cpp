@@ -43,11 +43,14 @@ std::string CGIResponseGet::construct_content_type()
 void CGIResponseGet::run(Socket & socket) {
 	HTTPHeader header;
 	std::string body;
+	// use getFileDirectory
+	// use getFile
 	/*
-	if request == default_file && _directory_listing == true
+	if _request->_path == "/" && _directory_listing == true
 		CGICall cgicall = CGICallBuiltin(_request);
+	else if _request->_path == "/" && _directory_listing == false
+		render default_file of the location
 	*/
-	std::cout << "_request->_path: " << _request->_path << std::endl;
 	std::string file = set_file(_request->_path);
 	body = read_file(file);
 	header.set_content_type(construct_content_type());

@@ -4,6 +4,7 @@
 
 #include "../include/CGIResponse.hpp"
 #include "../include/Configuration.hpp"
+#include "../include/URI.hpp"
 
 std::string CGIResponse::get_current_path()
 {
@@ -56,21 +57,45 @@ std::string CGIResponse::set_default_file(std::string file)
 	return (read_file(tmp));
 }
 
-CGIResponse::CGIResponse(HTTPRequest *request): _request(request)
+void CGIResponse::set_rules_location()
+{
+	URI uri(_request->_path);
+	std::string directory = uri.getFileDirectory();
+	directory.pop_back();
+	for (std::vector<Configuration::loc_inf>::const_iterator it = _server_location_info.begin(); it != _server_location_info.end(); it++)
+	{
+		if (directory == (*it).directory)
+		{
+			_server_root = (*it).root;
+			_GET = (*it).GET;
+			_POST = (*it).POST;
+			_DELETE = (*it).DELETE;
+			_dir_listing = (*it).dir_listing;
+			_server_index = (*it).def_file;
+		}
+	}
+}
+
+CGIResponse::CGIResponse(HTTPRequest *request): _request(request), _GET(true), _POST(true), _DELETE(false), _dir_listing(false)
 {
 
 	Configuration config = Configuration::getInstance();
 
-	std::cout << config << std::endl;
+	//std::cout << config << std::endl;
 
 	/* CONFIGURATION */
 	_accept_file = config.get_server_file_acceptance();
 	_error_pages  = config.get_server_error_page_location();
 	_server_location_info = config.get_location_specifier();
+	_server_root = config.get_server_root_folder();
+	_server_index = config.get_server_index_file();
+
+	set_rules_location();
+
+	_server_location_log = set_server_location(_server_root);
+	_default_file = set_default_file(_server_index);
 
 	/* TEMPORARY */
-	_server_location_log = set_server_location("/server");
-	_default_file = set_default_file("index.html");
 	_upload = "./upload";
 }
 

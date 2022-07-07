@@ -42,7 +42,10 @@ std::string CGIResponseGet::construct_content_type()
 
 void CGIResponseGet::run(Socket & socket) {
 	std::string body;
-
+	/*
+	if request == default_file && _directory_listing == true
+		CGICall cgicall = CGICallBuiltin(_request);
+	*/
 	HTTPHeader header;
 	std::string file = set_file(_request->_path);
 	body = read_file(file);

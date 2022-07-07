@@ -65,6 +65,8 @@ CGIResponse::CGIResponse(HTTPRequest *request): _request(request)
 
 	/* CONFIGURATION */
 	_accept_file = config.get_server_file_acceptance();
+	_error_pages  = config.get_server_error_page_location();
+
 
 	/* TEMPORARY */
 	_server_location_log = set_server_location("/server");

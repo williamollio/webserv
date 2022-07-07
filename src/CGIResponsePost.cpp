@@ -12,7 +12,7 @@ std::string CGIResponsePost::setFilename(std::string &payload) {
 	size_t posbegin, posend;
 	posbegin = payload.find("filename=\"");
 	if (posbegin == std::string::npos)
-		throw HTTPException(400);
+		return setFilenameUnknown(".txt");
 	posbegin += 10;
 	posend = payload.find("\"", posbegin + 1);
 	filename = payload.substr(posbegin, posend - posbegin);
@@ -20,11 +20,11 @@ std::string CGIResponsePost::setFilename(std::string &payload) {
 	return (filename);
 }
 
-std::string CGIResponsePost::setFilenameChunked(std::string extension)
+std::string CGIResponsePost::setFilenameUnknown(std::string extension)
 {
 	std::string filenameChunked;
 
-	filenameChunked = _request->_user_agent;
+	filenameChunked = "test"; // insert date of the day
 	filenameChunked += extension;
 
 	return (filenameChunked);
@@ -73,11 +73,7 @@ void CGIResponsePost::saveFile(std::string payload) {
 	DIR* dir;
 	std::string path_string(get_current_path());
 	const char *path = path_string.c_str();
-
-	if (_request->_chunked)
-		_filename = setFilenameChunked(".txt");
-	else
-		_filename = setFilename(payload);
+	_filename = setFilename(payload);
 	upload = _upload.c_str();
 	dir = opendir(upload);
 	if (dir) {
@@ -110,4 +106,7 @@ void CGIResponsePost::run(Socket &socket) {
 	socket.send(header.tostring() + "\r\n\r\n" + body);
 }
 
-CGIResponsePost::CGIResponsePost(HTTPRequest *request) : CGIResponse(request) {}
+CGIResponsePost::CGIResponsePost(HTTPRequest *request) : CGIResponse(request)
+{
+	//std::cout << _request->_payload << std::endl;
+}

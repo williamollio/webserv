@@ -53,8 +53,6 @@ void CGICall::run(Socket & _socket) {
     queryString += uri.getQuery();
     remoteAddress += int_to_ipv4(_request->getPeerAddress());
     remoteHost += _request->getPeerName();
-    char * c_pwd = getcwd(NULL, 0);
-    scriptName += c_pwd + uri.getFile();
     serverName += Configuration::getInstance().get_server_names().at(0);
     {
         std::stringstream s;
@@ -70,8 +68,8 @@ void CGICall::run(Socket & _socket) {
             contentType += *it + ",";
         }
     }
-    const std::string & requestedFile = c_pwd + uri.getFile();
-    free(c_pwd);
+    scriptName += computeRequestedFile();
+    const std::string & requestedFile = computeRequestedFile();
     if (access(requestedFile.c_str(), F_OK) < 0) throw HTTPException(404);
     if (access(requestedFile.c_str(), X_OK) < 0) throw HTTPException(403);
     if (pipe(in) < 0) throw HTTPException(500);
@@ -191,6 +189,13 @@ void CGICall::waitOrThrow() {
     close(out[1]);
     if (ret == 0) throw HTTPException(408);
     else if (status != 0) throw HTTPException(500);
+}
+
+std::string CGICall::computeRequestedFile() {
+    char * c_pwd = getcwd(NULL, 0);
+    const std::string ret = c_pwd + uri.getFile();
+    free(c_pwd);
+    return ret;
 }
 
 HTTPHeader CGICall::parseCGIResponse(const int fd) {

@@ -10,10 +10,13 @@
 class CGICall: public CGIResponse {
 public:
     explicit CGICall(HTTPRequest *);
-    ~CGICall();
+    virtual ~CGICall();
 
     void run(Socket & socket);
     bool isRunning();
+
+protected:
+    virtual std::string computeRequestedFile();
 
 private:
     const URI &     uri;

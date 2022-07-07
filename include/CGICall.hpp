@@ -17,6 +17,7 @@ public:
 
 protected:
     virtual std::string computeRequestedFile();
+    virtual std::string computeScriptDirectory();
 
 private:
     const URI &     uri;

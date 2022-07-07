@@ -158,6 +158,7 @@ void CGICall::execute(const int in, const int out, const std::string & requested
         environment[12] = strdup(contentType.c_str());
     }
     arguments[0] = const_cast<char *>(requestedFile.c_str());
+    chdir(computeScriptDirectory().c_str());
     if (execve(requestedFile.c_str(), arguments, environment) < 0) {
         exit(-1);
     }
@@ -194,6 +195,13 @@ void CGICall::waitOrThrow() {
 std::string CGICall::computeRequestedFile() {
     char * c_pwd = getcwd(NULL, 0);
     const std::string ret = c_pwd + uri.getFile();
+    free(c_pwd);
+    return ret;
+}
+
+std::string CGICall::computeScriptDirectory() {
+    char * c_pwd = getcwd(NULL, 0);
+    const std::string ret = c_pwd + uri.getFileDirectory();
     free(c_pwd);
     return ret;
 }

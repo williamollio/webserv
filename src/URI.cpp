@@ -215,6 +215,15 @@ URI &URI::operator=(const URI &other) {
     return *this;
 }
 
+std::string URI::getFileDirectory() const {
+    std::string ret;
+    for (std::list<Token>::const_iterator it = tokens.begin(); it->getType() != Token::END && isPathType(it->getType()); ++it) {
+        if (it->getType() == Token::TEXT && hasExtension(it->getContent())) break;
+        ret += it->getContent();
+    }
+    return ret;
+}
+
 
 // U R I : : T O K E N   I M P L E M E N T A T I O N
 

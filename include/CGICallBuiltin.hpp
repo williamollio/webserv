@@ -13,6 +13,7 @@ class CGICallBuiltin: public CGICall {
 
 protected:
     std::string computeRequestedFile();
+    std::string computeScriptDirectory();
 
 public:
     explicit CGICallBuiltin(HTTPRequest *, const std::string & executable = "");

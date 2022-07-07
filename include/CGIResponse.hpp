@@ -30,6 +30,7 @@ protected:
 	std::string         _default_file;
 	std::string         _upload;
 	bool                _accept_file;
+	std::map<int, std::string> _error_pages;
 };
 
 

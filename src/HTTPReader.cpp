@@ -144,11 +144,12 @@ int	HTTPRequest::checktype(std::string& word) {
 
 
 HTTPRequest* HTTPReader::_parse() throw(std::exception) {
-	char buff[BUFFER + 1];
+	char * buff = new char[BUFFER + 1]();
 	if (!read(_socket.get_fd(), buff, BUFFER)) {
 		throw HTTPException(504);
 	}
 	std::string raw(buff);
+    delete[] buff;
 	size_t	cursor = raw.find("\r\n\r\n", 0);
 	if (cursor == raw.npos)
 		cursor = raw.length();

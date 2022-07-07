@@ -24,7 +24,7 @@ public:
         GET, POST, DELETE, ERROR
     };
 	enum REQ_INFO {
-		USER_AGENT, HOSTNAME, LANG_SUPP, ENCODING, CON_TYPE, CONTENT_TYPE, CON_LENGTH, DEFAULT
+		USER_AGENT, HOSTNAME, LANG_SUPP, ENCODING, CON_TYPE, CONTENT_TYPE, CON_LENGTH, EXPECT ,DEFAULT
 	};
 
 	static int		checktype(std::string& word);
@@ -82,6 +82,7 @@ public:	//TODO: make private with get and set
 	size_t			_content_length;
 	vectorString	_content_type;
 	std::string		_payload;
+	std::string		_expect;
 };
 
 

@@ -10,7 +10,7 @@ int main(const int argc, const char **argv) {
 			Configuration::getInstance().load_config_file(argv[1]);
 		else
         	Configuration::getInstance().load_config_file();
-		 std::cout << Configuration::getInstance();
+		//  std::cout << Configuration::getInstance();
 		// std::cout << "config loaded!" << std::endl;
 		Connection	server_connection;
 		server_connection.establishConnection();

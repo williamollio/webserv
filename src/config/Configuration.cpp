@@ -598,7 +598,7 @@ size_t Configuration::parse_loc_info(std::fstream &file, vectorString &line, siz
 bool Configuration::find_n_fill_loc(std::fstream &file, vectorString &line, size_t &index) {
 	size_t	id = 0;
 	for (vectorString::iterator name = _server_locations.begin(); name != _server_locations.end(); name++) {
-		if (*name == _server_locations[index]) {
+		if (line[index] == *name) {
 			index = parse_loc_info(file, line, index, id);
 			// for (std::vector<loc_inf>::iterator i = _server_location_info.begin(); i != _server_location_info.end(); i++) {
 			// 	std::cout << "vector: " << (*i).GET << std::endl

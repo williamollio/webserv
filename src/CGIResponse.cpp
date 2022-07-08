@@ -59,6 +59,8 @@ std::string CGIResponse::set_default_file(std::string file)
 
 void CGIResponse::set_rules_location()
 {
+	if (_request == NULL)
+		return;
 	URI uri(_request->_path);
 	std::string directory = uri.getFileDirectory();
 	directory.pop_back();

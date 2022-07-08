@@ -363,6 +363,7 @@ void Configuration::load_config_file(const std::string &path) {
 }
 
 size_t	Configuration::parse_server(std::fstream& file, vectorString& s_line, size_t index) {
+	bool	custom_off = false;
 	if (!delim_token("{", s_line[++index])) {
 		file.close();
 		throw UnexpectedToken(e_line, s_line[index]);
@@ -375,8 +376,11 @@ size_t	Configuration::parse_server(std::fstream& file, vectorString& s_line, siz
             gettokens(file, s_line);
         }
         while (index < s_line.size() && s_line[index] != "#") {
-            if (delim_token("}", s_line[index]))
-                return ++index;
+            if (delim_token("}", s_line[index])) {
+                ++index;
+				custom_off = true;
+				break;
+			}
             else {
                 switch (server_token_cmp(s_line[index])) {
                     case name:
@@ -424,7 +428,20 @@ size_t	Configuration::parse_server(std::fstream& file, vectorString& s_line, siz
                 }
             }
         }
-    } while (index >= s_line.size() || s_line[index] != "}");
+    } while (!custom_off && (index >= s_line.size() || s_line[index] != "}"));
+	for (vectorString::iterator i = _server_locations.begin(); i != _server_locations.end(); i++)
+		normalize_path(*i);
+	for (std::vector<loc_inf>::iterator i = _server_location_info.begin(); i != _server_location_info.end(); i++) {
+		normalize_path((*i).root);
+		normalize_path((*i).def_file);
+		normalize_path((*i).directory);
+	}
+	normalize_path(_server_root);
+	normalize_path(_client_upload_location);
+	normalize_path(_server_location_log);
+	normalize_path(_cgi_root);
+	for (intMapString::iterator i = _server_locations_error_pages.begin(); i != _server_locations_error_pages.end(); i++)
+		normalize_path((*i).second);
 	return index;
 }
 
@@ -628,6 +645,15 @@ bool Configuration::delim_token(const std::string& delims, std::string &word) {
 			return true;
 	}
 	return false;
+}
+
+void Configuration::normalize_path(std::string &str) {
+	if (str.empty())
+		return;
+	if (!str.compare(0, 2, "./"))
+		str.erase(0, 1);
+	if (!str.compare(str.length() - 1, 1, "/"))
+		str.erase(str.length() - 1, 1);
 }
 
 //GETTER FUNCTIONS

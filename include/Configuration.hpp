@@ -64,6 +64,7 @@ private:
 	bool	find_n_fill_loc(std::fstream& file, vectorString& line, size_t& index);
 	size_t	skip_token(std::fstream& file, vectorString& line, size_t index);
 	void fill_default();
+	void normalize_path(std::string& str);
 
 	void gettokens(std::fstream &file, vectorString& line);
 
@@ -113,6 +114,7 @@ public:
 		const char *what() const _NOEXCEPT;
 	};
 };
+
 
 
 std::ostream& operator<<(std::ostream& os, const Configuration& conf);

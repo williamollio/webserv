@@ -36,6 +36,8 @@ void CGIResponseDelete::set_up_location() {
 
 void CGIResponseDelete::run(Socket &socket) {
 
+	if (_DELETE == false)
+		throw HTTPException(405);
 	extract_path();
 	set_up_location();
 	if (access(_location_folder, X_OK) < 0
@@ -49,4 +51,4 @@ void CGIResponseDelete::run(Socket &socket) {
 		throw HTTPException(403);
 }
 
-CGIResponseDelete::CGIResponseDelete(HTTPRequest *request) : CGIResponse(request) {}
+CGIResponseDelete::CGIResponseDelete(const HTTPRequest *request) : CGIResponse(request) {}

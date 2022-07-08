@@ -14,7 +14,7 @@
 
 class CGIResponsePost : public CGIResponse {
 public:
-    explicit CGIResponsePost(HTTPRequest *);
+    explicit CGIResponsePost(const HTTPRequest *);
 
     void run(Socket &socket);
 

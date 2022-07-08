@@ -11,10 +11,10 @@ class CGIResponseGet : public CGIResponse {
 private:
 	std::string _file_extension;
 public:
-    explicit CGIResponseGet(HTTPRequest *);
+    explicit CGIResponseGet(const HTTPRequest *);
 
     void run(Socket & socket);
-	std::string set_file(std::string path);
+	std::string set_file(std::string path, Socket & socket);
 	std::string construct_content_type();
 };
 

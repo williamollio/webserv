@@ -16,7 +16,7 @@ protected:
     std::string computeScriptDirectory();
 
 public:
-    explicit CGICallBuiltin(HTTPRequest *, const std::string & executable = "");
+    explicit CGICallBuiltin(const HTTPRequest *, const std::string & executable = "");
 
     const std::string & getExecutable() const;
     void setExecutable(const std::string &);

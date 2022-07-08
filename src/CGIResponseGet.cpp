@@ -4,14 +4,22 @@
 
 #include "../include/CGIResponseGet.hpp"
 #include "HTTPHeader.hpp"
+#include "CGICallBuiltin.hpp"
 #include <fstream>
 #include <algorithm>
 
-std::string CGIResponseGet::set_file(std::string path)
+std::string CGIResponseGet::set_file(std::string path, Socket & socket)
 {
 	std::string tmp;
 
-	if (path == "/")
+	if (path == "/img" && _dir_listing == true)
+	{
+		CGICall *cgicall = new CGICallBuiltin(_request, "/cgi/directory_listing.php");
+		cgicall->run(socket);
+		_file_extension = "html";
+		tmp = "index.html";
+	}
+	else if (path == "/")
 	{
 		_file_extension = "html";
 		tmp = "index.html";
@@ -41,17 +49,18 @@ std::string CGIResponseGet::construct_content_type()
 }
 
 void CGIResponseGet::run(Socket & socket) {
-	HTTPHeader header;
-	std::string body;
-	// use getFileDirectory
-	// use getFile
 	/*
 	if _request->_path == "/" && _directory_listing == true
 		CGICall cgicall = CGICallBuiltin(_request);
 	else if _request->_path == "/" && _directory_listing == false
 		render default_file of the location
 	*/
-	std::string file = set_file(_request->_path);
+	HTTPHeader header;
+	std::string body;
+
+	if (_GET == false)
+		throw HTTPException(405);
+	std::string file = set_file(_request->_path, socket);
 	body = read_file(file);
 	header.set_content_type(construct_content_type());
 	header.set_content_length(body.size());
@@ -60,4 +69,4 @@ void CGIResponseGet::run(Socket & socket) {
 	socket.send(header.tostring() + "\r\n\r\n" + body);
 }
 
-CGIResponseGet::CGIResponseGet(HTTPRequest *request) : CGIResponse(request) {}
+CGIResponseGet::CGIResponseGet(const HTTPRequest *request) : CGIResponse(request) {}

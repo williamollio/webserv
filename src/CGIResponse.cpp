@@ -17,7 +17,7 @@ std::string CGIResponse::get_current_path()
 }
 
 
-std::string CGIResponse::set_server_location(std::string path_from_configuration)
+std::string CGIResponse::set_server_absolut(std::string path_from_configuration)
 {
 	static std::string tmp = "";
 
@@ -68,17 +68,17 @@ void CGIResponse::set_rules_location()
 	{
 		if (directory == (*it).directory)
 		{
-			_server_root = (*it).root;
 			_GET = (*it).GET;
 			_POST = (*it).POST;
 			_DELETE = (*it).DELETE;
+			_server_root = (*it).root;
 			_dir_listing = (*it).dir_listing;
 			_server_index = (*it).def_file;
 		}
 	}
 }
 
-CGIResponse::CGIResponse(HTTPRequest *request): _request(request), _GET(true), _POST(true), _DELETE(false), _dir_listing(false)
+CGIResponse::CGIResponse(const HTTPRequest *request): _request(request), _GET(true), _POST(true), _DELETE(false), _dir_listing(false)
 {
 
 	Configuration config = Configuration::getInstance();
@@ -86,15 +86,15 @@ CGIResponse::CGIResponse(HTTPRequest *request): _request(request), _GET(true), _
 	//std::cout << config << std::endl;
 
 	/* CONFIGURATION */
-	_accept_file = config.get_server_file_acceptance();
 	_error_pages  = config.get_server_error_page_location();
+	_accept_file = config.get_server_file_acceptance();
 	_server_location_info = config.get_location_specifier();
 	_server_root = config.get_server_root_folder();
 	_server_index = config.get_server_index_file();
 
 	set_rules_location();
 
-	_server_location_log = set_server_location(_server_root);
+	_server_location_log = set_server_absolut(_server_root);
 	_default_file = set_default_file(_server_index);
 
 	/* TEMPORARY */

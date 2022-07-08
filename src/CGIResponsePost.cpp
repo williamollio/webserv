@@ -95,6 +95,8 @@ void CGIResponsePost::run(Socket &socket) {
 	HTTPHeader	header;
 	int			code;
 
+	if (_POST == false || _accept_file == false)
+		throw HTTPException(405);
 	if (!isUploadAccepted())
 		throw HTTPException(405);
 	code = 201;
@@ -106,7 +108,7 @@ void CGIResponsePost::run(Socket &socket) {
 	socket.send(header.tostring() + "\r\n\r\n" + body);
 }
 
-CGIResponsePost::CGIResponsePost(HTTPRequest *request) : CGIResponse(request)
+CGIResponsePost::CGIResponsePost(const HTTPRequest *request) : CGIResponse(request)
 {
 	//std::cout << _request->_payload << std::endl;
 }

@@ -19,6 +19,12 @@ public:
 
     const std::string & getExecutable() const;
     void setExecutable(const std::string &);
+
+    /**
+     * Waits for the execution to finish. Blocks the current thread until the underlying CGICall has
+     * terminated.
+     */
+    void waitForExecution();
 };
 
 

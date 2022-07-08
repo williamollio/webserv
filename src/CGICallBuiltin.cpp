@@ -23,3 +23,7 @@ std::string CGICallBuiltin::computeRequestedFile() {
     free(c_pwd);
     return ret;
 }
+
+void CGICallBuiltin::waitForExecution() {
+    while (isRunning());
+}

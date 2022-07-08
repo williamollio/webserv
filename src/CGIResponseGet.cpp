@@ -12,6 +12,7 @@ std::string CGIResponseGet::set_file(std::string path, Socket & socket)
 {
 	std::string tmp;
 
+	std::cout << "path: " << path << " dir listing : " << _dir
 	if (path == "/img" && _dir_listing == true)
 	{
 		CGICall *cgicall = new CGICallBuiltin(_request, "/cgi/directory_listing.php");

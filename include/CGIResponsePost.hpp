@@ -8,9 +8,6 @@
 
 #include "CGIResponse.hpp"
 #include "HTTPRequestPost.hpp"
-#include <dirent.h>
-#include <errno.h>
-#include <fstream>
 
 class CGIResponsePost : public CGIResponse {
 public:

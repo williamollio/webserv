@@ -8,32 +8,41 @@
 #include <fstream>
 #include <algorithm>
 
+std::string CGIResponseGet::set_extension(std::string &file)
+{
+	size_t pos = file.find('.', 0);
+	if (pos == std::string::npos)
+		return ("");
+	else
+		return (file.substr(pos + 1));
+}
+
 std::string CGIResponseGet::set_file(std::string path, Socket & socket)
 {
 	std::string tmp;
 
-	std::cout << "path: " << path << " dir listing : " << _dir
-	if (path == "/img" && _dir_listing == true)
+	#if DEBUG
+		std::cout << "path: " << path
+		<< "\n_directory_location: " << _directory_location
+		<< "\ndir listing: " << _dir_listing
+		<< std::endl;
+ 	#endif
+
+	if ((path == "/" || _directory_location == path ) && _dir_listing == true)
 	{
 		CGICall *cgicall = new CGICallBuiltin(_request, "/cgi/directory_listing.php");
 		cgicall->run(socket);
-		_file_extension = "html";
-		tmp = "index.html";
 	}
-	else if (path == "/")
-	{
-		_file_extension = "html";
-		tmp = "index.html";
-	}
+	else if ((path == "/" || _directory_location == path ) && _dir_listing == false)
+		tmp = _server_index;
 	else
-	{
-		tmp = path.erase(0,1);
-		size_t pos = tmp.find('.', 0);
-		if (pos == std::string::npos)
-			_file_extension = "";
-		else
-			_file_extension = tmp.substr(pos+1);
-	}
+		tmp = path;
+
+	#if DEBUG
+		std::cout << "tmp: " << tmp << std::endl;
+	#endif
+
+	_file_extension = set_extension(tmp);
 	return (tmp);
 }
 
@@ -50,12 +59,6 @@ std::string CGIResponseGet::construct_content_type()
 }
 
 void CGIResponseGet::run(Socket & socket) {
-	/*
-	if _request->_path == "/" && _directory_listing == true
-		CGICall cgicall = CGICallBuiltin(_request);
-	else if _request->_path == "/" && _directory_listing == false
-		render default_file of the location
-	*/
 	HTTPHeader header;
 	std::string body;
 

@@ -15,6 +15,7 @@ public:
 
     void run(Socket & socket);
 	std::string set_file(std::string path, Socket & socket);
+	std::string set_extension(std::string &file);
 	std::string construct_content_type();
 };
 

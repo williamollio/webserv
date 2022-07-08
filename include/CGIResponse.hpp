@@ -11,19 +11,23 @@
 #include "HTTPHeader.hpp"
 #include "Tool.hpp"
 #include "Configuration.hpp"
+#include <dirent.h>
+#include <errno.h>
+#include <fstream>
 
 class CGIResponse {
 public:
     explicit CGIResponse(const HTTPRequest *);
     virtual ~CGIResponse();
 
-    virtual void run(Socket & socket) = 0;
-    virtual bool isRunning();
-	std::string  set_server_absolut(std::string path_from_configuration);
-	std::string  set_default_file(std::string file);
-	std::string  read_file(std::string file);
-	std::string  get_current_path();
-	void set_rules_location();
+    virtual void	run(Socket & socket) = 0;
+    virtual bool	isRunning();
+	std::string		set_absolut_path(std::string path_from_configuration);
+	std::string		set_default_file(std::string file);
+	std::string		read_file(std::string file);
+	std::string		get_current_path();
+	void			set_rules_location();
+	void			check_existing_dir(std::string &dir);
 
 protected:
 	const HTTPRequest *	_request;
@@ -32,7 +36,9 @@ protected:
 	std::string			_default_file;
 	std::string			_upload;
 	std::string			_server_root;
+	std::string			_loc_root;
 	std::string			_server_index;
+	std::string			_directory_location;
 	bool				_accept_file;
 	bool				_GET;
 	bool				_POST;

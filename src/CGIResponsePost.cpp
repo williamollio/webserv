@@ -112,7 +112,6 @@ CGIResponsePost::CGIResponsePost(const HTTPRequest *request): CGIResponse(reques
 {
 	Configuration config = Configuration::getInstance();
 
-	std::cout << "request->path: " << request->_path << std::endl;
 	//std::cout << config << std::endl;
 
 	/* CONFIGURATION */
@@ -122,14 +121,11 @@ CGIResponsePost::CGIResponsePost(const HTTPRequest *request): CGIResponse(reques
 	_server_index = config.get_server_index_file();
 
 	if (is_request_defined_location(request->_path, config.get_location_specifier()))
-	{
-		check_existing_dir(_loc_root);
 		_server_location_log = set_absolut_path(_loc_root);
-	}
 	else
 		_server_location_log = set_absolut_path(_server_root);
 
-	_default_file = set_default_file(_server_index); // ?
+	// _default_file = set_default_file(_server_index); // ?
 
 	#if DEBUG
 		std::cout << "_server_index: " << _server_index

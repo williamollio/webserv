@@ -17,6 +17,7 @@ public:
 	std::string set_file(std::string path, Socket & socket);
 	std::string set_extension(std::string &file);
 	std::string construct_content_type();
+	bool		is_request_location(std::string path);
 };
 
 

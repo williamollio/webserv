@@ -12,7 +12,7 @@ void CGIResponseError::setBody(int error_code, std::string &body)
 	if (it != _error_pages.end())
 		body = read_file(it->second);
 	else
-		body = read_file("error.html");
+	body = read_file("error.html");
 	return;
 }
 

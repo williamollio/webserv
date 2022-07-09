@@ -17,31 +17,27 @@ std::string CGIResponseGet::set_extension(std::string &file)
 		return (file.substr(pos + 1));
 }
 
+bool CGIResponseGet::is_request_location(std::string path)
+{
+	trim_slash_end(path);
+	PRINT_CGIRESPONSEGET("path ", path);
+	PRINT_CGIRESPONSEGET("_directory_location ", _directory_location);
+	return (_directory_location == path);
+}
+
 std::string CGIResponseGet::set_file(std::string path, Socket & socket)
 {
 	std::string tmp;
 
-	#if DEBUG
-		std::cout << "path: " << path
-		<< "\n_directory_location: " << _directory_location
-		<< "\ndir listing: " << _dir_listing
-		<< std::endl;
- 	#endif
-
-	if ((path == "/" || _directory_location == path ) && _dir_listing == true)
+	if ((path == "/" || is_request_location(path)) && _dir_listing == true)
 	{
-		CGICall *cgicall = new CGICallBuiltin(_request, "/cgi/directory_listing.php");
+		CGICall *cgicall = new CGICallBuiltin(_request, "cgi/directory_listing.php");
 		cgicall->run(socket);
 	}
-	else if ((path == "/" || _directory_location == path ) && _dir_listing == false)
+	else if ((path == "/" || is_request_location(path)) && _dir_listing == false)
 		tmp = _server_index;
 	else
 		tmp = path;
-
-	#if DEBUG
-		std::cout << "tmp: " << tmp << std::endl;
-	#endif
-
 	_file_extension = set_extension(tmp);
 	return (tmp);
 }
@@ -61,10 +57,11 @@ std::string CGIResponseGet::construct_content_type()
 void CGIResponseGet::run(Socket & socket) {
 	HTTPHeader header;
 	std::string body;
+	std::string file;
 
 	if (_GET == false)
 		throw HTTPException(405);
-	std::string file = set_file(_request->_path, socket);
+	file = set_file(_request->_path, socket);
 	body = read_file(file);
 	header.set_content_type(construct_content_type());
 	header.set_content_length(body.size());
@@ -86,22 +83,10 @@ CGIResponseGet::CGIResponseGet(const HTTPRequest *request):  CGIResponse(request
 	_server_index = config.get_server_index_file();
 
 	if (is_request_defined_location(request->_path, config.get_location_specifier()))
-	{
-		check_existing_dir(_loc_root);
 		_server_location_log = set_absolut_path(_loc_root);
-	}
 	else
 		_server_location_log = set_absolut_path(_server_root);
 
-	_default_file = set_default_file(_server_index); // ?
-
-	#if DEBUG
-		std::cout << "request->path: " << request->_path << std::endl;
-		std::cout << "_server_index: " << _server_index
-		<< "\n _server_root: " << _server_root
-		<< "\n _server_location_log: " << _server_location_log
-		<< std::endl;
-	#endif
 	/* TEMPORARY */
 	_upload = "./upload";
 }

@@ -794,9 +794,6 @@ std::ostream& operator<<(std::ostream& os, const Configuration& conf) {
 		os << "		" << (*it).dir_listing << std::endl;
 		os << "	default file:" << std::endl;
 		os << "		" << (*it).def_file << std::endl;
-		os << "	id:" << std::endl;
-		os << (*it).id << std::endl;
-
 	}
 
 	return os;

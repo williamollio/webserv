@@ -21,7 +21,6 @@ void CGIResponseError::run(Socket & socket)
 	HTTPHeader header;
 	std::string body;
 
-	PRINT_ERROR_CODE("Error code : ", _error_code);
 	header.setStatusCode(_error_code);
 	header.setStatusMessage(get_message(_error_code));
 

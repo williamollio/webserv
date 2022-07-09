@@ -51,4 +51,35 @@ void CGIResponseDelete::run(Socket &socket) {
 		throw HTTPException(403);
 }
 
-CGIResponseDelete::CGIResponseDelete(const HTTPRequest *request) : CGIResponse(request) {}
+CGIResponseDelete::CGIResponseDelete(const HTTPRequest *request):  CGIResponse(request)
+{
+	Configuration config = Configuration::getInstance();
+
+	std::cout << "request->path: " << request->_path << std::endl;
+	//std::cout << config << std::endl;
+
+	/* CONFIGURATION */
+	_error_pages  = config.get_server_error_page_location();
+	_accept_file = config.get_server_file_acceptance();
+	_server_root = config.get_server_root_folder();
+	_server_index = config.get_server_index_file();
+
+	if (is_request_defined_location(request->_path, config.get_location_specifier()))
+	{
+		check_existing_dir(_loc_root);
+		_server_location_log = set_absolut_path(_loc_root);
+	}
+	else
+		_server_location_log = set_absolut_path(_server_root);
+
+	_default_file = set_default_file(_server_index); // ?
+
+	#if DEBUG
+		std::cout << "_server_index: " << _server_index
+		<< "\n _server_root: " << _server_root
+		<< "\n _server_location_log: " << _server_location_log
+		<< std::endl;
+	#endif
+	/* TEMPORARY */
+	_upload = "./upload";
+}

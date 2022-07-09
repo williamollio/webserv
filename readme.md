@@ -21,44 +21,27 @@ The server can be configured with a configuration-file. This file is either spec
     - ``server_names`` _specifies server-addresses_
     - ``ports``        _specifies ports to listen to_
     - ``root``         _specifies the root folder of the server_
+    - ``index``         _specifies the default file of the server_
     - ``location`` can be specified further _(after declaration only!)_:
-      - ``directory_listing`` 
-      - ``default_file``
-      - ``methods`` **[GET / POST / DELETE]**
-    - ``error_pages``
-    - ``accept_files``
-    - ``cgi_path``
-    - ``cgi_extension``
+      - ``directory_listing`` _lists the files/folders of the location_
+      - ``upload`` _determine specific folder to store files uploaded in the location_
+      - ``default_file``_specifies the default file of the location_
+      - ``methods`` **[GET / POST / DELETE]** _specifies the methods allowed of the location_
+    - ``error_pages``_specifies the pages rendered depending on the error code returned_
+    - ``accept_files``_manages the access right to upload files
+    - ``cgi_path``_specifies path to the cgi_
+    - ``cgi_extension`` _specifies extenstion of the cgi_
 - comment with ``# comment to be ignored by the parser``
 - a option is legal when formatted like: ``<option> : <input> , <input2> ;`` **_or_** ``<option> { <input> , <input2> }``
 - mixing ``{}`` and ``:  ;`` will result in a parser error
 - whitespaces and newline are handled the same
 - missing any delimiter results in undefined behaviour
 
-
-# Suggestions
-
-- At least one meeting per week to restructure the planning
-- Set two reviewers for each pull request
-- Daily push/merge
-- Communication is key
-
 # Steps
 
-1. Setting up the connection/sockets ✅
-2. I/O Multiplexing ✅
+1. Setting up the connection/sockets
+2. I/O Multiplexing
 3. HTTPReader (c.f. RFC 7230 - 7235)
-4. CGI ✅
+4. CGI
 5. HTTPSender (c.f. RFC 7230 - 7235)
 6. ConfigReader
-
-# On-going tasks
-
-- <strong>mhahn</strong> : CGI
-- <strong>jkasper</strong> : ConfigurationReader / HTTPReader
-- <strong>wollio</strong> : HTTPSender
-
-# To do
-- <strong> HTTPReader </strong>: POST Request on Safari & Chrome throwing error (Jascha)
-- <strong> HTTPSender </strong> : Handle rules for locations/methods (William), Directory listing (William)
-- <strong> HTTPReader </strong> : File creation on chunked request/without filename (William)

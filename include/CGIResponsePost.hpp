@@ -8,18 +8,16 @@
 
 #include "CGIResponse.hpp"
 #include "HTTPRequestPost.hpp"
-#include <dirent.h>
-#include <errno.h>
-#include <fstream>
 
 class CGIResponsePost : public CGIResponse {
 public:
-    explicit CGIResponsePost(HTTPRequest *);
+    explicit CGIResponsePost(const HTTPRequest *);
 
     void run(Socket &socket);
 
 private:
 	std::string _filename;
+	std::string _upload;
 
 	void saveFile(std::string payload);
 	std::string setFilename(std::string &payload);

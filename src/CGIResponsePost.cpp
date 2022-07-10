@@ -63,29 +63,31 @@ void CGIResponsePost::trimPayload(std::string &payload) {
 }
 
 void CGIResponsePost::createFile(std::string &payload) {
+	_filename = setFilename(payload);
 	std::ofstream ofs(_filename);
 	ofs << payload << std::endl;
 	ofs.close();
 }
 
 void CGIResponsePost::saveFile(std::string payload) {
-	const char *upload;
 	DIR* dir;
-	std::string path_string(get_current_path());
-	const char *path = path_string.c_str();
-	_filename = setFilename(payload);
-	upload = _upload.c_str();
+	trim_slash_begin(_upload);
+	const char *upload = _upload.c_str();
+	const char *server_location_log = _server_location_log.c_str();
+
+	PRINT_CGIRESPONSEPOST("current path : ", get_current_path());
 	dir = opendir(upload);
 	if (dir) {
 		if (chdir(upload) != 0)
 			throw HTTPException(404);
 
 		createFile(payload);
-		if (chdir(path) != 0)
+		if (chdir(server_location_log) != 0)
 			throw HTTPException(404);
 		closedir(dir);
 	}
 	else {
+		std::cerr << "folder doesn't exist" << std::endl;
 		throw HTTPException(500);
 	}
 }
@@ -95,6 +97,8 @@ void CGIResponsePost::run(Socket &socket) {
 	HTTPHeader	header;
 	int			code;
 
+	if (_POST == false || _accept_file == false)
+		throw HTTPException(405);
 	if (!isUploadAccepted())
 		throw HTTPException(405);
 	code = 201;
@@ -106,7 +110,16 @@ void CGIResponsePost::run(Socket &socket) {
 	socket.send(header.tostring() + "\r\n\r\n" + body);
 }
 
-CGIResponsePost::CGIResponsePost(HTTPRequest *request) : CGIResponse(request)
+CGIResponsePost::CGIResponsePost(const HTTPRequest *request): CGIResponse(request)
 {
-	//std::cout << _request->_payload << std::endl;
+	Configuration config = Configuration::getInstance();
+
+	_error_pages  = config.get_server_error_page_location();
+	_accept_file = config.get_server_file_acceptance();
+	_server_root = config.get_server_root_folder();
+	_server_index = config.get_server_index_file();
+	_upload = _server_root + config.get_upload_location_cl();
+	_server_location_log = set_absolut_path(_server_root);
+
+	PRINT_CGIRESPONSEPOST("_upload: ", _upload);
 }

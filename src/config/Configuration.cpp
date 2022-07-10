@@ -407,6 +407,9 @@ size_t	Configuration::parse_server(std::fstream& file, vectorString& s_line, siz
                     case root:
                         index = parse_str(file, s_line, index, _server_root);
                         break;
+					case index_file:
+                        index = parse_str(file, s_line, index, _index_file);
+                        break;
                     case upload_location_cl:
                         index = parse_str(file, s_line, index, _client_upload_location);
                         break;
@@ -451,6 +454,8 @@ Configuration::server_word Configuration::server_token_cmp(const std::string &wo
 		return location;
 	else if (word == "root" || word == "root_location" || word == "Root")
 		return root;
+	else if (word == "index")
+		return index_file;
 	else if (word == "error_location" || word == "error_locations" || word == "error_loc" || word == "error_pages" || word == "Error_Pages" || word == "error_page_location" || word == "error_page_locations")
 		return location_error;
 	else if (word == "log" || word == "log_loc" || word == "log_location" || word == "Log")
@@ -701,6 +706,10 @@ const std::string Configuration::get_server_root_folder() const {
 	return _server_root;
 }
 
+const std::string Configuration::get_server_index_file() const {
+	return _index_file;
+}
+
 const std::string Configuration::get_upload_location_cl() const {
 	return _client_upload_location;
 }
@@ -750,6 +759,8 @@ std::ostream& operator<<(std::ostream& os, const Configuration& conf) {
 		os << "	" << *it << std::endl;
 	os << "server root:" << std::endl;
 	os << "	" << conf.get_server_root_folder() << std::endl;
+	os << "server index:" << std::endl;
+	os << "	" << conf.get_server_index_file() << std::endl;
 	os << "server locations:" << std::endl;
 	std::vector<std::string> servloc = conf.get_server_location();
 	for (std::vector<std::string>::iterator it = servloc.begin(); it != servloc.end(); it++)
@@ -783,9 +794,6 @@ std::ostream& operator<<(std::ostream& os, const Configuration& conf) {
 		os << "		" << (*it).dir_listing << std::endl;
 		os << "	default file:" << std::endl;
 		os << "		" << (*it).def_file << std::endl;
-		os << "	id:" << std::endl;
-		os << (*it).id << std::endl;
-
 	}
 
 	return os;

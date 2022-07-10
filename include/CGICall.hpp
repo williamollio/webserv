@@ -9,11 +9,15 @@
 
 class CGICall: public CGIResponse {
 public:
-    explicit CGICall(HTTPRequest *);
-    ~CGICall();
+    explicit CGICall(const HTTPRequest *);
+    virtual ~CGICall();
 
     void run(Socket & socket);
     bool isRunning();
+
+protected:
+    virtual std::string computeRequestedFile();
+    virtual std::string computeScriptDirectory();
 
 private:
     const URI &     uri;

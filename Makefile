@@ -13,7 +13,7 @@ SRC_DIR	= src/
 MAIN_SRC= main.cpp Socket.cpp Connection.cpp HTTPReader.cpp IOException.cpp HTTPRequest.cpp HTTPRequestGet.cpp \
 	 	  HTTPRequestPost.cpp HTTPRequestDelete.cpp CGIResponse.cpp CGIResponseGet.cpp CGIResponsePost.cpp \
 	 	  CGIResponseDelete.cpp HTTPException.cpp HTTPHeader.cpp URI.cpp URISyntaxException.cpp \
-          Tool.cpp CGICall.cpp CGIResponseError.cpp
+          Tool.cpp CGICall.cpp CGIResponseError.cpp CGICallBuiltin.cpp
 CONF_SRC= Configuration.cpp
 SRC		= $(addprefix src/, $(MAIN)) $(addprefix src/config/, $(CONF_SRC))
 
@@ -29,7 +29,7 @@ OBJ		= $(MAIN_OBJ:.cpp=.o) $(CONF_OBJ:.cpp=.o)
 
 NAME	= webserv
 
-FLAGS	= -Wall -Wextra -g -fsanitize=address#-Werror
+FLAGS	= -Wall -Wextra -g -fsanitize=address -DDEBUG #-Werror
 
 INC		= -Iinclude
 

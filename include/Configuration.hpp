@@ -25,7 +25,7 @@ private:
 	typedef std::map<int, std::string>	intMapString;
 
 	enum word {server, w_errortype};
-	enum server_word {name, port, root, upload_location_cl, location, location_error, location_log, file_acc, upload_cmbs, cgi_ext, cgi_loc, s_errortype};
+	enum server_word {name, port, root, index_file, upload_location_cl, location, location_error, location_log, file_acc, upload_cmbs, cgi_ext, cgi_loc, s_errortype};
 	enum loc_word {methods, directory_listing, local_root, default_file, skip, l_errortype};
 	size_t			e_line;
 
@@ -40,6 +40,7 @@ private:
 	vectorString			_server_locations;
 	std::vector<loc_inf>	_server_location_info;
 	std::string				_server_root;
+	std::string				_index_file;
 	std::string				_client_upload_location;
 	intMapString			_server_locations_error_pages;
 	std::string				_server_location_log;
@@ -85,6 +86,7 @@ public:
     const std::string &  get_cgi_root()                   const;
 	size_t					get_server_max_upload_size()  const;
 	const std::string		get_server_root_folder()      const;
+	const std::string		get_server_index_file()      const;
 	const std::string		get_upload_location_cl()      const;
 	const std::vector<loc_inf>& get_location_specifier()  const;
 

@@ -25,6 +25,7 @@ public:
     bool                               isSyntaxExceptionEnabled() const;
     void                               setSyntaxExceptionEnabled(bool);
     std::string                        getFile() const;
+    std::string                        getFileDirectory() const;
     std::map<std::string, std::string> getVars() const;
     std::string                        getQuery() const;
     std::string                        getPathInfo() const;
@@ -55,7 +56,6 @@ public:
     };
 
 private:
-
     std::string           original;
     std::list<URI::Token> tokens;
     std::stringstream     stream;

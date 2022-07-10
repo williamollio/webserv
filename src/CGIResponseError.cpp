@@ -8,11 +8,13 @@ void CGIResponseError::set_error_code(int error_code)
 
 void CGIResponseError::setBody(int error_code, std::string &body)
 {
+	std::string _default_error_file("error.html");
+
 	std::map<int, std::string>::iterator it = _error_pages.find(error_code);
 	if (it != _error_pages.end())
 		body = read_file(it->second);
 	else
-		body = read_file("error.html");
+		body = read_file(_default_error_file);
 	return;
 }
 

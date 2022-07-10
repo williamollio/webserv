@@ -6,6 +6,16 @@
 #include "../include/Configuration.hpp"
 #include "../include/URI.hpp"
 
+std::string CGIResponse::set_extension(std::string& file)
+{
+	if (_file_extension != "")
+		return _file_extension;
+	size_t pos = file.find('.', 0);
+	if (pos == std::string::npos)
+		return ("");
+	else
+		return (file.substr(pos + 1));
+}
 
 void CGIResponse::trim_slash_begin(std::string& str)
 {
@@ -39,6 +49,7 @@ std::string CGIResponse::set_absolut_path(std::string& folder)
 
 	new_path = get_current_path() + folder;
 	path_tmp = new_path.c_str();
+	PRINT_CGIRESPONSE("new_path: ", new_path);
 	if (access(path_tmp, R_OK) < 0)
 	{
 		PRINT_ERROR_CODE("Error code : ", 404);
@@ -55,11 +66,25 @@ void CGIResponse::construct_file_path(std::string& file)
 		file = _server_location_log + file;
 }
 
-std::string CGIResponse::read_file(std::string file)
+bool CGIResponse::is_request_folder(const std::string& path)
+{
+	DIR* dir;
+	std::string tmp(path);
+	construct_file_path(tmp);
+	if ((_file_extension = set_extension(tmp)) != "")
+		return (false);
+	const char *path_tmp = tmp.c_str();
+	dir = opendir(path_tmp);
+	if (dir)
+		return (true);
+	return (false);
+}
+std::string CGIResponse::read_file(std::string& file)
 {
 	std::ifstream is;
 	std::stringstream buffer;
 	construct_file_path(file);
+	PRINT_CGIRESPONSEERROR("file:", file);
 	is.open(file);
 	if (!is.is_open())
 	{
@@ -95,6 +120,8 @@ int CGIResponse::is_request_defined_location(const std::string &request_path, st
 			return (1);
 		}
 	}
+	if (is_request_folder(request_path) == true)
+		throw HTTPException(401);
 	_directory_location = '/';
 	return (0);
 }

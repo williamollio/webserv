@@ -8,15 +8,6 @@
 #include <fstream>
 #include <algorithm>
 
-std::string CGIResponseGet::set_extension(std::string &file)
-{
-	size_t pos = file.find('.', 0);
-	if (pos == std::string::npos)
-		return ("");
-	else
-		return (file.substr(pos + 1));
-}
-
 bool CGIResponseGet::is_request_location(std::string path)
 {
 	trim_slash_end(path);
@@ -25,7 +16,7 @@ bool CGIResponseGet::is_request_location(std::string path)
 	return (_directory_location == path);
 }
 
-std::string CGIResponseGet::set_file(std::string path, Socket & socket)
+std::string CGIResponseGet::set_file(std::string path, Socket& socket)
 {
 	std::string tmp;
 
@@ -70,7 +61,7 @@ void CGIResponseGet::run(Socket & socket) {
 	socket.send(header.tostring() + "\r\n\r\n" + body);
 }
 
-CGIResponseGet::CGIResponseGet(const HTTPRequest *request):  CGIResponse(request)
+CGIResponseGet::CGIResponseGet(const HTTPRequest *request): CGIResponse(request)
 {
 	Configuration config = Configuration::getInstance();
 
@@ -78,9 +69,8 @@ CGIResponseGet::CGIResponseGet(const HTTPRequest *request):  CGIResponse(request
 	_accept_file = config.get_server_file_acceptance();
 	_server_root = config.get_server_root_folder();
 	_server_index = config.get_server_index_file();
+	_server_location_log = set_absolut_path(_server_root);
 
 	if (is_request_defined_location(request->_path, config.get_location_specifier()))
 		_server_location_log = set_absolut_path(_loc_root);
-	else
-		_server_location_log = set_absolut_path(_server_root);
 }

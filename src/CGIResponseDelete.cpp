@@ -37,18 +37,30 @@ void CGIResponseDelete::set_up_location() {
 void CGIResponseDelete::run(Socket &socket) {
 
 	if (_DELETE == false)
+	{
+		PRINT_ERROR_CODE("Error code : ", 405);
 		throw HTTPException(405);
+	}
 	extract_path();
 	set_up_location();
 	if (access(_location_folder, X_OK) < 0
 	|| access(_location_folder, R_OK) < 0)
+	{
+		PRINT_ERROR_CODE("Error code : ", 401);
 		throw HTTPException(401);
+	}
 	if (access(_location_file, F_OK) < 0)
+	{
+		PRINT_ERROR_CODE("Error code : ", 404);
 		throw HTTPException(404);
+	}
 	if (remove(_location_file) == 0)
 		send_response(socket);
 	else
+	{
+		PRINT_ERROR_CODE("Error code : ", 403);
 		throw HTTPException(403);
+	}
 }
 
 CGIResponseDelete::CGIResponseDelete(const HTTPRequest *request):  CGIResponse(request)

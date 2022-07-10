@@ -8,14 +8,11 @@
 #include "CGIResponse.hpp"
 
 class CGIResponseGet : public CGIResponse {
-private:
-	std::string _file_extension;
 public:
-    explicit CGIResponseGet(const HTTPRequest *);
+    explicit CGIResponseGet(const HTTPRequest*);
 
-    void run(Socket & socket);
-	std::string set_file(std::string path, Socket & socket);
-	std::string set_extension(std::string &file);
+    void		run(Socket& socket);
+	std::string set_file(std::string path, Socket& socket);
 	std::string construct_content_type();
 	bool		is_request_location(std::string path);
 };

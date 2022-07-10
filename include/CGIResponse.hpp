@@ -22,17 +22,19 @@ public:
     explicit CGIResponse(const HTTPRequest *);
     virtual ~CGIResponse();
 
-    virtual void	run(Socket & socket) = 0;
+    virtual void	run(Socket& socket) = 0;
     virtual bool	isRunning();
 	std::string		set_absolut_path(std::string& folder);
-	std::string		read_file(std::string file);
+	std::string		read_file(std::string& file);
 	std::string		get_current_path();
 	void			set_rules_location(std::vector<Configuration::loc_inf>::const_iterator it);
-	int				is_request_defined_location(const std::string &request_path, std::vector<Configuration::loc_inf> server_location_info);
-	void			check_existing_dir(std::string &dir);
+	int				is_request_defined_location(const std::string& request_path, std::vector<Configuration::loc_inf> server_location_info);
+	void			check_existing_dir(std::string& dir);
 	void			construct_file_path(std::string& file);
 	void			trim_slash_end(std::string& str);
 	void			trim_slash_begin(std::string& str);
+	bool			is_request_folder(const std::string& path);
+	std::string		set_extension(std::string& file);
 
 protected:
 	const HTTPRequest *	_request;
@@ -46,6 +48,7 @@ protected:
 	std::string			_server_location_log;
 	std::string			_server_root;
 	std::string			_server_index;
+	std::string			_file_extension;
 	std::map<int, std::string>	_error_pages;
 };
 

@@ -74,9 +74,6 @@ CGIResponseGet::CGIResponseGet(const HTTPRequest *request):  CGIResponse(request
 {
 	Configuration config = Configuration::getInstance();
 
-	// std::cout << config << std::endl;
-
-	/* CONFIGURATION */
 	_error_pages  = config.get_server_error_page_location();
 	_accept_file = config.get_server_file_acceptance();
 	_server_root = config.get_server_root_folder();
@@ -86,7 +83,4 @@ CGIResponseGet::CGIResponseGet(const HTTPRequest *request):  CGIResponse(request
 		_server_location_log = set_absolut_path(_loc_root);
 	else
 		_server_location_log = set_absolut_path(_server_root);
-
-	/* TEMPORARY */
-	_upload = "./upload";
 }

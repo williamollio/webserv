@@ -17,6 +17,7 @@ public:
 
 private:
 	std::string _filename;
+	std::string _upload;
 
 	void saveFile(std::string payload);
 	std::string setFilename(std::string &payload);

@@ -63,29 +63,31 @@ void CGIResponsePost::trimPayload(std::string &payload) {
 }
 
 void CGIResponsePost::createFile(std::string &payload) {
+	_filename = setFilename(payload);
 	std::ofstream ofs(_filename);
 	ofs << payload << std::endl;
 	ofs.close();
 }
 
 void CGIResponsePost::saveFile(std::string payload) {
-	const char *upload;
 	DIR* dir;
-	std::string path_string(get_current_path());
-	const char *path = path_string.c_str();
-	_filename = setFilename(payload);
-	upload = _upload.c_str();
+	trim_slash_begin(_upload);
+	const char *upload = _upload.c_str();
+	const char *server_location_log = _server_location_log.c_str();
+
+	PRINT_CGIRESPONSEPOST("current path : ", get_current_path());
 	dir = opendir(upload);
 	if (dir) {
 		if (chdir(upload) != 0)
 			throw HTTPException(404);
 
 		createFile(payload);
-		if (chdir(path) != 0)
+		if (chdir(server_location_log) != 0)
 			throw HTTPException(404);
 		closedir(dir);
 	}
 	else {
+		std::cerr << "folder doesn't exist" << std::endl;
 		throw HTTPException(500);
 	}
 }
@@ -112,27 +114,12 @@ CGIResponsePost::CGIResponsePost(const HTTPRequest *request): CGIResponse(reques
 {
 	Configuration config = Configuration::getInstance();
 
-	//std::cout << config << std::endl;
-
-	/* CONFIGURATION */
 	_error_pages  = config.get_server_error_page_location();
 	_accept_file = config.get_server_file_acceptance();
 	_server_root = config.get_server_root_folder();
 	_server_index = config.get_server_index_file();
+	_upload = _server_root + config.get_upload_location_cl();
+	_server_location_log = set_absolut_path(_server_root);
 
-	if (is_request_defined_location(request->_path, config.get_location_specifier()))
-		_server_location_log = set_absolut_path(_loc_root);
-	else
-		_server_location_log = set_absolut_path(_server_root);
-
-	// _default_file = set_default_file(_server_index); // ?
-
-	#if DEBUG
-		std::cout << "_server_index: " << _server_index
-		<< "\n _server_root: " << _server_root
-		<< "\n _server_location_log: " << _server_location_log
-		<< std::endl;
-	#endif
-	/* TEMPORARY */
-	_upload = "./upload";
+	PRINT_CGIRESPONSEPOST("_upload: ", _upload);
 }

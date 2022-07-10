@@ -55,9 +55,6 @@ CGIResponseDelete::CGIResponseDelete(const HTTPRequest *request):  CGIResponse(r
 {
 	Configuration config = Configuration::getInstance();
 
-	//std::cout << config << std::endl;
-
-	/* CONFIGURATION */
 	_error_pages  = config.get_server_error_page_location();
 	_accept_file = config.get_server_file_acceptance();
 	_server_root = config.get_server_root_folder();
@@ -68,15 +65,4 @@ CGIResponseDelete::CGIResponseDelete(const HTTPRequest *request):  CGIResponse(r
 	else
 		_server_location_log = set_absolut_path(_server_root);
 
-	// _default_file = set_default_file(_server_index); // ?
-
-	#if DEBUG
-		std::cout << "request->path: " << request->_path
-		<< "\n_server_index: " << _server_index
-		<< "\n _server_root: " << _server_root
-		<< "\n _server_location_log: " << _server_location_log
-		<< std::endl;
-	#endif
-	/* TEMPORARY */
-	_upload = "./upload";
 }

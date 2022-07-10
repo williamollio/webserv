@@ -25,7 +25,6 @@ public:
     virtual void	run(Socket & socket) = 0;
     virtual bool	isRunning();
 	std::string		set_absolut_path(std::string& folder);
-	std::string		set_default_file(std::string file);
 	std::string		read_file(std::string file);
 	std::string		get_current_path();
 	void			set_rules_location(std::vector<Configuration::loc_inf>::const_iterator it);
@@ -33,6 +32,7 @@ public:
 	void			check_existing_dir(std::string &dir);
 	void			add_slash_first_if_needed(std::string& file);
 	void			trim_slash_end(std::string& str);
+	void			trim_slash_begin(std::string& str);
 
 protected:
 	const HTTPRequest *	_request;
@@ -44,7 +44,6 @@ protected:
 	std::string			_directory_location;
 	std::string			_loc_root;
 	std::string			_server_location_log;
-	std::string			_upload;
 	std::string			_server_root;
 	std::string			_server_index;
 	std::map<int, std::string>	_error_pages;

@@ -7,6 +7,12 @@
 #include "../include/URI.hpp"
 
 
+void CGIResponse::trim_slash_begin(std::string& str)
+{
+	if (str.front() == '/')
+		str.erase(0,1);
+}
+
 void CGIResponse::trim_slash_end(std::string& str)
 {
 	if (str.back() == '/')

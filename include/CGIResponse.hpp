@@ -30,7 +30,7 @@ public:
 	void			set_rules_location(std::vector<Configuration::loc_inf>::const_iterator it);
 	int				is_request_defined_location(const std::string &request_path, std::vector<Configuration::loc_inf> server_location_info);
 	void			check_existing_dir(std::string &dir);
-	void			add_slash_first_if_needed(std::string& file);
+	void			construct_file_path(std::string& file);
 	void			trim_slash_end(std::string& str);
 	void			trim_slash_begin(std::string& str);
 

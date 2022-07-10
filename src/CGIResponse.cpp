@@ -47,7 +47,7 @@ std::string CGIResponse::set_absolut_path(std::string& folder)
 	return (new_path);
 }
 
-void CGIResponse::add_slash_first_if_needed(std::string& file)
+void CGIResponse::construct_file_path(std::string& file)
 {
 	if (file.front() != '/' && _server_location_log.back() != '/')
 		file = _server_location_log + "/" + file;
@@ -59,8 +59,7 @@ std::string CGIResponse::read_file(std::string file)
 {
 	std::ifstream is;
 	std::stringstream buffer;
-
-	add_slash_first_if_needed(file);
+	construct_file_path(file);
 	is.open(file);
 	if (!is.is_open())
 	{
@@ -100,8 +99,7 @@ int CGIResponse::is_request_defined_location(const std::string &request_path, st
 	return (0);
 }
 
-CGIResponse::CGIResponse(const HTTPRequest *request): _request(request), _GET(true), _POST(true), _DELETE(false), _dir_listing(false), _directory_location(""), _loc_root("")
-{}
+CGIResponse::CGIResponse(const HTTPRequest *request): _request(request), _GET(true), _POST(true), _DELETE(false), _dir_listing(false), _directory_location(""), _loc_root("") {}
 
 CGIResponse::~CGIResponse() {}
 

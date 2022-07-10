@@ -12,7 +12,7 @@ void CGIResponseError::setBody(int error_code, std::string &body)
 	if (it != _error_pages.end())
 		body = read_file(it->second);
 	else
-	body = read_file("error.html");
+		body = read_file("error.html");
 	return;
 }
 
@@ -30,4 +30,13 @@ void CGIResponseError::run(Socket & socket)
 	socket.send(header.tostring() + "\r\n\r\n" + body);
 }
 
-CGIResponseError::CGIResponseError() : CGIResponse(NULL){}
+CGIResponseError::CGIResponseError() : CGIResponse(NULL)
+{
+	Configuration config = Configuration::getInstance();
+
+	_error_pages  = config.get_server_error_page_location();
+	_accept_file = config.get_server_file_acceptance();
+	_server_root = config.get_server_root_folder();
+	_server_index = config.get_server_index_file();
+	_server_location_log = set_absolut_path(_server_root);
+}

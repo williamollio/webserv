@@ -230,11 +230,11 @@ std::string URI::getFileDirectory() const {
 //        ret += it->getContent();
 //    }
     std::list<Token>::const_iterator it = tokens.begin();
-    if (it->getType() == Token::SLASH) {
-        ++it;
+    if (it != tokens.end() && it->getType() == Token::SLASH) {
         ret += it->getContent();
+        ++it;
     }
-    if (!hasExtension(it->getContent())) {
+    if (it != tokens.end() && !hasExtension(it->getContent())) {
         ret += it->getContent();
     }
     return ret;

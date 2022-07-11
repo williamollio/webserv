@@ -188,6 +188,8 @@ size_t	Configuration::parse_map_int_str(std::fstream& file, vectorString& line, 
 			else {
 				if (page) {
 					first = line[index];
+					if (atoi(first.c_str()) < 100 || atoi(first.c_str()) > 600)
+						throw UnexpectedToken(e_line, line[index]);
 					page = false;
 				} else {
 					output.insert(std::pair<int, std::string>(atoi(first.c_str()), line[index]));

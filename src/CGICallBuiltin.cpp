@@ -19,7 +19,7 @@ void CGICallBuiltin::setExecutable(const std::string & executable) {
 
 std::string CGICallBuiltin::computeRequestedFile() {
     char * c_pwd = getcwd(NULL, 0);
-    const std::string ret = c_pwd + ("/" + executable);
+    const std::string ret = c_pwd + Configuration::getInstance().get_server_root_folder() + ("/" + executable);
     free(c_pwd);
     return ret;
 }

@@ -8,7 +8,7 @@ void CGIResponseError::set_error_code(int error_code)
 
 void CGIResponseError::setBody(int error_code, std::string &body)
 {
-	std::string _default_error_file("error.html");
+	std::string _default_error_file("../error404.html");
 
 	std::map<int, std::string>::iterator it = _error_pages.find(error_code);
 	if (it != _error_pages.end())

@@ -2,15 +2,13 @@
 // Created by Manuel Hahn on 6/10/22.
 //
 
-#include "../include/CGIResponse.hpp"
-#include "../include/Configuration.hpp"
-#include "../include/URI.hpp"
+#include "CGIResponse.hpp"
 
 std::string CGIResponse::set_extension(std::string& file)
 {
 	if (_file_extension != "")
 		return _file_extension;
-	size_t pos = file.find('.', 0);
+	size_t pos = file.rfind('.');
 	if (pos == std::string::npos)
 		return ("");
 	else
@@ -49,7 +47,7 @@ std::string CGIResponse::set_absolut_path(std::string& folder)
 
 	new_path = get_current_path() + folder;
 	path_tmp = new_path.c_str();
-	PRINT_CGIRESPONSE("new_path: ", new_path);
+    PRINT_CGIRESPONSE("new_path: ", new_path);
 	if (access(path_tmp, R_OK) < 0)
 	{
 		PRINT_ERROR_CODE("Error code : ", 404);
@@ -126,7 +124,8 @@ int CGIResponse::is_request_defined_location(const std::string &request_path, st
 	return (0);
 }
 
-CGIResponse::CGIResponse(const HTTPRequest *request): _request(request), _GET(true), _POST(true), _DELETE(false), _dir_listing(false), _directory_location(""), _loc_root("") {}
+CGIResponse::CGIResponse(const HTTPRequest *request): _request(request), _GET(true), _POST(true), _DELETE(false), _dir_listing(false), _directory_location(""), _loc_root("") {
+}
 
 CGIResponse::~CGIResponse() {}
 

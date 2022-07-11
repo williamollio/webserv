@@ -51,6 +51,7 @@ void HTTPReader::run() {
         response->run(_socket);
     }
 	catch (HTTPException & ex) {
+        std::cerr << ":" << ex.what() << std::endl;
         CGIResponseError error;
 		error.set_error_code(ex.get_error_code());
 		error.run(_socket);
@@ -135,7 +136,7 @@ static std::vector<std::string>	split_line(std::string& line) {
 int	HTTPRequest::checktype(std::string& word) {
 	if (word == "GET")
 		return GET;
-	if (word == "POST")
+	if (word == "POST" || word == "PUT")
 		return POST;
 	if (word == "DELETE")
 		return DELETE;
@@ -163,7 +164,7 @@ HTTPRequest* HTTPReader::_parse() throw(std::exception) {
 		case HTTPRequest::DELETE:
 			return new HTTPRequest(HTTPRequest::DELETE, file, raw, _socket);
         default:
-			throw HTTPException(400);
+			throw HTTPException(405);
 	}
 
 }

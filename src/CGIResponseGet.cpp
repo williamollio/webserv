@@ -30,7 +30,8 @@ std::string CGIResponseGet::set_file(std::string path, Socket& socket)
 		tmp = _server_index;
 	else
 		tmp = path;
-	_file_extension = set_extension(tmp);
+    std::cerr << ">A>>> " << path << std::endl;
+    _file_extension = set_extension(tmp);
 	return (tmp);
 }
 
@@ -56,7 +57,8 @@ void CGIResponseGet::run(Socket & socket) {
     try {
         file = set_file(_request->_path, socket);
     } catch (HTTPException &) { return; }
-	body = read_file(file);
+
+    body = read_file(file);
 	header.set_content_type(construct_content_type());
 	header.set_content_length(body.size());
     header.setStatusCode(200);
@@ -67,7 +69,8 @@ void CGIResponseGet::run(Socket & socket) {
 
 CGIResponseGet::CGIResponseGet(const HTTPRequest *request): CGIResponse(request)
 {
-	Configuration config = Configuration::getInstance();
+
+    Configuration config = Configuration::getInstance();
 
 	_error_pages  = config.get_server_error_page_location();
 	_accept_file = config.get_server_file_acceptance();
@@ -75,6 +78,8 @@ CGIResponseGet::CGIResponseGet(const HTTPRequest *request): CGIResponse(request)
 	_server_index = config.get_server_index_file();
 	_server_location_log = set_absolut_path(_server_root);
 
-	if (is_request_defined_location(request->_path, config.get_location_specifier()))
-		_server_location_log = set_absolut_path(_loc_root);
+	if (is_request_defined_location(request->_path, config.get_location_specifier())) {
+        _server_location_log = set_absolut_path(_loc_root);
+    }
+
 }

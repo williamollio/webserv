@@ -54,6 +54,14 @@ bool URI::isInCGIPath() const {
     return false;
 }
 
+bool URI::isFolder() const {
+    std::list<Token>::const_reverse_iterator it = tokens.rbegin();
+    if (++it != tokens.rend()) {
+        return it->getType() == Token::SLASH;
+    }
+    return false; // Would be the ultimate root
+}
+
 std::string URI::determineFileWithExtension() const {
     const std::string & tmp = determineFile();
     return hasExtension(tmp) ? tmp : std::string();
@@ -217,8 +225,16 @@ URI &URI::operator=(const URI &other) {
 
 std::string URI::getFileDirectory() const {
     std::string ret;
-    for (std::list<Token>::const_iterator it = tokens.begin(); it->getType() != Token::END && isPathType(it->getType()); ++it) {
-        if (it->getType() == Token::TEXT && hasExtension(it->getContent())) break;
+//    for (std::list<Token>::const_iterator it = tokens.begin(); it->getType() != Token::END && isPathType(it->getType()); ++it) {
+//        if (it->getType() == Token::TEXT && hasExtension(it->getContent())) break;
+//        ret += it->getContent();
+//    }
+    std::list<Token>::const_iterator it = tokens.begin();
+    if (it->getType() == Token::SLASH) {
+        ++it;
+        ret += it->getContent();
+    }
+    if (!hasExtension(it->getContent())) {
         ret += it->getContent();
     }
     return ret;

@@ -10,13 +10,22 @@
 
 class HTTPException : public std::exception {
 private:
-	int	_code;
+	int                 _code;
+    unsigned int        _line;
+    const std::string & _file;
+    std::string         _what;
+
 public:
-	HTTPException(int code) _NOEXCEPT;
+	HTTPException(int code, const std::string &, unsigned int) _NOEXCEPT;
 	~HTTPException() _NOEXCEPT {};
 
-	int get_error_code();
+	int                 get_error_code() const;
+    unsigned int        get_line_number() const;
+    const std::string & get_file() const;
+
+    const char * what() const _NOEXCEPT;
 };
 
+#define HTTPException(code) (HTTPException(code, __FILE__, __LINE__))
 
 #endif //WEBSERV_HTTPEXCEPTION_HPP

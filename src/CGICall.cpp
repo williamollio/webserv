@@ -10,7 +10,7 @@
 #include "CGIResponseError.hpp"
 #include "Configuration.hpp"
 
-CGICall::CGICall(const HTTPRequest * request)
+CGICall::CGICall(HTTPRequest * request)
         : CGIResponse(request),
           uri(request->getURI()),
           method("REQUEST_METHOD="),

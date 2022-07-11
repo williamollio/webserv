@@ -63,7 +63,7 @@ void CGIResponseDelete::run(Socket &socket) {
 	}
 }
 
-CGIResponseDelete::CGIResponseDelete(const HTTPRequest *request):  CGIResponse(request)
+CGIResponseDelete::CGIResponseDelete(HTTPRequest *request):  CGIResponse(request)
 {
 	Configuration config = Configuration::getInstance();
 

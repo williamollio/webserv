@@ -11,8 +11,6 @@
 bool CGIResponseGet::is_request_location(std::string path)
 {
 	trim_slash_end(path);
-	PRINT_CGIRESPONSEGET("path ", path);
-	PRINT_CGIRESPONSEGET("_directory_location ", _directory_location);
 	return (_directory_location == path);
 }
 
@@ -30,7 +28,6 @@ std::string CGIResponseGet::set_file(std::string path, Socket& socket)
 		tmp = _server_index;
 	else
 		tmp = path;
-    std::cerr << ">A>>> " << path << std::endl;
     _file_extension = set_extension(tmp);
 	return (tmp);
 }
@@ -67,7 +64,7 @@ void CGIResponseGet::run(Socket & socket) {
     std::cerr << "Header sent " << std::endl;
 }
 
-CGIResponseGet::CGIResponseGet(const HTTPRequest *request): CGIResponse(request)
+CGIResponseGet::CGIResponseGet(HTTPRequest *request): CGIResponse(request)
 {
 
     Configuration config = Configuration::getInstance();

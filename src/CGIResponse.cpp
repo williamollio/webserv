@@ -47,7 +47,6 @@ std::string CGIResponse::set_absolut_path(std::string& folder)
 
 	new_path = get_current_path() + folder;
 	path_tmp = new_path.c_str();
-    PRINT_CGIRESPONSE("new_path: ", new_path);
 	if (access(path_tmp, R_OK) < 0)
 	{
 		PRINT_ERROR_CODE("Error code : ", 404);
@@ -83,6 +82,10 @@ std::string CGIResponse::read_file(std::string& file)
 	std::stringstream buffer;
 	construct_file_path(file);
 	PRINT_CGIRESPONSEERROR("file:", file);
+	if (_request != NULL)
+		PRINT_CGIRESPONSE("request_path", _request->_path);
+	PRINT_CGIRESPONSE("_server_location_log", _server_location_log);
+	PRINT_CGIRESPONSE("_loc_root", _loc_root);
 	is.open(file);
 	if (!is.is_open())
 	{
@@ -94,7 +97,7 @@ std::string CGIResponse::read_file(std::string& file)
 	return (buffer.str());
 }
 
-void CGIResponse::set_rules_location(std::vector<Configuration::loc_inf>::const_iterator it)
+void CGIResponse::set_rules_location(std::string &request_path, std::vector<Configuration::loc_inf>::const_iterator it)
 {
 	_GET = (*it).GET;
 	_POST = (*it).POST;
@@ -102,19 +105,27 @@ void CGIResponse::set_rules_location(std::vector<Configuration::loc_inf>::const_
 	_loc_root = _server_root + (*it).root;
 	_dir_listing = (*it).dir_listing;
 	_server_index = (*it).def_file;
+
+	size_t pos = request_path.find(_directory_location);
+	size_t length = _directory_location.length();
+	request_path.erase(pos, length);
+
 	return;
 }
 
-int CGIResponse::is_request_defined_location(const std::string &request_path, std::vector<Configuration::loc_inf> server_location_info)
+int CGIResponse::is_request_defined_location(std::string &request_path, std::vector<Configuration::loc_inf> server_location_info)
 {
 	URI uri(request_path);
 	_directory_location = uri.getFileDirectory();
 	trim_slash_end(_directory_location);
+	PRINT_CGIRESPONSE("_directory_location", _directory_location);
 	for (std::vector<Configuration::loc_inf>::const_iterator it = server_location_info.begin(); it != server_location_info.end(); it++)
 	{
+		PRINT_CGIRESPONSE("(*it).directory", (*it).directory);
 		if (_directory_location == (*it).directory)
 		{
-			set_rules_location(it);
+			std::cout << "1" << std::endl;
+			set_rules_location(request_path, it);
 			return (1);
 		}
 	}
@@ -124,7 +135,7 @@ int CGIResponse::is_request_defined_location(const std::string &request_path, st
 	return (0);
 }
 
-CGIResponse::CGIResponse(const HTTPRequest *request): _request(request), _GET(true), _POST(true), _DELETE(false), _dir_listing(false), _directory_location(""), _loc_root("") {
+CGIResponse::CGIResponse(HTTPRequest *request): _request(request), _GET(true), _POST(true), _DELETE(false), _dir_listing(false), _directory_location(""), _loc_root("") {
 }
 
 CGIResponse::~CGIResponse() {}

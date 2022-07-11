@@ -21,7 +21,7 @@
 
 class CGIResponse {
 public:
-    explicit CGIResponse(const HTTPRequest *);
+    explicit CGIResponse(HTTPRequest *);
     virtual ~CGIResponse();
 
     virtual void	run(Socket& socket) = 0;
@@ -29,8 +29,8 @@ public:
 	std::string		set_absolut_path(std::string& folder);
 	std::string		read_file(std::string& file);
 	std::string		get_current_path();
-	void			set_rules_location(std::vector<Configuration::loc_inf>::const_iterator it);
-	int				is_request_defined_location(const std::string& request_path, std::vector<Configuration::loc_inf> server_location_info);
+	void			set_rules_location(std::string &request_path, std::vector<Configuration::loc_inf>::const_iterator it);
+	int				is_request_defined_location(std::string& request_path, std::vector<Configuration::loc_inf> server_location_info);
 	void			check_existing_dir(std::string& dir);
 	void			construct_file_path(std::string& file);
 	void			trim_slash_end(std::string& str);
@@ -39,7 +39,7 @@ public:
 	std::string		set_extension(std::string& file);
 
 protected:
-	const HTTPRequest *	_request;
+	HTTPRequest *	_request;
 	bool				_GET;
 	bool				_POST;
 	bool				_DELETE;

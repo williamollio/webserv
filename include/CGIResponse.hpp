@@ -37,6 +37,7 @@ public:
 	void			trim_slash_begin(std::string& str);
 	bool			is_request_folder(const std::string& path);
 	std::string		set_extension(std::string& file);
+	bool			is_sub_folder_location(const std::string& file);
 
 protected:
 	HTTPRequest *	_request;

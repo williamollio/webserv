@@ -55,12 +55,37 @@ std::string CGIResponse::set_absolut_path(std::string& folder)
 	return (new_path);
 }
 
+bool CGIResponse::is_sub_folder_location(const std::string& file)
+{
+	size_t pos = file.rfind("/");
+	size_t pos2 = _server_location_log.rfind("/");
+	if ((pos == std::string::npos) || (pos2 == std::string::npos))
+		throw HTTPException(418);
+	std::string tmp = file.substr(pos);
+	std::string tmp2 = _server_location_log.substr(pos2);
+	return (tmp.compare(tmp2));
+}
+
 void CGIResponse::construct_file_path(std::string& file)
 {
 	if (file.front() != '/' && _server_location_log.back() != '/')
 		file = _server_location_log + "/" + file;
 	else
 		file = _server_location_log + file;
+
+	PRINT_CGIRESPONSE("file", file);
+	PRINT_CGIRESPONSE("_server_location_log", _server_location_log);
+	if (!_loc_root.empty())
+	{
+		DIR* dir;
+		dir = opendir(file.c_str());
+		if (dir && is_sub_folder_location(file))
+		{
+			closedir(dir);
+			throw HTTPException(404);
+		}
+		closedir(dir);
+	}
 }
 
 bool CGIResponse::is_request_folder(const std::string& path)
@@ -73,7 +98,11 @@ bool CGIResponse::is_request_folder(const std::string& path)
 	const char *path_tmp = tmp.c_str();
 	dir = opendir(path_tmp);
 	if (dir)
+	{
+		closedir(dir)
 		return (true);
+	}
+	closedir(dir);
 	return (false);
 }
 std::string CGIResponse::read_file(std::string& file)
@@ -89,6 +118,7 @@ std::string CGIResponse::read_file(std::string& file)
 	is.open(file);
 	if (!is.is_open())
 	{
+		is.close();
 		PRINT_ERROR_CODE("Error code : ", 404);
 		throw HTTPException(404);
 	}

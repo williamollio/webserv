@@ -75,7 +75,6 @@ void CGIResponsePost::saveFile(std::string payload) {
 	const char *upload = _upload.c_str();
 	const char *server_location_log = _server_location_log.c_str();
 
-	PRINT_CGIRESPONSEPOST("current path : ", get_current_path());
 	dir = opendir(upload);
 	if (dir) {
 		if (chdir(upload) != 0)
@@ -87,8 +86,8 @@ void CGIResponsePost::saveFile(std::string payload) {
 		closedir(dir);
 	}
 	else {
-		std::cerr << "folder doesn't exist" << std::endl;
-		throw HTTPException(500);
+		if (mkdir(upload, 0700) != 0)
+			throw HTTPException(500);
 	}
 }
 

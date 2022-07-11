@@ -120,7 +120,7 @@ int CGIResponse::is_request_defined_location(const std::string &request_path, st
 			return (1);
 		}
 	}
-	if (is_request_folder(request_path) == true)
+	if (is_request_folder(request_path) == true && request_path != "/")
 		throw HTTPException(401);
 	_directory_location = '/';
 	return (0);

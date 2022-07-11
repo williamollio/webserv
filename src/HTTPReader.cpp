@@ -51,7 +51,7 @@ void HTTPReader::run() {
         response->run(_socket);
     }
 	catch (HTTPException & ex) {
-		CGIResponseError error;
+        CGIResponseError error;
 		error.set_error_code(ex.get_error_code());
 		error.run(_socket);
     }

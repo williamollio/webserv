@@ -2,7 +2,7 @@
 // Created by Manuel Hahn on 6/10/22.
 //
 
-#include "../include/CGIResponseGet.hpp"
+#include "CGIResponseGet.hpp"
 #include "HTTPHeader.hpp"
 #include "CGICallBuiltin.hpp"
 #include <fstream>
@@ -22,8 +22,9 @@ std::string CGIResponseGet::set_file(std::string path, Socket& socket)
 
 	if ((path == "/" || is_request_location(path)) && _dir_listing == true)
 	{
-		CGICall *cgicall = new CGICallBuiltin(_request, "cgi/directory_listing.php");
-		cgicall->run(socket);
+        CGICallBuiltin cgicall(_request, "cgi/directory_listing.php");
+        cgicall.run(socket);
+        throw HTTPException(100);
 	}
 	else if ((path == "/" || is_request_location(path)) && _dir_listing == false)
 		tmp = _server_index;
@@ -52,13 +53,16 @@ void CGIResponseGet::run(Socket & socket) {
 
 	if (_GET == false)
 		throw HTTPException(405);
-	file = set_file(_request->_path, socket);
+    try {
+        file = set_file(_request->_path, socket);
+    } catch (HTTPException &) { return; }
 	body = read_file(file);
 	header.set_content_type(construct_content_type());
 	header.set_content_length(body.size());
     header.setStatusCode(200);
     header.setStatusMessage(get_message(200));
 	socket.send(header.tostring() + "\r\n\r\n" + body);
+    std::cerr << "Header sent " << std::endl;
 }
 
 CGIResponseGet::CGIResponseGet(const HTTPRequest *request): CGIResponse(request)

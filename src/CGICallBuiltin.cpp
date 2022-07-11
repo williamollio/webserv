@@ -27,3 +27,8 @@ std::string CGICallBuiltin::computeRequestedFile() {
 void CGICallBuiltin::waitForExecution() {
     while (isRunning());
 }
+
+void CGICallBuiltin::run(Socket & socket) {
+    CGICall::run(socket);
+    waitForExecution();
+}

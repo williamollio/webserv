@@ -18,7 +18,9 @@ public:
     explicit CGICallBuiltin(const HTTPRequest *, const std::string & executable = "");
 
     const std::string & getExecutable() const;
-    void setExecutable(const std::string &);
+    void                setExecutable(const std::string &);
+
+    void                run(Socket &);
 
     /**
      * Waits for the execution to finish. Blocks the current thread until the underlying CGICall has

@@ -57,7 +57,7 @@ bool URI::isInCGIPath() const {
 bool URI::isFolder() const {
     std::list<Token>::const_reverse_iterator it = tokens.rbegin();
     if (++it != tokens.rend()) {
-        return it->getType() == Token::SLASH;
+        return it->getType() == Token::SLASH || (it->getType() == Token::TEXT && !hasExtension(it->getContent()));
     }
     return false; // Would be the ultimate root
 }
@@ -216,7 +216,7 @@ std::string URI::getPathInfo() const {
     return ret;
 }
 
-URI &URI::operator=(const URI &other) {
+URI & URI::operator=(const URI &other) {
     original = other.original;
     tokens = other.tokens;
     stream.setf(EOF);

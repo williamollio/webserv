@@ -55,15 +55,20 @@ std::string CGIResponse::set_absolut_path(std::string& folder)
 	return (new_path);
 }
 
-bool CGIResponse::is_sub_folder_location(const std::string& file)
+bool CGIResponse::is_sub_folder_location(std::string& file)
 {
-	size_t pos = file.rfind("/");
-	size_t pos2 = _server_location_log.rfind("/");
+    if (file.back() == '/' && _server_location_log.back() != '/') {
+        file.pop_back();
+    } else if (_server_location_log.back() == '/' && file.back() != '/') {
+        file += '/';
+    }
+	size_t pos = file.rfind('/');
+	size_t pos2 = _server_location_log.rfind('/');
 	if ((pos == std::string::npos) || (pos2 == std::string::npos))
 		throw HTTPException(418);
 	std::string tmp = file.substr(pos);
 	std::string tmp2 = _server_location_log.substr(pos2);
-	return (tmp.compare(tmp2));
+	return (tmp != tmp2);
 }
 
 void CGIResponse::construct_file_path(std::string& file)
@@ -84,7 +89,7 @@ void CGIResponse::construct_file_path(std::string& file)
 			closedir(dir);
 			throw HTTPException(404);
 		}
-		closedir(dir);
+		if (dir != NULL) closedir(dir);
 	}
 }
 
@@ -93,7 +98,7 @@ bool CGIResponse::is_request_folder(const std::string& path)
 	DIR* dir;
 	std::string tmp(path);
 	construct_file_path(tmp);
-	if ((_file_extension = set_extension(tmp)) != "")
+	if (!(_file_extension = set_extension(tmp)).empty())
 		return (false);
 	const char *path_tmp = tmp.c_str();
 	dir = opendir(path_tmp);

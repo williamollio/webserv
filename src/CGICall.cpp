@@ -194,9 +194,9 @@ void CGICall::waitOrThrow() {
 
 std::string CGICall::computeRequestedFile() {
     char * c_pwd = getcwd(NULL, 0);
-    const std::string ret = c_pwd + Configuration::getInstance().get_server_root_folder() + uri.getFile();
+    const std::string ret = c_pwd + Configuration::getInstance().get_server_root_folder();
     free(c_pwd);
-    return ret;
+    return ret + (uri.isFolder() ? "/cgi/directory_listing.php" : uri.getFile());
 }
 
 std::string CGICall::computeScriptDirectory() {

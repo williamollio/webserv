@@ -99,7 +99,7 @@ bool CGIResponse::is_request_folder(const std::string& path)
 	dir = opendir(path_tmp);
 	if (dir)
 	{
-		closedir(dir)
+		closedir(dir);
 		return (true);
 	}
 	closedir(dir);

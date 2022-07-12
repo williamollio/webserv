@@ -421,6 +421,9 @@ size_t	Configuration::parse_server(std::fstream& file, vectorString& s_line, siz
                     case cgi_loc:
                         index = parse_str(file, s_line, index, _cgi_root);
                         break;
+                    case cgi_methods:
+                        index = parse_vec_str(file, s_line, index, _cgi_methods);
+                        break;
                     default:
                         if (find_n_fill_loc(file, s_line, index)) {
                             file.close();
@@ -472,6 +475,8 @@ Configuration::server_word Configuration::server_token_cmp(const std::string &wo
 		return cgi_ext;
 	else if (word == "cgi_path" || word == "CGI_path" || word == "CGI_root" || word == "cgi_root")
 		return cgi_loc;
+    else if (word == "cgi_methods")
+        return cgi_methods;
 	return s_errortype;
 }
 
@@ -718,6 +723,10 @@ const std::string Configuration::get_upload_location_cl() const {
 
 const std::vector<Configuration::loc_inf> &Configuration::get_location_specifier() const{
 	return _server_location_info;
+}
+
+const Configuration::vectorString &Configuration::get_cgi_methods() const {
+    return _cgi_methods;
 }
 
 

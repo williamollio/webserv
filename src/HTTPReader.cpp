@@ -37,7 +37,7 @@ void HTTPReader::run() {
         request->setPeerAddress(peerAddress);
         request->setPeerName(peerName);
         request->setUsedPort(port);
-        if (request->getURI().isCGIIdentifier()) {
+        if (request->getURI().isCGIIdentifier() && _isCGIMethod(request->getType())) {
             response = new CGICall(request);
         } else {
             switch (request->getType()) {
@@ -203,4 +203,18 @@ int HTTPReader::getUsedPort() const {
 
 void HTTPReader::setUsedPort(const int port) {
     HTTPReader::port = port;
+}
+
+bool HTTPReader::_isCGIMethod(HTTPRequest::TYPE type) {
+    const std::vector<std::string> & ref = Configuration::getInstance().get_cgi_methods();
+    for (std::vector<std::string>::const_iterator it = ref.begin(); it != ref.end(); ++it) {
+        if ((*it == "POST" || *it == "post") && type == HTTPRequest::POST) {
+            return true;
+        } else if ((*it == "GET" || *it == "get") && type == HTTPRequest::GET) {
+            return true;
+        } else if ((*it == "DELETE" || *it == "delete") && type == HTTPRequest::DELETE) {
+            return true;
+        }
+    }
+    return false;
 }

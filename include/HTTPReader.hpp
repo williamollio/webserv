@@ -39,6 +39,7 @@ private:
         int           port;
 
         HTTPRequest * _parse() throw(std::exception);
+        bool          _isCGIMethod(HTTPRequest::TYPE);
 };
 
 

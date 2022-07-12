@@ -79,4 +79,5 @@ CGIResponseGet::CGIResponseGet(HTTPRequest *request): CGIResponse(request)
         _server_location_log = set_absolut_path(_loc_root);
     }
 
+
 }

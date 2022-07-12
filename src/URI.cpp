@@ -59,7 +59,7 @@ bool URI::startsWith(const std::string & prefix) const {
 
     for (std::string::const_iterator oit = original.begin(),
                                      pit = prefix.begin();
-    oit != original.end() && pit != prefix.end() && (oit - original.begin()) < prefix.size(); ++pit, ++oit) {
+    oit != original.end() && pit != prefix.end() && (oit - original.begin()) < (long)prefix.size(); ++pit, ++oit) {
         if (*pit != *oit) return false;
     }
     return true;

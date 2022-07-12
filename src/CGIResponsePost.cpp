@@ -4,7 +4,7 @@
 
 #include "../include/CGIResponsePost.hpp"
 
-bool CGIResponsePost::isUploadAccepted() {return _accept_file;}
+//bool CGIResponsePost::isUploadAccepted() {return _accept_file;}
 
 std::string CGIResponsePost::setFilename(std::string &payload) {
 	std::string filename;
@@ -96,9 +96,9 @@ void CGIResponsePost::run(Socket &socket) {
 	HTTPHeader	header;
 	int			code;
 
-	if (_POST == false || _accept_file == false)
-		throw HTTPException(405);
-	if (!isUploadAccepted())
+	PRINT_CGIRESPONSEPOST("_POST", _POST);
+	PRINT_CGIRESPONSEPOST("_accept_file", _accept_file);
+	if (_POST == false)
 		throw HTTPException(405);
 	code = 201;
 	saveFile(_request->_payload);
@@ -118,7 +118,15 @@ CGIResponsePost::CGIResponsePost(HTTPRequest *request): CGIResponse(request)
 	_server_root = config.get_server_root_folder();
 	_server_index = config.get_server_index_file();
 	_upload = _server_root + config.get_upload_location_cl();
+
 	_server_location_log = set_absolut_path(_server_root);
+	if (is_request_defined_location(request->_path, config.get_location_specifier())) {
+			if (_request != NULL)
+				PRINT_CGIRESPONSE("request_path", _request->_path);
+		PRINT_CGIRESPONSE("_server_location_log", _server_location_log);
+		PRINT_CGIRESPONSE("_loc_root", _loc_root);
+    	_server_location_log = set_absolut_path(_loc_root);
+    }
 
 	PRINT_CGIRESPONSEPOST("_upload: ", _upload);
 }

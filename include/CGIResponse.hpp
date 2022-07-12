@@ -38,6 +38,7 @@ public:
 	bool			is_request_folder(const std::string& path);
 	std::string		set_extension(std::string& file);
 	bool			is_sub_folder_location(std::string& file);
+	void			trim_directory_path(std::string &request_path);
 
 protected:
 	HTTPRequest *	_request;

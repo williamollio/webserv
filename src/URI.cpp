@@ -54,6 +54,17 @@ bool URI::isInCGIPath() const {
     return false;
 }
 
+bool URI::startsWith(const std::string & prefix) const {
+    if (prefix.size() > original.size()) return false;
+
+    for (std::string::const_iterator oit = original.begin(),
+                                     pit = prefix.begin();
+    oit != original.end() && pit != prefix.end() && (oit - original.begin()) < prefix.size(); ++pit, ++oit) {
+        if (*pit != *oit) return false;
+    }
+    return true;
+}
+
 bool URI::isFolder() const {
     std::list<Token>::const_reverse_iterator it = tokens.rbegin();
     if (++it != tokens.rend()) {

@@ -23,14 +23,15 @@ public:
 
     void                               setSyntaxExceptionEnabled(bool);
 
-    bool                               isFolder()                 const;
-    bool                               isCGIIdentifier()          const;
-    bool                               isSyntaxExceptionEnabled() const;
-    std::string                        getFile()                  const;
-    std::string                        getFileDirectory()         const;
-    std::map<std::string, std::string> getVars()                  const;
-    std::string                        getQuery()                 const;
-    std::string                        getPathInfo()              const;
+    bool                               isFolder()                      const;
+    bool                               isCGIIdentifier()               const;
+    bool                               isSyntaxExceptionEnabled()      const;
+    std::string                        getFile()                       const;
+    std::string                        getFileDirectory()              const;
+    std::map<std::string, std::string> getVars()                       const;
+    std::string                        getQuery()                      const;
+    std::string                        getPathInfo()                   const;
+    bool                               startsWith(const std::string &) const;
 
     class Token {
     public:

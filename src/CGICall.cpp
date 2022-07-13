@@ -66,6 +66,7 @@ void CGICall::run(Socket & _socket) {
 		default: throw HTTPException(500);
     }
     pathinfo += uri.getPathInfo();
+    pathinfo += pathinfo.empty() ? "Arsch" : "";
     queryString += uri.getQuery();
     remoteAddress += int_to_ipv4(_request->getPeerAddress());
     remoteHost += _request->getPeerName();
@@ -177,20 +178,21 @@ void CGICall::execute(const int in, const int out, const std::string & requested
     environment[2]  = strdup(pathinfo.c_str());
     environment[3]  = strdup(gatewayInterface.c_str());
     environment[4]  = strdup(queryString.c_str());
-    environment[5]  = strdup(scriptName.c_str());
-    environment[6]  = strdup(serverName.c_str());
-    environment[7]  = strdup(serverPort.c_str());
-    environment[8]  = strdup(serverSoftware.c_str());
-    environment[9]  = strdup(remoteHost.c_str());
-    environment[10] = strdup(remoteAddress.c_str());
-    environment[11] = strdup(httpConnection.c_str());
-    environment[12] = strdup(httpExpect.c_str());
-    environment[13] = strdup(httpContentLength.c_str());
-    environment[14] = strdup(httpAccept.c_str());
-    environment[15] = strdup(httpEncoding.c_str());
-    environment[16] = strdup(httpLang.c_str());
-    environment[17] = strdup(httpHost.c_str());
-    environment[18] = strdup(httpUserAgent.c_str());
+    environment[5]  = strdup(serverName.c_str());
+    environment[6]  = strdup(serverPort.c_str());
+    environment[7]  = strdup(serverSoftware.c_str());
+    environment[8]  = strdup(remoteHost.c_str());
+    environment[9]  = strdup(remoteAddress.c_str());
+    environment[10] = strdup(httpConnection.c_str());
+    environment[11] = strdup(httpExpect.c_str());
+    environment[12] = strdup(httpContentLength.c_str());
+    environment[13] = strdup(httpAccept.c_str());
+    environment[14] = strdup(httpEncoding.c_str());
+    environment[15] = strdup(httpLang.c_str());
+    environment[16] = strdup(httpHost.c_str());
+    environment[17] = strdup(httpUserAgent.c_str());
+    // FIXME: Find a correct scriptname!
+//    environment[18] = strdup(scriptName.c_str());
     if (_request->_content) {
         environment[19] = strdup(contentLength.c_str());
         environment[20] = strdup(contentType.c_str());

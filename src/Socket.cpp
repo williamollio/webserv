@@ -32,8 +32,10 @@ void Socket::send(const std::string & content) throw (IOException)
 	#if DEBUG
 		std::cout << "\n\n"<< std::endl;
 	#endif
-	if (write(_fd, content.c_str(), content.size()) < 0)
-		throw IOException("Could not send the data! Data: " + content);
+    for (size_t i = 0; i < content.length(); ++i) {
+        if (write(_fd, content.c_str() + i, 1) < 0)
+            throw (IOException("Could not send the data! Data: " + content));
+    }
 }
 
 void Socket::close_socket() const throw (IOException)

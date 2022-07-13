@@ -12,16 +12,18 @@ class HTTPException : public std::exception {
 private:
 	int                 _code;
     unsigned int        _line;
-    const std::string & _file;
+    std::string         _file;
     std::string         _what;
 
 public:
-	HTTPException(int code, const std::string &, unsigned int) _NOEXCEPT;
-	~HTTPException() _NOEXCEPT {};
+	HTTPException(int, const std::string &, unsigned int) _NOEXCEPT;
+    explicit HTTPException(int)                           _NOEXCEPT;
+    HTTPException(const HTTPException &)                  _NOEXCEPT;
+	~HTTPException()                                      _NOEXCEPT;
 
-	int                 get_error_code() const;
+	int                 get_error_code()  const;
     unsigned int        get_line_number() const;
-    const std::string & get_file() const;
+    const std::string & get_file()        const;
 
     const char * what() const _NOEXCEPT;
 };

@@ -110,7 +110,9 @@ void CGICall::run(Socket & _socket) {
         throw HTTPException(500);
     }
     running = true;
-    write(in[1], _request->get_payload().c_str(), _request->get_payload().size());
+    for (size_t i = 0; i < _request->get_payload().size(); ++i) {
+        write(in[1], _request->get_payload().c_str() + i, 1);
+    }
     close(in[1]);
     execute(in[0], out[1], requestedFile);
     pthread_create(&threadID, NULL, reinterpret_cast<void *(*)(void *)>(CGICall::async), this);
@@ -135,7 +137,7 @@ void CGICall::async(CGICall * self) {
             while ((r = read(self->out[0], &b, 1)) > 0) payload += b;
             if (r < 0) throw HTTPException(500);
         }
-        header.set_content_length(static_cast<int>(payload.size()));
+        header.set_content_length(static_cast<int>(payload.size() + 1));
         self->socket.send(header.tostring());
         self->socket.send("\r\n\r\n");
         self->socket.send(payload);

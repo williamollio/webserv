@@ -20,6 +20,7 @@ CGICall::CGICall(HTTPRequest * request)
           queryString("QUERY_STRING="),
           scriptName("SCRIPT_NAME="),
           serverName("SERVER_NAME="),
+          serverPort("SERVER_PORT="),
           serverSoftware("SERVER_SOFTWARE=webserv/1.0 (2022/06)"),
           remoteAddress("REMOTE_ADDR="),
           remoteHost("REMOTE_HOST="),
@@ -30,6 +31,13 @@ CGICall::CGICall(HTTPRequest * request)
           running(false),
           runningMutex() {
     pthread_mutex_init(&runningMutex, NULL);
+    Configuration config = Configuration::getInstance();
+    _server_root = config.get_server_root_folder();
+    _server_location_log = set_absolut_path(_server_root);
+
+    if (is_request_defined_location(request->_path, config.get_location_specifier())) {
+        _server_location_log = set_absolut_path(_loc_root);
+    }
 }
 
 CGICall::~CGICall() {
@@ -54,11 +62,7 @@ void CGICall::run(Socket & _socket) {
     remoteAddress += int_to_ipv4(_request->getPeerAddress());
     remoteHost += _request->getPeerName();
     serverName += Configuration::getInstance().get_server_names().at(0);
-    {
-        std::stringstream s;
-        s << "SERVER_PORT=" << _request->getUsedPort();
-        serverPort = s.str();
-    }
+    serverPort += int_to_string(_request->getUsedPort());
     if (_request->_content) {
         std::stringstream s;
         s << "CONTENT_LENGTH=" << _request->_content_length;
@@ -193,17 +197,13 @@ void CGICall::waitOrThrow() {
 }
 
 std::string CGICall::computeRequestedFile() {
-    char * c_pwd = getcwd(NULL, 0);
-    const std::string ret = c_pwd + Configuration::getInstance().get_server_root_folder();
-    free(c_pwd);
-    return ret +uri.getFile();// (uri.isFolder() ? "/cgi/directory_listing.php" : uri.getFile());
+    std::string tmp = _request->_path;
+    construct_file_path(tmp);
+    return tmp;
 }
 
 std::string CGICall::computeScriptDirectory() {
-    char * c_pwd = getcwd(NULL, 0);
-    const std::string ret = c_pwd + Configuration::getInstance().get_server_root_folder() + uri.getFileDirectory();
-    free(c_pwd);
-    return ret;
+    return _server_location_log;
 }
 
 HTTPHeader CGICall::parseCGIResponse(const int fd) {

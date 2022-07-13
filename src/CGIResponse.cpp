@@ -114,7 +114,7 @@ std::string CGIResponse::read_file(std::string& file)
 {
 	std::ifstream is;
 	std::stringstream buffer;
-	construct_file_path(file);;
+	construct_file_path(file);
 	is.open(file);
 	if (!is.is_open())
 	{

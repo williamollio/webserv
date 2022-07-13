@@ -169,7 +169,9 @@ int CGIResponse::is_request_defined_location(std::string &request_path, std::vec
 CGIResponse::CGIResponse(HTTPRequest *request): _request(request), _GET(true), _POST(false), _DELETE(false), _dir_listing(false), _directory_location(""), _loc_root("") {
 }
 
-CGIResponse::~CGIResponse() {}
+CGIResponse::~CGIResponse() {
+    if (_request != NULL) delete _request;
+}
 
 bool CGIResponse::isRunning() {
     return false;

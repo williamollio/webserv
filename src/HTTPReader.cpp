@@ -56,7 +56,6 @@ void HTTPReader::run() {
 		error.set_error_code(ex.get_error_code());
 		error.run(_socket);
     }
-	if (request != NULL) delete request;
 }
 
 std::vector<std::string>	split_str_vector(const std::string& tosplit, const std::string& needle) {

@@ -34,6 +34,14 @@ private:
     std::string     serverSoftware;
     std::string     remoteAddress;
     std::string     remoteHost;
+    std::string     httpUserAgent;
+    std::string     httpHost;
+    std::string     httpLang;
+    std::string     httpEncoding;
+    std::string     httpAccept;
+    std::string     httpConnection;
+    std::string     httpContentLength;
+    std::string     httpExpect;
     Socket          socket;
     pid_t           child;
     pthread_t       threadID;

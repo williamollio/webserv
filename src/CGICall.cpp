@@ -24,6 +24,14 @@ CGICall::CGICall(HTTPRequest * request)
           serverSoftware("SERVER_SOFTWARE=webserv/1.0 (2022/06)"),
           remoteAddress("REMOTE_ADDR="),
           remoteHost("REMOTE_HOST="),
+          httpUserAgent("HTTP_User-Agent="),
+          httpHost("HTTP_Host="),
+          httpLang("HTTP_Accept_language="),
+          httpEncoding("HTTP_Accept-Encoding="),
+          httpAccept("HTTP_Accept="),
+          httpConnection("HTTP_Connection="),
+          httpContentLength("HTTP_Content-Length="),
+          httpExpect("HTTP_Except="),
           child(-1),
           threadID(),
           in(),
@@ -72,6 +80,24 @@ void CGICall::run(Socket & _socket) {
             contentType += *it + ",";
         }
     }
+    httpUserAgent += _request->_user_agent;
+    httpHost += _request->_host;
+    for (std::vector<std::string>::const_iterator it = _request->_lang.begin(); it != _request->_lang.end(); ++it) {
+        httpLang += *it + ",";
+    }
+    httpLang.pop_back();
+    httpLang.pop_back();
+    for (std::vector<std::string>::const_iterator it = _request->_encoding.begin(); it != _request->_encoding.end(); ++it) {
+        httpEncoding += *it + ",";
+    }
+    httpEncoding.pop_back();
+    httpEncoding.pop_back();
+    for (std::vector<std::string>::const_iterator it = _request->_content_type.begin(); it != _request->_content_type.end(); ++it) {
+        httpAccept += *it + ",";
+    }
+    httpContentLength += int_to_string(_request->_content_length);
+    httpExpect += _request->_expect;
+    httpConnection += _request->_keep_alive ? "keep-alive" : "";
     scriptName += computeRequestedFile();
     const std::string & requestedFile = computeRequestedFile();
     if (access(requestedFile.c_str(), F_OK) < 0) throw HTTPException(404);
@@ -145,7 +171,7 @@ void CGICall::execute(const int in, const int out, const std::string & requested
     close(in);
     close(out);
     char ** arguments = new char * [2]();
-    char ** environment = new char * [_request->_content ? 14 : 12]();
+    char ** environment = new char * [_request->_content ? 22 : 20]();
     environment[0]  = strdup(method.c_str());
     environment[1]  = strdup(protocol.c_str());
     environment[2]  = strdup(pathinfo.c_str());
@@ -157,9 +183,17 @@ void CGICall::execute(const int in, const int out, const std::string & requested
     environment[8]  = strdup(serverSoftware.c_str());
     environment[9]  = strdup(remoteHost.c_str());
     environment[10] = strdup(remoteAddress.c_str());
+    environment[11] = strdup(httpConnection.c_str());
+    environment[12] = strdup(httpExpect.c_str());
+    environment[13] = strdup(httpContentLength.c_str());
+    environment[14] = strdup(httpAccept.c_str());
+    environment[15] = strdup(httpEncoding.c_str());
+    environment[16] = strdup(httpLang.c_str());
+    environment[17] = strdup(httpHost.c_str());
+    environment[18] = strdup(httpUserAgent.c_str());
     if (_request->_content) {
-        environment[11] = strdup(contentLength.c_str());
-        environment[12] = strdup(contentType.c_str());
+        environment[19] = strdup(contentLength.c_str());
+        environment[20] = strdup(contentType.c_str());
     }
     arguments[0] = strdup(requestedFile.c_str());
     chdir(computeScriptDirectory().c_str());

@@ -11,7 +11,9 @@ std::string CGIResponsePost::setFilename(std::string &payload) {
 
 	size_t posbegin, posend;
 	posbegin = payload.find("filename=\"");
-	if (posbegin == std::string::npos)
+	if (posbegin == std::string::npos && !_request->_path.empty())
+		return (_request->_path);
+	else if (posbegin == std::string::npos)
 		return setFilenameUnknown(".txt");
 	posbegin += 10;
 	posend = payload.find("\"", posbegin + 1);
@@ -64,7 +66,12 @@ void CGIResponsePost::trimPayload(std::string &payload) {
 
 void CGIResponsePost::createFile(std::string &payload) {
 	_filename = setFilename(payload);
+	if (_filename.front() == '/')
+		_filename.erase(0,1);
+	PRINT_CGIRESPONSEPOST("_filename: ", _filename);
 	std::ofstream ofs(_filename);
+	PRINT_CGIRESPONSEPOST("payload: ", payload);
+
 	ofs << payload << std::endl;
 	ofs.close();
 }
@@ -98,6 +105,9 @@ void CGIResponsePost::run(Socket &socket) {
 
 	PRINT_CGIRESPONSEPOST("_POST", _POST);
 	PRINT_CGIRESPONSEPOST("_accept_file", _accept_file);
+	if (_request->_path == "/file_should_exist_after")
+		std::cout << "breakpoint" << std::endl;
+
 	if (_POST == false)
 		throw HTTPException(405);
 	code = 201;

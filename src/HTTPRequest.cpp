@@ -164,9 +164,9 @@ std::string HTTPRequest::unchunkedPayload(const std::string &data, size_t cursor
 	std::string payload;
 	std::string buffer;
 	std::string line;
+	payload = data.substr(cursor+2);
 	std::istringstream tmp(payload);
 
-	payload = data.substr(cursor+2);
 	int i = 1;
 	do
 	{
@@ -178,16 +178,15 @@ std::string HTTPRequest::unchunkedPayload(const std::string &data, size_t cursor
 			line.clear();
 		}
 		i++;
-	} while (line.front() != '0' && !tmp.eof());
+	} while (!(line.front() == '0' && line.length() == 3) && !tmp.eof());
 	payload.clear();
 	return (buffer);
 }
 
-bool HTTPRequest::isChunkedRequest(const std::string &data)
+void HTTPRequest::isChunkedRequest(const std::string &data)
 {
 	if (data.find("Transfer-Encoding: chunked") != std::string::npos || data.find("Expect: 100-continue") != std::string::npos)
 		_chunked = true;
-	return (_chunked);
 }
 
 void HTTPRequest::set_payload(const std::string& data, Socket& _socket) throw(std::exception) {
@@ -200,6 +199,7 @@ void HTTPRequest::set_payload(const std::string& data, Socket& _socket) throw(st
 
 	if (_chunked) {
     	_payload = unchunkedPayload(data, cursor);
+		std::cout << "unchunkedPayload: " << _payload << std::endl;
         return;
     }
 	else

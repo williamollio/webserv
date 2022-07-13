@@ -46,7 +46,7 @@ public:
     void                 setUsedPort(int);
 
 	std::string          unchunkedPayload(const std::string &data, size_t cursor);
-	bool                 isChunkedRequest(const std::string &data);
+	void                 isChunkedRequest(const std::string &data);
 
 	explicit HTTPRequest(TYPE, std::vector<std::string>& file, std::string& raw, Socket& _socket);
 	REQ_INFO http_token_comp(std::string& word);

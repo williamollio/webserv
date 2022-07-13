@@ -66,7 +66,7 @@ void CGICall::run(Socket & _socket) {
 		default: throw HTTPException(500);
     }
     pathinfo += uri.getPathInfo();
-    pathinfo += pathinfo.empty() ? "Arsch" : "";
+    pathinfo += "Arsch";
     queryString += uri.getQuery();
     remoteAddress += int_to_ipv4(_request->getPeerAddress());
     remoteHost += _request->getPeerName();

@@ -157,7 +157,7 @@ void CGICall::execute(const int in, const int out, const std::string & requested
         environment[11] = strdup(contentLength.c_str());
         environment[12] = strdup(contentType.c_str());
     }
-    arguments[0] = const_cast<char *>(requestedFile.c_str());
+    arguments[0] = strdup(requestedFile.c_str());
     chdir(computeScriptDirectory().c_str());
     if (execve(requestedFile.c_str(), arguments, environment) < 0) {
         exit(-1);
@@ -196,7 +196,7 @@ std::string CGICall::computeRequestedFile() {
     char * c_pwd = getcwd(NULL, 0);
     const std::string ret = c_pwd + Configuration::getInstance().get_server_root_folder();
     free(c_pwd);
-    return ret + (uri.isFolder() ? "/cgi/directory_listing.php" : uri.getFile());
+    return ret +uri.getFile();// (uri.isFolder() ? "/cgi/directory_listing.php" : uri.getFile());
 }
 
 std::string CGICall::computeScriptDirectory() {

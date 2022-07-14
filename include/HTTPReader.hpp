@@ -34,6 +34,7 @@ class HTTPReader {
 private:
         Socket        _socket;
         CGIResponse * response;
+        HTTPRequest * request;
         unsigned int  peerAddress;
         std::string   peerName;
         int           port;

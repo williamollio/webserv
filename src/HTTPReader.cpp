@@ -16,12 +16,13 @@
 #include <cstdlib>
 #include <iostream>
 
-HTTPReader::HTTPReader(): _socket(), response(NULL) {}
+HTTPReader::HTTPReader(): _socket(), response(NULL), request(NULL) {}
 
-HTTPReader::HTTPReader(Socket & socket): _socket(socket), response(NULL) {}
+HTTPReader::HTTPReader(Socket & socket): _socket(socket), response(NULL), request(NULL) {}
 
 HTTPReader::~HTTPReader() {
     if (response != NULL) delete response;
+    if (request != NULL) delete request;
     try {
         _socket.close_socket();
     } catch (std::exception & exception) {
@@ -30,7 +31,6 @@ HTTPReader::~HTTPReader() {
 }
 
 void HTTPReader::run() {
-	HTTPRequest * request  = NULL;
     try {
         request = _parse();
         request->setURI(URI(request->_path));

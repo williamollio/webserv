@@ -195,21 +195,26 @@ void HTTPRequest::set_payload(const std::string& data, Socket& _socket) throw(st
         std::cerr << "error 4000 here" <<std::endl;
 		throw HTTPException(400);
     }
-	cursor += 2;
 
-	if (_chunked) {
-    	_payload = unchunkedPayload(data, cursor);
+	if (!_chunked) {
+		char buf[2];
+		while (_payload.length() < _content_length) {
+			if (!read(_socket.get_fd(), buf, 1))
+				throw HTTPException(504);
+			_payload += buf;
+		}
+	} else {
+		char buff[2] = {'\0', '\0'};
+		std::string raw(buff);
+		while (raw.find("\r\n\r\n", 0) == std::string::npos) {
+			if (!read(_socket.get_fd(), buff, 1))
+				throw HTTPException(504);
+			raw += buff;
+		}
+    	_payload = unchunkedPayload(raw, 0);
 		std::cout << "unchunkedPayload: " << _payload << std::endl;
-        return;
     }
-	else
-		_payload = data.substr(cursor);
-	char buf[2];
-	while (_payload.length() < _content_length) {
-		if (!read(_socket.get_fd(), buf, 1))
-			throw HTTPException(504);
-		_payload += buf;
-	}
+	std::cout << "size: " << _payload.size() << std::endl;
 }
 
 const std::string & HTTPRequest::get_payload() const {

@@ -144,16 +144,24 @@ int	HTTPRequest::checktype(std::string& word) {
 
 
 HTTPRequest* HTTPReader::_parse() throw(std::exception) {
-	char * buff = new char[BUFFER + 1]();
-	if (!read(_socket.get_fd(), buff, BUFFER)) {
-		throw HTTPException(504);
-	}
+//	char * buff = new char[BUFFER + 1]();
+//	if (!read(_socket.get_fd(), buff, BUFFER)) {
+//		throw HTTPException(504);
+//	}
+//    delete[] buff;
+//	size_t	cursor = raw.find("\r\n\r\n", 0);
+//	if (cursor == raw.npos)
+//		cursor = raw.length();
+
+	char buff[2] = {'\0', '\0'};
 	std::string raw(buff);
-    delete[] buff;
-	size_t	cursor = raw.find("\r\n\r\n", 0);
-	if (cursor == raw.npos)
-		cursor = raw.length();
-	std::string	head = raw.substr(0, cursor);
+
+	while (raw.find("\r\n\r\n", 0) == std::string::npos) {
+		if (!read(_socket.get_fd(), buff, 1))
+			throw HTTPException(504);
+		raw += buff;
+	}
+	std::string	head = raw;
 	std::vector<std::string> file = split_line(head);
 	switch(HTTPRequest::checktype(file[0])) {
 		case HTTPRequest::GET:

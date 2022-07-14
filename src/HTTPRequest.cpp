@@ -206,10 +206,38 @@ void HTTPRequest::set_payload(const std::string& data, Socket& _socket) throw(st
 	} else {
 		char buff[2] = {'\0', '\0'};
 		std::string raw(buff);
+		size_t		size = 0;
+		long long	char_count = 0;
 		while (raw.find("\r\n\r\n", 0) == std::string::npos) {
-			if (!read(_socket.get_fd(), buff, 1))
-				throw HTTPException(504);
-			raw += buff;
+			while (raw.find("\r\n\r\n", 0) == std::string::npos && raw.find("\r\n", size) == std::string::npos) {
+				if (!read(_socket.get_fd(), buff, 1))
+					throw HTTPException(504);
+				raw += buff;
+			}
+			if (raw.find("\r\n\r\n", 0) == std::string::npos)
+				break;
+			char_count = atoll(raw.substr(0, raw.find("\r\n", size)).c_str());
+			if (char_count != 0) {
+				char * buff = new char[char_count]();
+				long long ret = read(_socket.get_fd(), buff, char_count);
+				raw += buff;
+				if (ret < 0) {
+					delete[] buff;
+					throw HTTPException(504);
+				}
+				long long tmp;
+				while (ret != char_count) {
+					tmp = read(_socket.get_fd(), buff, char_count - ret);
+					if (tmp < 0) {
+						delete[] buff;
+						throw HTTPException(504);
+					}
+					ret += tmp;
+					raw += buff;
+				}
+				delete[] buff;
+				size = char_count;
+			}
 		}
     	_payload = unchunkedPayload(raw, 0);
 		std::cout << "unchunkedPayload: " << _payload << std::endl;

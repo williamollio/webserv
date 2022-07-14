@@ -98,7 +98,7 @@ void CGICall::run(Socket & _socket) {
     for (std::vector<std::string>::const_iterator it = _request->_content_type.begin(); it != _request->_content_type.end(); ++it) {
         httpAccept += *it + ",";
     }
-    httpContentLength += int_to_string(_request->_content_length);
+    httpContentLength += int_to_string(static_cast<int>(_request->_content_length));
     httpExpect += _request->_expect;
     httpConnection += _request->_keep_alive ? "keep-alive" : "";
     scriptName += computeRequestedFile();

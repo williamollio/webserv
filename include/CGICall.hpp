@@ -34,6 +34,7 @@ private:
     std::string     serverSoftware;
     std::string     remoteAddress;
     std::string     remoteHost;
+    std::string     requestUri;
     std::string     httpUserAgent;
     std::string     httpHost;
     std::string     httpLang;

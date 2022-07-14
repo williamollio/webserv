@@ -24,6 +24,7 @@ CGICall::CGICall(HTTPRequest * request)
           serverSoftware("SERVER_SOFTWARE=webserv/1.0 (2022/06)"),
           remoteAddress("REMOTE_ADDR="),
           remoteHost("REMOTE_HOST="),
+          requestUri("REQUEST_URI="),
           httpUserAgent("HTTP_User-Agent="),
           httpHost("HTTP_Host="),
           httpLang("HTTP_Accept_language="),
@@ -65,8 +66,9 @@ void CGICall::run(Socket & _socket) {
         case HTTPRequest::DELETE: method += "DELETE"; break;
 		default: throw HTTPException(500);
     }
-    pathinfo += uri.getPathInfo();
-    pathinfo += "Arsch";
+    const std::string combined = uri.getPathInfo().empty() ? "Arsch" : uri.getPathInfo();
+    pathinfo += combined;
+    requestUri += combined;
     queryString += uri.getQuery();
     remoteAddress += int_to_ipv4(_request->getPeerAddress());
     remoteHost += _request->getPeerName();
@@ -174,7 +176,7 @@ void CGICall::execute(const int in, const int out, const std::string & requested
     close(in);
     close(out);
     char ** arguments = new char * [2]();
-    char ** environment = new char * [_request->_content ? 22 : 20]();
+    char ** environment = new char * [_request->_content ? 23 : 21]();
     environment[0]  = strdup(method.c_str());
     environment[1]  = strdup(protocol.c_str());
     environment[2]  = strdup(pathinfo.c_str());
@@ -193,11 +195,11 @@ void CGICall::execute(const int in, const int out, const std::string & requested
     environment[15] = strdup(httpLang.c_str());
     environment[16] = strdup(httpHost.c_str());
     environment[17] = strdup(httpUserAgent.c_str());
-    // FIXME: Find a correct scriptname!
-//    environment[18] = strdup(scriptName.c_str());
+    environment[18] = strdup(requestUri.c_str());
+    environment[19] = strdup(scriptName.c_str());
     if (_request->_content) {
-        environment[19] = strdup(contentLength.c_str());
-        environment[20] = strdup(contentType.c_str());
+        environment[20] = strdup(contentLength.c_str());
+        environment[21] = strdup(contentType.c_str());
     }
     arguments[0] = strdup(requestedFile.c_str());
     chdir(computeScriptDirectory().c_str());
@@ -236,7 +238,9 @@ void CGICall::waitOrThrow() {
 
 std::string CGICall::computeRequestedFile() {
     std::string tmp = _request->_path;
+    // TODO: Cut the path_info and the query string!
     construct_file_path(tmp);
+    std::cerr << ">> " << tmp << std::endl;
     return tmp;
 }
 

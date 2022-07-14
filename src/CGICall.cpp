@@ -137,7 +137,7 @@ void CGICall::async(CGICall * self) {
             while ((r = read(self->out[0], &b, 1)) > 0) payload += b;
             if (r < 0) throw HTTPException(500);
         }
-        header.set_content_length(static_cast<int>(payload.size() + 1));
+        header.set_content_length(static_cast<int>(payload.size()));
         self->socket.send(header.tostring());
         self->socket.send("\r\n\r\n");
         self->socket.send(payload);

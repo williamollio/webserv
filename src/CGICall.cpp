@@ -240,8 +240,18 @@ std::string CGICall::computeRequestedFile() {
     std::string tmp = _request->_path;
     // TODO: Cut the path_info and the query string!
     construct_file_path(tmp);
-    std::cerr << ">> " << tmp << std::endl;
-    return tmp;
+    URI uri(tmp);
+    tmp = uri.getFile();
+    std::string exe, ext = set_extension(tmp);
+    const std::map<std::string, std::string> & exts = Configuration::getInstance().get_cgi_bin_map();
+    ext = "." + ext;
+    try {
+        exe = exts.at(ext);
+    } catch (std::out_of_range & ex) {
+        exe = tmp;
+    }
+    std::cerr << ">> " << exe << std::endl;
+    return exe;
 }
 
 std::string CGICall::computeScriptDirectory() {

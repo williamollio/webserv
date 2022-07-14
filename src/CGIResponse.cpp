@@ -78,8 +78,8 @@ void CGIResponse::construct_file_path(std::string& file)
 	else
 		file = _server_location_log + file;
 
-	PRINT_CGIRESPONSE("file", file);
-	PRINT_CGIRESPONSE("_server_location_log", _server_location_log);
+	PRINT_CGIRESPONSE("file ", file);
+	PRINT_CGIRESPONSE("_server_location_log ", _server_location_log);
 	if (!_loc_root.empty())
 	{
 		DIR* dir;
@@ -131,6 +131,9 @@ void CGIResponse::trim_directory_path(std::string &request_path)
 	size_t pos = request_path.find(_directory_location);
 	size_t length = _directory_location.length();
 	request_path.erase(pos, length);
+	if (request_path.empty())
+		request_path = '/';
+
 }
 
 void CGIResponse::set_rules_location(std::string &request_path, std::vector<Configuration::loc_inf>::const_iterator it)
@@ -154,8 +157,9 @@ int CGIResponse::is_request_defined_location(std::string &request_path, std::vec
 		if (uri.startsWith((*it).directory))
 		{
 			set_rules_location(request_path, it);
-			PRINT_CGIRESPONSE("_directory_location", _directory_location);
-			PRINT_CGIRESPONSE("(*it).directory", (*it).directory);
+			PRINT_CGIRESPONSE("_directory_location ", _directory_location);
+			PRINT_CGIRESPONSE("(*it).directory ", (*it).directory);
+			PRINT_CGIRESPONSE("_server_index ", _server_index);
 			return (1);
 		}
 	}

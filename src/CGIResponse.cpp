@@ -107,7 +107,6 @@ bool CGIResponse::is_request_folder(const std::string& path)
 		closedir(dir);
 		return (true);
 	}
-	closedir(dir);
 	return (false);
 }
 std::string CGIResponse::read_file(std::string& file)

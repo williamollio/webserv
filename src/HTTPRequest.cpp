@@ -207,37 +207,64 @@ void HTTPRequest::set_payload(const std::string& data, Socket& _socket) throw(st
 		char buff[2] = {'\0', '\0'};
 		std::string raw(buff);
 		size_t		size = 0;
+		size_t		sec_size = 0;
 		long long	char_count = 0;
+		long long	ret = 0;
 		while (raw.find("\r\n\r\n", 0) == std::string::npos) {
 			while (raw.find("\r\n\r\n", 0) == std::string::npos && raw.find("\r\n", size) == std::string::npos) {
 				if (!read(_socket.get_fd(), buff, 1))
 					throw HTTPException(504);
 				raw += buff;
 			}
-			if (raw.find("\r\n\r\n", 0) == std::string::npos)
+			if (raw.find("\r\n\r\n", 0) != std::string::npos)
 				break;
-			char_count = atoll(raw.substr(0, raw.find("\r\n", size)).c_str());
-			if (char_count != 0) {
-				char * buff = new char[char_count]();
-				long long ret = read(_socket.get_fd(), buff, char_count);
-				raw += buff;
+
+			std::cout << "raw: " << raw.substr(size) << std::endl;
+			std::stringstream ss;
+			sec_size = raw.find("\r\n", size);
+			std::cout << "sec: " << sec_size << std::endl;
+			ss << std::hex << raw.substr(size);
+			ss >> char_count;
+			std::cout  << "expected readsize: " << char_count << std::endl;
+			if (char_count == 0)
+				break;
+			{
+				char * ex_buff = new char[char_count + 1]();
+				ret = read(_socket.get_fd(), ex_buff, char_count);
+				std::cout  << "actual readsize: " << ret << std::endl;
+				raw += ex_buff;
 				if (ret < 0) {
-					delete[] buff;
+					delete[] ex_buff;
 					throw HTTPException(504);
 				}
-				long long tmp;
-				while (ret != char_count) {
-					tmp = read(_socket.get_fd(), buff, char_count - ret);
+				if (raw.find("\r\n\r\n", 0) != std::string::npos)
+					break;
+				long long tmp = 0;
+				while (ret < char_count && raw.find("\r\n\r\n", 0) == std::string::npos) {
+					tmp = read(_socket.get_fd(), ex_buff, char_count - ret);
+					std::cout  << "tmp readsize: " << tmp << std::endl;
+					std::cout  << "ret readsize: " << ret << std::endl;
 					if (tmp < 0) {
-						delete[] buff;
+						delete[] ex_buff;
 						throw HTTPException(504);
 					}
 					ret += tmp;
-					raw += buff;
+					raw += ex_buff;
 				}
-				delete[] buff;
-				size = char_count;
+				delete[] ex_buff;
 			}
+			std::cout << size << std::endl;
+			size = ret + sec_size + 1;
+			std::cout << size << std::endl;
+//			else {
+//				char buffer[2] = { '\0', '\0'};
+//				while (raw.find("\r\n\r\n", 0) == std::string::npos) {
+//					if (!read(_socket.get_fd(), buffer, 1))
+//						throw HTTPException(504);
+//					raw += buffer;
+//				}
+//				break;
+//			}
 		}
     	_payload = unchunkedPayload(raw, 0);
 		std::cout << "unchunkedPayload: " << _payload << std::endl;

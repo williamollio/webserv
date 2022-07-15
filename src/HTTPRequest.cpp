@@ -164,10 +164,10 @@ std::string HTTPRequest::unchunkedPayload(const std::string &data, size_t cursor
 	std::string payload;
 	std::string buffer;
 	std::string line;
-	payload = data.substr(cursor+2);
+	payload = data.substr(0);
 	std::istringstream tmp(payload);
 
-	int i = 1;
+	size_t i = 1;
 	do
 	{
 		getline(tmp, line);
@@ -219,19 +219,15 @@ void HTTPRequest::set_payload(const std::string& data, Socket& _socket) throw(st
 			if (raw.find("\r\n\r\n", 0) != std::string::npos)
 				break;
 
-			std::cout << "raw: " << raw.substr(size) << std::endl;
 			std::stringstream ss;
 			sec_size = raw.find("\r\n", size);
-			std::cout << "sec: " << sec_size << std::endl;
 			ss << std::hex << raw.substr(size);
 			ss >> char_count;
-			std::cout  << "expected readsize: " << char_count << std::endl;
 			if (char_count == 0)
 				break;
 			{
 				char * ex_buff = new char[char_count + 1]();
 				ret = read(_socket.get_fd(), ex_buff, char_count);
-				std::cout  << "actual readsize: " << ret << std::endl;
 				raw += ex_buff;
 				if (ret < 0) {
 					delete[] ex_buff;
@@ -240,34 +236,34 @@ void HTTPRequest::set_payload(const std::string& data, Socket& _socket) throw(st
 				if (raw.find("\r\n\r\n", 0) != std::string::npos)
 					break;
 				long long tmp = 0;
-				while (ret < char_count && raw.find("\r\n\r\n", 0) == std::string::npos) {
+				while (char_count-ret > 0 && ret < char_count && raw.find("\r\n\r\n", 0) == std::string::npos) {
 					tmp = read(_socket.get_fd(), ex_buff, char_count - ret);
-					std::cout  << "tmp readsize: " << tmp << std::endl;
-					std::cout  << "ret readsize: " << ret << std::endl;
 					if (tmp < 0) {
+						std::cerr << "READ: ERROR" << std::endl;
 						delete[] ex_buff;
 						throw HTTPException(504);
 					}
 					ret += tmp;
 					raw += ex_buff;
 				}
+				if (char_count-ret < 0)
+					std::cout << "really??" << std::endl;
 				delete[] ex_buff;
 			}
-			std::cout << size << std::endl;
-			size = ret + sec_size + 1;
-			std::cout << size << std::endl;
-//			else {
-//				char buffer[2] = { '\0', '\0'};
-//				while (raw.find("\r\n\r\n", 0) == std::string::npos) {
-//					if (!read(_socket.get_fd(), buffer, 1))
-//						throw HTTPException(504);
-//					raw += buffer;
-//				}
-//				break;
-//			}
+			bool sw = false;
+			for (size_t i = size; raw.size() < size && raw[i] != '\0';) {
+				if (raw[i] == '\r') {
+					i += 2;
+					if (sw)
+						return;
+					sw = true;
+				} else
+					i++;
+			}
 		}
+		std::cout << "rawsize: " << raw.size() << std::endl;
     	_payload = unchunkedPayload(raw, 0);
-		std::cout << "unchunkedPayload: " << _payload << std::endl;
+//		std::cout << "unchunkedPayload: " << _payload << std::endl;
     }
 	std::cout << "size: " << _payload.size() << std::endl;
 }

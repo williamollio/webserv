@@ -32,7 +32,7 @@ class HTTPReader {
 
         int  getUsedPort() const;
         void setUsedPort(int port);
-		Cookie& get_cookie(Cookie cookie);
+		Cookie get_cookie(Cookie cookie);
 
 private:
         Socket        _socket;

@@ -15,6 +15,8 @@
 #include <cstdlib>
 #include <iostream>
 
+std::list<Cookie> HTTPReader::session_management;
+
 HTTPReader::HTTPReader(): _socket(), response(NULL), request(NULL) {}
 
 HTTPReader::HTTPReader(Socket & socket): _socket(socket), response(NULL), request(NULL) {}
@@ -29,12 +31,12 @@ HTTPReader::~HTTPReader() {
     }
 }
 
-Cookie& HTTPReader::get_cookie(Cookie cookie) {
+Cookie HTTPReader::get_cookie(Cookie cookie) {
 	std::list<Cookie>::iterator it;
 
 	it = std::find(session_management.begin(), session_management.end(), cookie);
 	if (it == session_management.end())
-		return Cookie::generate();
+		return cookie;
 	return *it;
 }
 

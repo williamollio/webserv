@@ -9,6 +9,8 @@
 #include "Socket.hpp"
 #include "HTTPRequest.hpp"
 #include "CGIResponse.hpp"
+#include "Cookie.hpp"
+#include <list>
 
 class HTTPReader {
     public:
@@ -30,6 +32,7 @@ class HTTPReader {
 
         int  getUsedPort() const;
         void setUsedPort(int port);
+		Cookie& get_cookie(Cookie cookie);
 
 private:
         Socket        _socket;
@@ -38,6 +41,8 @@ private:
         unsigned int  peerAddress;
         std::string   peerName;
         int           port;
+		Cookie        cookie;
+		static std::list<Cookie> session_management;
 
         HTTPRequest * _parse() throw(std::exception);
         bool          _isCGIMethod(HTTPRequest::TYPE);

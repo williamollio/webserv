@@ -11,6 +11,7 @@
 #include <sstream>
 #include "Socket.hpp"
 #include "URI.hpp"
+#include "Cookie.hpp"
 
 #ifndef BUFFER
 # define BUFFER 30000
@@ -24,7 +25,7 @@ public:
         GET, POST, DELETE, ERROR
     };
 	enum REQ_INFO {
-		USER_AGENT, HOSTNAME, LANG_SUPP, ENCODING, CON_TYPE, CONTENT_TYPE, CON_LENGTH, EXPECT ,DEFAULT
+		USER_AGENT, HOSTNAME, LANG_SUPP, ENCODING, CON_TYPE, CONTENT_TYPE, CON_LENGTH, EXPECT , COOKIE, DEFAULT
 	};
 
 	static int		checktype(std::string& word);
@@ -83,6 +84,9 @@ public:	//TODO: make private with get and set
 	vectorString	_content_type;
 	std::string		_payload;
 	std::string		_expect;
+	vectorString	_cookie;
+
+	Cookie get_cookie();
 };
 
 

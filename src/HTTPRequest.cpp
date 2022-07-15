@@ -34,6 +34,8 @@ HTTPRequest::REQ_INFO HTTPRequest::http_token_comp(std::string &word) {
 		return CON_TYPE;
 	if (word == "Expect" || word == "expect")
 		return EXPECT;
+	if (word == "Cookie" || word == "cookie")
+		return COOKIE;
 	return DEFAULT;
 }
 
@@ -131,6 +133,9 @@ HTTPRequest::HTTPRequest(HTTPRequest::TYPE type, std::vector<std::string> &file,
 			case EXPECT :
 				index = load_string(file, index, _expect);
 				break;
+			case COOKIE :
+				index = load_vec_str(file, index, _cookie);
+				break;
 			default:
 				index = ff_newline(file, index);
 		}
@@ -147,6 +152,19 @@ HTTPRequest::HTTPRequest(HTTPRequest::TYPE type, std::vector<std::string> &file,
 	}
 	else
 		_content = false;
+}
+
+Cookie HTTPRequest::get_cookie() {
+	Cookie cookie;
+
+	for (vectorString::iterator it = _cookie.begin(); it != _cookie.end(); ++it) {
+		size_t pos = it->find('=');
+		if (pos == std::string::npos) continue;
+		std::string name = it->substr(0, pos);
+		std::string value = it->substr(pos + 1);
+		cookie.set_identifier(name, value);
+	}
+	return cookie;
 }
 
 const URI &HTTPRequest::getURI() const {

@@ -29,9 +29,19 @@ HTTPReader::~HTTPReader() {
     }
 }
 
+Cookie& HTTPReader::get_cookie(Cookie cookie) {
+	std::list<Cookie>::iterator it;
+
+	it = std::find(session_management.begin(), session_management.end(), cookie);
+	if (it == session_management.end())
+		return Cookie::generate();
+	return *it;
+}
+
 void HTTPReader::run() {
     try {
         request = _parse();
+		Cookie cookie = get_cookie(request->get_cookie());
         request->setURI(URI(request->_path));
         request->setPeerAddress(peerAddress);
         request->setPeerName(peerName);

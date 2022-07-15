@@ -202,6 +202,10 @@ std::string URI::getFile() const {
     return determineFile();
 }
 
+const std::string & URI::getOriginal() const {
+    return original;
+}
+
 std::string URI::getQuery() const {
     std::list<Token>::const_iterator it;
     for (it = tokens.begin(); it->getType() != Token::END && it->getType() != Token::QUESTION; ++it);

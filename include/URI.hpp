@@ -31,6 +31,7 @@ public:
     std::map<std::string, std::string> getVars()                       const;
     std::string                        getQuery()                      const;
     std::string                        getPathInfo()                   const;
+    const std::string &                getOriginal()                   const;
     bool                               startsWith(const std::string &) const;
 
     class Token {

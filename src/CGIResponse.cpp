@@ -154,7 +154,9 @@ int CGIResponse::is_request_defined_location(std::string &request_path, std::vec
 	URI uri(request_path);
 	for (std::vector<Configuration::loc_inf>::const_iterator it = server_location_info.begin(); it != server_location_info.end(); it++)
 	{
-		if (uri.startsWith((*it).directory))
+        if (it->directory.size() > uri.getOriginal().size()) return false;
+        const std::string & tmp = uri.getOriginal().substr(it->directory.size());
+		if (uri.startsWith((*it).directory) && (tmp.empty() || tmp.front() == '/'))
 		{
 			set_rules_location(request_path, it);
 			PRINT_CGIRESPONSE("_directory_location ", _directory_location);

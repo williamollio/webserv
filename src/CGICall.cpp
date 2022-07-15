@@ -238,19 +238,27 @@ void CGICall::waitOrThrow() {
 
 std::string CGICall::computeRequestedFile() {
     std::string tmp = _request->_path;
-    // TODO: Cut the path_info and the query string!
     construct_file_path(tmp);
-    URI uri(tmp);
-    tmp = uri.getFile();
+    URI tmpUri(tmp);
+    tmp = tmpUri.getFile();
     std::string exe, ext = set_extension(tmp);
     const std::map<std::string, std::string> & exts = Configuration::getInstance().get_cgi_bin_map();
     ext = "." + ext;
     try {
         exe = exts.at(ext);
     } catch (std::out_of_range & ex) {
-        exe = tmp;
+        if (isFolder(tmp)) {
+            if (_dir_listing) {
+                exe = "directory_listing.php";
+                construct_file_path(exe);
+            } else if (!_server_index.empty()) {
+                exe = _server_index;
+                construct_file_path(exe);
+            } else throw HTTPException(401);
+        } else {
+            exe = tmp;
+        }
     }
-    std::cerr << ">> " << exe << std::endl;
     return exe;
 }
 
@@ -318,4 +326,14 @@ std::string CGICall::nextLine(const int fd) {
 unsigned long CGICall::skipWhitespaces(const std::string & str, unsigned long pos) {
     for (; pos < str.size() && isblank(str[pos]); ++pos);
     return pos;
+}
+
+bool CGICall::isFolder(const std::string & path) {
+    DIR * d;
+    d = opendir(path.c_str());
+    if (d != NULL) {
+        closedir(d);
+        return true;
+    }
+    return false;
 }

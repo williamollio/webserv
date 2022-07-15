@@ -56,6 +56,7 @@ private:
     void sendError(int errorCode) _NOEXCEPT;
 
     static std::string   nextLine(int);
+    static bool          isFolder(const std::string &);
     static HTTPHeader    parseCGIResponse(int);
     static unsigned long skipWhitespaces(const std::string &, unsigned long);
     static void          async(CGICall *);

@@ -11,7 +11,7 @@
 class URISyntaxException: public std::exception {
 public:
     URISyntaxException() _NOEXCEPT;
-    URISyntaxException(const URI::Token &) _NOEXCEPT;
+    explicit URISyntaxException(const URI::Token &) _NOEXCEPT;
     URISyntaxException(const URI::Token &, const std::string &) _NOEXCEPT;
     URISyntaxException(const URISyntaxException &) _NOEXCEPT;
     ~URISyntaxException() _NOEXCEPT;

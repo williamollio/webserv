@@ -4,11 +4,6 @@
 
 #include "HTTPHeader.hpp"
 #include "HTTPRequest.hpp"
-#include "HTTPRequestGet.hpp"
-#include "CGIResponse.hpp"
-#include "CGIResponseGet.hpp"
-#include "CGIResponsePost.hpp"
-#include "CGIResponseDelete.hpp"
 
 HTTPHeader::HTTPHeader()
 {

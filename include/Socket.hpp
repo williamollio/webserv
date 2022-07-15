@@ -12,17 +12,6 @@
 
 class Socket {
 	private:
-		// std::string	_req_info;
-		// std::string	_host;
-		// std::string	_connection;
-		// std::string	cache_control;
-		// int			_upgrade_insec_req;
-		// std::string	_user_agent;
-		// std::string	_accept;
-		// int			_dnt;
-		// std::string	_encoding;
-		// std::string	_lang;
-
 		int			_fd;
 		std::string _type_header;
 		std::string _filename;

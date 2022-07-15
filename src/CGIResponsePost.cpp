@@ -2,7 +2,7 @@
 // Created by Manuel Hahn on 6/10/22.
 //
 
-#include "../include/CGIResponsePost.hpp"
+#include "CGIResponsePost.hpp"
 
 //bool CGIResponsePost::isUploadAccepted() {return _accept_file;}
 

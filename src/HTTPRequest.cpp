@@ -4,8 +4,6 @@
 
 #include "HTTPRequest.hpp"
 #include "HTTPException.hpp"
-#include "CGIResponseError.hpp"
-#include "Tool.hpp"
 #include <cstdlib>
 
 

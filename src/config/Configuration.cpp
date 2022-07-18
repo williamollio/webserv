@@ -424,6 +424,10 @@ size_t	Configuration::parse_server(std::fstream& file, vectorString& s_line, siz
                     case cgi_methods:
                         index = parse_vec_str(file, s_line, index, _cgi_methods);
                         break;
+                    case cgi_bin:
+                        index = parse_vec_str(file, s_line, index, _cgi_bin);
+                        checkCGIExtensions(s_line, index);
+                        break;
                     default:
                         if (find_n_fill_loc(file, s_line, index)) {
                             file.close();
@@ -477,6 +481,8 @@ Configuration::server_word Configuration::server_token_cmp(const std::string &wo
 		return cgi_loc;
     else if (word == "cgi_methods")
         return cgi_methods;
+    else if (word == "cgi_bin")
+        return cgi_bin;
 	return s_errortype;
 }
 
@@ -729,6 +735,26 @@ const Configuration::vectorString &Configuration::get_cgi_methods() const {
     return _cgi_methods;
 }
 
+void Configuration::checkCGIExtensions(Configuration::vectorString &s_line, size_t index) {
+    for (std::vector<std::string>::const_iterator it = _cgi_bin.begin(); it != _cgi_bin.end(); ++it) {
+        size_t i = it->find('=');
+        if (i == std::string::npos) {
+            throw UnexpectedToken(e_line, s_line[index]);
+        }
+        const std::string tmp = it->substr(0, i);
+        if (std::find(_cgi_extensions.begin(), _cgi_extensions.end(), tmp) == _cgi_extensions.end()) {
+            throw UnexpectedToken(e_line, s_line[index]);
+        }
+        if (i + 1 == it->size()) {
+            throw UnexpectedToken(e_line, s_line[index]);
+        }
+        _cgi_bin_map[tmp] = it->substr(i + 1);
+    }
+}
+
+const std::map<std::string, std::string> & Configuration::get_cgi_bin_map() const {
+    return _cgi_bin_map;
+}
 
 Configuration::UnexpectedToken::UnexpectedToken(size_t _in_line, std::string tok) _NOEXCEPT : _line(_in_line){
 	std::stringstream ret;

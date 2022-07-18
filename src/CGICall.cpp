@@ -98,7 +98,7 @@ void CGICall::run(Socket & _socket) {
     for (std::vector<std::string>::const_iterator it = _request->_content_type.begin(); it != _request->_content_type.end(); ++it) {
         httpAccept += *it + ",";
     }
-    httpContentLength += int_to_string(_request->_content_length);
+    httpContentLength += int_to_string(static_cast<int>(_request->_content_length));
     httpExpect += _request->_expect;
     httpConnection += _request->_keep_alive ? "keep-alive" : "";
     scriptName += computeRequestedFile();
@@ -238,10 +238,28 @@ void CGICall::waitOrThrow() {
 
 std::string CGICall::computeRequestedFile() {
     std::string tmp = _request->_path;
-    // TODO: Cut the path_info and the query string!
     construct_file_path(tmp);
-    std::cerr << ">> " << tmp << std::endl;
-    return tmp;
+    URI tmpUri(tmp);
+    tmp = tmpUri.getFile();
+    std::string exe, ext = set_extension(tmp);
+    const std::map<std::string, std::string> & exts = Configuration::getInstance().get_cgi_bin_map();
+    ext = "." + ext;
+    try {
+        exe = exts.at(ext);
+    } catch (std::out_of_range & ex) {
+        if (isFolder(tmp)) {
+            if (_dir_listing) {
+                exe = "directory_listing.php";
+                construct_file_path(exe);
+            } else if (!_server_index.empty()) {
+                exe = _server_index;
+                construct_file_path(exe);
+            } else throw HTTPException(401);
+        } else {
+            exe = tmp;
+        }
+    }
+    return exe;
 }
 
 std::string CGICall::computeScriptDirectory() {
@@ -308,4 +326,14 @@ std::string CGICall::nextLine(const int fd) {
 unsigned long CGICall::skipWhitespaces(const std::string & str, unsigned long pos) {
     for (; pos < str.size() && isblank(str[pos]); ++pos);
     return pos;
+}
+
+bool CGICall::isFolder(const std::string & path) {
+    DIR * d;
+    d = opendir(path.c_str());
+    if (d != NULL) {
+        closedir(d);
+        return true;
+    }
+    return false;
 }

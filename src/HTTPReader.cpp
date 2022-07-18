@@ -3,7 +3,6 @@
 //
 
 #include "HTTPReader.hpp"
-#include "HTTPRequestGet.hpp"
 #include "CGIResponseGet.hpp"
 #include "CGIResponsePost.hpp"
 #include "CGIResponseDelete.hpp"

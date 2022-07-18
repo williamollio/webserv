@@ -17,4 +17,4 @@ class CGIResponseError : public CGIResponse {
 };
 
 
-#endif //WEBSERV_CGIRESPONSEDELETE_HPP
+#endif //WEBSERV_CGIRESPONSEERROR_HPP

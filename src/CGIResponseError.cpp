@@ -1,5 +1,4 @@
-
-#include "../include/CGIResponseError.hpp"
+#include "CGIResponseError.hpp"
 
 void CGIResponseError::set_error_code(int error_code)
 {

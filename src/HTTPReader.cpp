@@ -35,8 +35,12 @@ Cookie HTTPReader::get_cookie(Cookie cookie) {
 	std::list<Cookie>::iterator it;
 
 	it = std::find(session_management.begin(), session_management.end(), cookie);
-	if (it == session_management.end())
+	if (it == session_management.end()) {
+		cookie.set_identifier("sessionID", Cookie::generate_session_id());
+		cookie.set_user_agent(request->_user_agent);
+		session_management.push_back(cookie);
 		return cookie;
+	}
 	return *it;
 }
 

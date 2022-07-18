@@ -5,6 +5,8 @@ int main(const int argc, const char **argv) {
     signal(SIGPIPE, SIG_IGN);
 	try
 	{
+
+		std::cout << Cookie::generate_session_id() << std::endl;
 		if (argc == 2)
 			Configuration::getInstance().load_config_file(argv[1]);
 		else

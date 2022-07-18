@@ -15,6 +15,8 @@
 #include <cstdlib>
 #include <iostream>
 
+std::list<Cookie> HTTPReader::session_management;
+
 HTTPReader::HTTPReader(): _socket(), response(NULL), request(NULL) {}
 
 HTTPReader::HTTPReader(Socket & socket): _socket(socket), response(NULL), request(NULL) {}
@@ -29,9 +31,24 @@ HTTPReader::~HTTPReader() {
     }
 }
 
+Cookie HTTPReader::get_cookie(Cookie cookie) {
+	std::list<Cookie>::iterator it;
+
+	it = std::find(session_management.begin(), session_management.end(), cookie);
+	if (it == session_management.end()) {
+		cookie.set_identifier("sessionID", Cookie::generate_session_id());
+		cookie.set_user_agent(request->_user_agent);
+		session_management.push_back(cookie);
+		return cookie;
+	}
+	return *it;
+}
+
 void HTTPReader::run() {
     try {
         request = _parse();
+		Cookie cookie = get_cookie(request->parse_cookie());
+		request->set_cookie(cookie);
         request->setURI(URI(request->_path));
         request->setPeerAddress(peerAddress);
         request->setPeerName(peerName);
@@ -160,6 +177,7 @@ HTTPRequest* HTTPReader::_parse() throw(std::exception) {
 			throw HTTPException(504);
 		raw += buff;
 	}
+	std::cout << "request: " <<  raw << std::endl;
 	std::string	head = raw;
 	std::vector<std::string> file = split_line(head);
 	switch(HTTPRequest::checktype(file[0])) {

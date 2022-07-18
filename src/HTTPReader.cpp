@@ -177,7 +177,6 @@ HTTPRequest* HTTPReader::_parse() throw(std::exception) {
 			throw HTTPException(504);
 		raw += buff;
 	}
-	std::cout << "request: " <<  raw << std::endl;
 	std::string	head = raw;
 	std::vector<std::string> file = split_line(head);
 	switch(HTTPRequest::checktype(file[0])) {

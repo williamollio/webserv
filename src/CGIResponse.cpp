@@ -7,7 +7,7 @@
 std::string CGIResponse::set_extension(std::string& file)
 {
 	if (_file_extension != "")
-		return _file_extension;
+		return (_file_extension);
 	size_t pos = file.rfind('.');
 	if (pos == std::string::npos)
 		return ("");
@@ -32,10 +32,7 @@ std::string CGIResponse::get_current_path()
 	char buf[256];
 
 	if (getcwd(buf, sizeof(buf)) == NULL)
-	{
-		PRINT_ERROR_CODE("Error code : ", 404);
 		throw HTTPException(404);
-	}
 	std::string current_path(buf);
 	return (current_path);
 }
@@ -48,24 +45,23 @@ std::string CGIResponse::set_absolut_path(std::string& folder)
 	new_path = get_current_path() + folder;
 	path_tmp = new_path.c_str();
 	if (access(path_tmp, R_OK) < 0)
-	{
-		PRINT_ERROR_CODE("Error code : ", 404);
 		throw HTTPException(404);
-	}
 	return (new_path);
 }
 
 bool CGIResponse::is_sub_folder_location(std::string& file)
 {
-    if (file.back() == '/' && _server_location_log.back() != '/') {
+    if (file.back() == '/' && _server_location_log.back() != '/')
         file.pop_back();
-    } else if (_server_location_log.back() == '/' && file.back() != '/') {
+    else if (_server_location_log.back() == '/' && file.back() != '/')
         file += '/';
-    }
+
 	size_t pos = file.rfind('/');
 	size_t pos2 = _server_location_log.rfind('/');
+
 	if ((pos == std::string::npos) || (pos2 == std::string::npos))
 		throw HTTPException(418);
+
 	std::string tmp = file.substr(pos);
 	std::string tmp2 = _server_location_log.substr(pos2);
 	return (tmp != tmp2);
@@ -78,8 +74,6 @@ void CGIResponse::construct_file_path(std::string& file)
 	else
 		file = _server_location_log + file;
 
-	PRINT_CGIRESPONSE("file ", file);
-	PRINT_CGIRESPONSE("_server_location_log ", _server_location_log);
 	if (!_loc_root.empty())
 	{
 		DIR* dir;
@@ -118,7 +112,6 @@ std::string CGIResponse::read_file(std::string& file)
 	if (!is.is_open())
 	{
 		is.close();
-		PRINT_ERROR_CODE("Error code : ", 404);
 		throw HTTPException(404);
 	}
 	buffer << is.rdbuf();
@@ -159,9 +152,9 @@ int CGIResponse::is_request_defined_location(std::string &request_path, std::vec
 		if (uri.startsWith((*it).directory) && (tmp.empty() || tmp.front() == '/'))
 		{
 			set_rules_location(request_path, it);
-			PRINT_CGIRESPONSE("_directory_location ", _directory_location);
-			PRINT_CGIRESPONSE("(*it).directory ", (*it).directory);
-			PRINT_CGIRESPONSE("_server_index ", _server_index);
+			// PRINT_CGIRESPONSE("_directory_location ", _directory_location);
+			// PRINT_CGIRESPONSE("(*it).directory ", (*it).directory);
+			// PRINT_CGIRESPONSE("_server_index ", _server_index);
 			return (1);
 		}
 	}
@@ -177,5 +170,5 @@ CGIResponse::CGIResponse(HTTPRequest *request): _request(request), _GET(true), _
 CGIResponse::~CGIResponse() {}
 
 bool CGIResponse::isRunning() {
-    return false;
+    return (false);
 }

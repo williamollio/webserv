@@ -13,7 +13,7 @@ public :
 	static Cookie generate();
 
 bool operator==(const Cookie &cookie) {
-	return (this->_identifiers == cookie._identifiers) && (this->_user_agent == cookie._user_agent);
+	return (this->_identifiers == cookie._identifiers);
 }
 private :
 	std::map<std::string, std::string> _identifiers;

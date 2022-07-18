@@ -134,7 +134,7 @@ HTTPRequest::HTTPRequest(HTTPRequest::TYPE type, std::vector<std::string> &file,
 				index = load_string(file, index, _expect);
 				break;
 			case COOKIE :
-				index = load_vec_str(file, index, _cookie);
+				index = load_vec_str(file, index, _cookie_vector);
 				break;
 			default:
 				index = ff_newline(file, index);
@@ -153,11 +153,18 @@ HTTPRequest::HTTPRequest(HTTPRequest::TYPE type, std::vector<std::string> &file,
 	else
 		_content = false;
 }
+void HTTPRequest::set_cookie(Cookie &cookie) {
+	_cookie = cookie;
+}
 
-Cookie HTTPRequest::get_cookie() {
+Cookie& HTTPRequest::get_cookie() {
+	return (_cookie);
+}
+
+Cookie HTTPRequest::parse_cookie() {
 	Cookie cookie;
 
-	for (vectorString::iterator it = _cookie.begin(); it != _cookie.end(); ++it) {
+	for (vectorString::iterator it = _cookie_vector.begin(); it != _cookie_vector.end(); ++it) {
 		size_t pos = it->find('=');
 		if (pos == std::string::npos) continue;
 		std::string name = it->substr(0, pos);

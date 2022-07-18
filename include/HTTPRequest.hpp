@@ -84,9 +84,12 @@ public:	//TODO: make private with get and set
 	vectorString	_content_type;
 	std::string		_payload;
 	std::string		_expect;
-	vectorString	_cookie;
+	vectorString	_cookie_vector;
+	Cookie			_cookie;
 
-	Cookie get_cookie();
+	Cookie parse_cookie();
+	Cookie& get_cookie();
+	void set_cookie(Cookie &cookie);
 };
 
 

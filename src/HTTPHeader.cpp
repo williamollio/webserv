@@ -4,6 +4,7 @@
 
 #include "HTTPHeader.hpp"
 #include "HTTPRequest.hpp"
+#include "Tool.hpp"
 
 HTTPHeader::HTTPHeader()
 {
@@ -14,6 +15,12 @@ HTTPHeader::HTTPHeader()
 	_content_type = "";
 	_content_length = 0;
 	_transfer_encoding = "";
+}
+
+void HTTPHeader::get_set_cookies(std::stringstream &str) const{
+
+	for (std::vector<std::string>::const_iterator it = _set_cookies.begin(); it != _set_cookies.end(); ++it)
+		str << "Set-Cookie: " << *it << "\n";
 }
 
 std::string HTTPHeader::tostring() const
@@ -30,8 +37,11 @@ std::string HTTPHeader::tostring() const
 		str << "Content-Length: " << _content_length << "\n";
 	if (_transfer_encoding != "")
 		str << "Transfer-Encoding: " << _transfer_encoding << "\n";
+	if (!_set_cookies.empty())
+		get_set_cookies(str);
     std::string tmp = str.str();
     tmp.erase(tmp.end() - 1);
+	std::cout << "response: " <<  tmp << std::endl;
 	return (tmp);
 }
 
@@ -89,4 +99,14 @@ void HTTPHeader::setContentEncoding(const std::string &contentEncoding) {
 
 void HTTPHeader::setTransferEncoding(const std::string &transferEncoding) {
     _transfer_encoding = transferEncoding;
+}
+
+void HTTPHeader::setCookie(Cookie &cookie) {
+    const std::map<std::string, std::string> &identifier = cookie.get_identifier();
+	std::map<std::string, std::string>::const_iterator it;
+	_set_cookies.reserve(identifier.size());
+	for (it = identifier.begin(); it != identifier.end(); ++it) {
+		_set_cookies.push_back(it->first + "=" + it->second);
+	}
+
 }

@@ -6,6 +6,7 @@
 #define WEBSERV_HTTHEADER_HPP
 
 #include <string>
+#include "Cookie.hpp"
 
 class HTTPHeader {
 	public:
@@ -26,6 +27,8 @@ class HTTPHeader {
         void setStatusCode(int statusCode);
         void setConnection(const std::string &connection);
         void setContentEncoding(const std::string &contentEncoding);
+		void setCookie(Cookie &cookie);
+		void get_set_cookies(std::stringstream &str) const;
 
 private :
 		std::string	_status_message;
@@ -35,6 +38,7 @@ private :
 		std::string _content_type;
 		int			_content_length;
 		std::string _transfer_encoding;
+		std::vector<std::string> _set_cookies;
 
 };
 

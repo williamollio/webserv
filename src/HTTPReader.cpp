@@ -47,7 +47,8 @@ Cookie HTTPReader::get_cookie(Cookie cookie) {
 void HTTPReader::run() {
     try {
         request = _parse();
-		Cookie cookie = get_cookie(request->get_cookie());
+		Cookie cookie = get_cookie(request->parse_cookie());
+		request->set_cookie(cookie);
         request->setURI(URI(request->_path));
         request->setPeerAddress(peerAddress);
         request->setPeerName(peerName);
@@ -176,6 +177,7 @@ HTTPRequest* HTTPReader::_parse() throw(std::exception) {
 			throw HTTPException(504);
 		raw += buff;
 	}
+	std::cout << "request: " <<  raw << std::endl;
 	std::string	head = raw;
 	std::vector<std::string> file = split_line(head);
 	switch(HTTPRequest::checktype(file[0])) {

@@ -210,12 +210,14 @@ void HTTPRequest::set_payload(const std::string& data, Socket& _socket) throw(st
 		size_t		sec_size = 0;
 		long long	char_count = 0;
 		long long	ret = 0;
+		bool		failed = false;
 		while (raw.find("\r\n\r\n", 0) == std::string::npos) {
 			while (raw.find("\r\n\r\n", 0) == std::string::npos && raw.find("\r\n", size) == std::string::npos) {
 				if (!read(_socket.get_fd(), buff, 1))
 					throw HTTPException(504);
 				raw += buff;
 			}
+			failed = false;
 			if (raw.find("\r\n\r\n", 0) != std::string::npos)
 				break;
 
@@ -238,7 +240,11 @@ void HTTPRequest::set_payload(const std::string& data, Socket& _socket) throw(st
 				long long tmp = 0;
 				while (char_count-ret > 0 && ret < char_count && raw.find("\r\n\r\n", 0) == std::string::npos) {
 					tmp = read(_socket.get_fd(), ex_buff, char_count - ret);
-					if (tmp < 0) {
+					if (tmp < 0 && !failed) {
+						failed = true;
+						continue;
+					}
+					else if (tmp < 0 && failed) {
 						std::cerr << "READ: ERROR" << std::endl;
 						delete[] ex_buff;
 						throw HTTPException(504);
@@ -246,7 +252,7 @@ void HTTPRequest::set_payload(const std::string& data, Socket& _socket) throw(st
 					ret += tmp;
 					raw += ex_buff;
 				}
-				if (char_count-ret < 0)
+				if (char_count - ret < 0)
 					std::cout << "really??" << std::endl;
 				delete[] ex_buff;
 			}

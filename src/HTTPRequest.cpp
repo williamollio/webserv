@@ -169,6 +169,8 @@ Cookie HTTPRequest::parse_cookie() {
 		if (pos == std::string::npos) continue;
 		std::string name = it->substr(0, pos);
 		std::string value = it->substr(pos + 1);
+		if (value.back() == '\r')
+			value.pop_back();
 		cookie.set_identifier(name, value);
 	}
 	return cookie;

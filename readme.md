@@ -22,15 +22,16 @@ The server can be configured with a configuration-file. This file is either spec
     - ``ports``        _specifies ports to listen to_
     - ``root``         _specifies the root folder of the server_
     - ``index``         _specifies the default file of the server_
+    - ``error_pages``_specifies the pages rendered depending on the error code returned_
+    - ``accept_files``_manages the access right to upload files
+    - ``cgi_path``_specifies path to the cgi_
+    - ``cgi_extension`` _specifies extenstion of the cgi_
+    - ``client_max_body_size`` _specifies the size payload sent by the client
     - ``location`` can be specified further _(after declaration only!)_:
       - ``directory_listing`` _lists the files/folders of the location_
       - ``upload`` _determine specific folder to store files uploaded in the location_
       - ``default_file``_specifies the default file of the location_
       - ``methods`` **[GET / POST / DELETE]** _specifies the methods allowed of the location_
-    - ``error_pages``_specifies the pages rendered depending on the error code returned_
-    - ``accept_files``_manages the access right to upload files
-    - ``cgi_path``_specifies path to the cgi_
-    - ``cgi_extension`` _specifies extenstion of the cgi_
 - comment with ``# comment to be ignored by the parser``
 - a option is legal when formatted like: ``<option> : <input> , <input2> ;`` **_or_** ``<option> { <input> , <input2> }``
 - mixing ``{}`` and ``:  ;`` will result in a parser error

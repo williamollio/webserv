@@ -41,7 +41,6 @@ std::string HTTPHeader::tostring() const
 		get_set_cookies(str);
     std::string tmp = str.str();
     tmp.erase(tmp.end() - 1);
-	std::cout << "response: " <<  tmp << std::endl;
 	return (tmp);
 }
 

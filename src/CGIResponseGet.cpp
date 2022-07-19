@@ -62,7 +62,6 @@ void CGIResponseGet::run(Socket & socket) {
     header.setStatusMessage(get_message(200));
 	header.setCookie(_request->get_cookie());
 	socket.write(header.tostring() + "\r\n\r\n" + body);
-    std::cerr << "Header sent " << std::endl;
 }
 
 CGIResponseGet::CGIResponseGet(HTTPRequest *request): CGIResponse(request)

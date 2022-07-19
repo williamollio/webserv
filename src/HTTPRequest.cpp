@@ -265,9 +265,7 @@ void HTTPRequest::set_payload(const std::string& data, Socket& _socket) throw(st
 			}
 		}
     	_payload = unchunkedPayload(raw, 0);
-		std::cout << "unchunkedPayload: " << _payload << std::endl;
     }
-	std::cout << "size: " << _payload.size() << std::endl;
 }
 
 const std::string & HTTPRequest::get_payload() const {

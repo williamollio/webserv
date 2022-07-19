@@ -112,6 +112,7 @@ std::string CGIResponse::read_file(std::string& file)
 	if (!is.is_open())
 	{
 		is.close();
+        std::cerr << file << std::endl;
 		throw HTTPException(404);
 	}
 	buffer << is.rdbuf();

@@ -6,7 +6,6 @@
 #define WEBSERV_CGIRESPONSEDELETE_HPP
 
 #include "CGIResponse.hpp"
-#include "HTTPRequestDelete.hpp"
 
 class CGIResponseDelete : public CGIResponse {
 public:

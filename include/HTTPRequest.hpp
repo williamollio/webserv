@@ -66,7 +66,7 @@ protected:
 	explicit HTTPRequest(TYPE);
 	bool ff_nextline();
 
-//private:
+public:
     const TYPE  _type;
     URI          uri;
     unsigned int peerAddress;

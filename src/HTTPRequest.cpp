@@ -231,7 +231,7 @@ void HTTPRequest::loadPayload() {
 			ss >> _chunked_curr_line_expect_count;
 			raw_expect.clear();
 			if (_chunked_curr_line_expect_count < 0) {
-				throw HTTPException(404);
+				throw HTTPException(400);
 			} else if (_chunked_curr_line_expect_count == 0) {
 				loaded = true;
 				std::cout << "finished" << std::endl;

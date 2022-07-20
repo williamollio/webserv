@@ -128,7 +128,8 @@ void Connection::handleConnection(const unsigned long index) _NOEXCEPT {
 		if (my_reader != list.end() && (*my_reader)->getRequest() && !(*my_reader)->getRequest()->loaded) {
 			reader = *my_reader;
 			reader->getRequest()->loadPayload();
-            std::cerr << reader->getRequest()->raw_read.size() << std::endl;
+            std::cerr << "size: " << reader->getRequest()->raw_read.size() << std::endl;
+            std::cerr << "expected: " << reader->getRequest()->_chunked_curr_line_expect_count << std::endl;
 		} else {
 			reader = new HTTPReader(socket);
 		}

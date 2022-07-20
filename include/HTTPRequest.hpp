@@ -50,7 +50,7 @@ public:
 	void                 isChunkedRequest(const std::string &data);
 	void				 loadPayload();
 
-	explicit HTTPRequest(TYPE, std::vector<std::string>& file, std::string& raw, Socket& _socket);
+	explicit HTTPRequest(HTTPRequest::TYPE type, std::vector<std::string> &file, std::string &raw, Socket &_socket);
 	REQ_INFO http_token_comp(std::string& word);
 
 	size_t	load_string(std::vector<std::string>& file, size_t index, std::string& target);
@@ -62,6 +62,7 @@ public:
 	size_t	ff_newline(std::vector<std::string>& file, size_t index);
 	protected:
 	explicit HTTPRequest(TYPE);
+	bool ff_nextline();
 
 private:
     const TYPE  _type;
@@ -75,6 +76,7 @@ private:
 	std::string  raw_expect;
 	long long    _chunked_curr_line_read_count;
 	std::string  raw_read;
+	bool         fast_fowarded;
 
 public:	//TODO: make private with get and set
 	std::string		_copy_raw;
@@ -91,6 +93,7 @@ public:	//TODO: make private with get and set
 	vectorString	_content_type;
 	std::string		_payload;
 	std::string		_expect;
+
 };
 
 

@@ -81,7 +81,9 @@ size_t	HTTPRequest::ff_newline(std::vector<std::string>& file, size_t index) {
 	return index + 1;
 }
 
-HTTPRequest::HTTPRequest(HTTPRequest::TYPE type, std::vector<std::string> &file, std::string& raw, Socket& _socket) : loaded(true), _type(type), _chunked_socket(_socket), _chunked_head_or_load(false), _keep_alive(false), _content(false), _content_length(0) {
+HTTPRequest::HTTPRequest(HTTPRequest::TYPE type, std::vector<std::string> &file, std::string &raw, Socket &_socket)
+		: loaded(true), _type(type), _chunked_socket(_socket), _chunked_head_or_load(false), _keep_alive(false), _content(false), _content_length(0),
+		  fast_fowarded(true) {
 	size_t	index = 1;
 	_copy_raw = raw;
 	_path = file[index++];
@@ -193,18 +195,32 @@ void HTTPRequest::isChunkedRequest(const std::string &data)
 		_chunked = true;
 }
 
+bool HTTPRequest::ff_nextline() {
+	char buffer[2] = {'\0', '\0'};
+	int i = 0;
+	while (read(_chunked_socket.get_fd(), buffer + i, 1)) {
+		if (buffer[0] == '\r' && buffer[1] == '\n')
+			return true;
+		i = i * -1 + 1;
+		if (i == 0)
+			buffer[i] = buffer[i + 1];
+	}
+	return false;
+}
+
 void HTTPRequest::loadPayload() {
 	loaded = false;
 
 	char buff[2] = {'\0', '\0'};
 
 		if (!_chunked_head_or_load) {
+			if (!fast_fowarded && !ff_nextline())
+				return;
+			fast_fowarded = true;
 			while (raw_expect.find("\r\n") == std::string::npos) {
 				if (!read(_chunked_socket.get_fd(), buff, 1))
 					return;
 				raw_expect += buff;
-				if (raw_expect.find("\r\n") == 0)
-					raw_expect.clear();
 			}
 			_chunked_head_or_load = true;
 			_chunked_curr_line_read_count = 0;
@@ -233,11 +249,14 @@ void HTTPRequest::loadPayload() {
 			_chunked_curr_line_read_count += tmp;
 			raw_read += heap_buffer;
 		}
-		while (raw_read.find("\r\n") != std::string::npos)
-			raw_read.erase(raw_read.find("\r\n"), 2);
 		if (_chunked_curr_line_expect_count <= _chunked_curr_line_read_count)
 			_chunked_head_or_load = false;
 		delete[] heap_buffer;
+		if (raw_read.find("\r\n") == std::string::npos && !ff_nextline()) {
+			fast_fowarded = false;
+			return;
+		} else if (raw_read.find("\r\n") != std::string::npos)
+			raw_read.erase(raw_read.find("\r\n"), 2);
 	///DEPRICATED
 //	loaded = false;
 //	char buff[2] = {'\0', '\0'};

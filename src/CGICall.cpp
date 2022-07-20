@@ -103,6 +103,7 @@ void CGICall::run(Socket & _socket) {
     httpConnection += _request->_keep_alive ? "keep-alive" : "";
     scriptName += computeRequestedFile();
     const std::string & requestedFile = computeRequestedFile();
+	std::cout << requestedFile << std::endl;
     if (access(requestedFile.c_str(), F_OK) < 0) throw HTTPException(404);
     if (access(requestedFile.c_str(), X_OK) < 0) throw HTTPException(403);
     if (pipe(in) < 0) throw HTTPException(500);

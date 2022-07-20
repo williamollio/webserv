@@ -219,7 +219,7 @@ void HTTPRequest::loadPayload() {
 				return;
 			fast_fowarded = true;
 			while (raw_expect.find("\r\n") == std::string::npos) {
-				if (!read(_chunked_socket.get_fd(), buff, 1))
+				if (read(_chunked_socket.get_fd(), buff, 1) < 0)
 					return;
 				raw_expect += buff;
 			}

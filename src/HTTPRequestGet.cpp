@@ -4,4 +4,4 @@
 
 #include "HTTPRequestGet.hpp"
 
-HTTPRequestGet::HTTPRequestGet(): HTTPRequest(GET) {}
+//HTTPRequestGet::HTTPRequestGet(): HTTPRequest(GET) {}

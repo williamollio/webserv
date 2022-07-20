@@ -4,4 +4,4 @@
 
 #include "HTTPRequestPost.hpp"
 
-HTTPRequestPost::HTTPRequestPost(): HTTPRequest(POST) {}
+//HTTPRequestPost::HTTPRequestPost(): HTTPRequest(POST) {}

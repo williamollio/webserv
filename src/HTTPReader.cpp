@@ -31,7 +31,10 @@ HTTPReader::~HTTPReader() {
 
 void HTTPReader::run() {
     try {
-        request = _parse();
+		if (!getRequest())
+        	request = _parse();
+		if (!request->loaded)
+			return;
         request->setURI(URI(request->_path));
         request->setPeerAddress(peerAddress);
         request->setPeerName(peerName);
@@ -143,15 +146,6 @@ int	HTTPRequest::checktype(std::string& word) {
 
 
 HTTPRequest* HTTPReader::_parse() throw(std::exception) {
-//	char * buff = new char[BUFFER + 1]();
-//	if (!read(_socket.get_fd(), buff, BUFFER)) {
-//		throw HTTPException(504);
-//	}
-//    delete[] buff;
-//	size_t	cursor = raw.find("\r\n\r\n", 0);
-//	if (cursor == raw.npos)
-//		cursor = raw.length();
-
 	char buff[2] = {'\0', '\0'};
 	std::string raw(buff);
 
@@ -160,6 +154,7 @@ HTTPRequest* HTTPReader::_parse() throw(std::exception) {
 			throw HTTPException(504);
 		raw += buff;
 	}
+	std::cout << raw << std::endl;
 	std::string	head = raw;
 	std::vector<std::string> file = split_line(head);
 	switch(HTTPRequest::checktype(file[0])) {
@@ -170,10 +165,13 @@ HTTPRequest* HTTPReader::_parse() throw(std::exception) {
 		case HTTPRequest::DELETE:
 			return new HTTPRequest(HTTPRequest::DELETE, file, raw, _socket);
         default:
+			std::cerr << file[0] << std::endl;
 			throw HTTPException(405);
 	}
 
 }
+
+
 
 bool HTTPReader::isRunning() const {
     return response == NULL || response->isRunning();
@@ -223,4 +221,8 @@ bool HTTPReader::_isCGIMethod(HTTPRequest::TYPE type) {
         }
     }
     return false;
+}
+
+HTTPRequest* HTTPReader::getRequest() const {
+	return request;
 }

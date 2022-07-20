@@ -119,29 +119,40 @@ void Connection::denyConnection(const int fd, const int errorCode) const _NOEXCE
 
 void Connection::handleConnection(const unsigned long index) _NOEXCEPT {
     const int fd = _fds[index].fd;
+	HTTPReader *reader;
     try {
         Socket socket = fd;
-        HTTPReader * reader = new HTTPReader(socket);
-        getpeername(socket.get_fd(), (struct sockaddr *) &address, (socklen_t *) &addrlen);
-        reader->setPeerAddress(ntohl(address.sin_addr.s_addr));
-        char * host = new char[50]();
-        getnameinfo((struct sockaddr *) &address, (socklen_t) addrlen, host, (socklen_t) 50, NULL, 0, 0);
-        reader->setPeerName(host);
-        reader->setUsedPort(server_fds[connectionPairs[socket.get_fd()]]);
-        delete[] host;
-        list.push_back(reader);
-        reader->run();
+		ReaderByFDFinder rfd(fd);
+		std::list<HTTPReader *>::iterator my_reader = std::find_if(list.begin(), list.end(), rfd);
+		if (my_reader != list.end() && (*my_reader)->getRequest() && !(*my_reader)->getRequest()->loaded) {
+			reader = *my_reader;
+			reader->getRequest()->loadPayload();
+		} else {
+			reader = new HTTPReader(socket);
+		}
+		getpeername(socket.get_fd(), (struct sockaddr *) &address, (socklen_t *) &addrlen);
+		reader->setPeerAddress(ntohl(address.sin_addr.s_addr));
+		char * host = new char[50]();
+		getnameinfo((struct sockaddr *) &address, (socklen_t) addrlen, host, (socklen_t) 50, NULL, 0, 0);
+		reader->setPeerName(host);
+		reader->setUsedPort(server_fds[connectionPairs[socket.get_fd()]]);
+		delete[] host;
+		if (my_reader == list.end())
+			list.push_back(reader);
+		if (my_reader == list.end() || (reader->getRequest() && reader->getRequest()->loaded))
+			reader->run();
     } catch (std::bad_alloc & ex) {
         denyConnection(fd, 507);
     } catch (std::exception & ex) {
         std::cerr << ">>>>>>> " << ex.what() << " <<<<<<<" << std::endl;
         denyConnection(fd, 500);
     }
-    removeFD(index);
+	if (reader->getRequest() && reader->getRequest()->loaded)
+    	removeFD(index);
 }
 
 static void maybeDeleteReader(HTTPReader* & reader) {
-    if (!reader->isRunning()) {
+    if (!reader->isRunning() ||(reader->getRequest() && reader->getRequest()->loaded)) {
         delete reader;
         reader = NULL;
     }

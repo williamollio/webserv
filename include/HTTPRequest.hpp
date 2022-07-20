@@ -27,6 +27,7 @@ public:
 		USER_AGENT, HOSTNAME, LANG_SUPP, ENCODING, CON_TYPE, CONTENT_TYPE, CON_LENGTH, EXPECT ,DEFAULT
 	};
 
+	bool			loaded;
 	static int		checktype(std::string& word);
 
     TYPE                getType() const;
@@ -47,6 +48,7 @@ public:
 
 	std::string          unchunkedPayload(const std::string &data, size_t cursor);
 	void                 isChunkedRequest(const std::string &data);
+	void				 loadPayload();
 
 	explicit HTTPRequest(TYPE, std::vector<std::string>& file, std::string& raw, Socket& _socket);
 	REQ_INFO http_token_comp(std::string& word);
@@ -67,6 +69,12 @@ private:
     unsigned int peerAddress;
     std::string  peerName;
     int          port;
+	Socket&      _chunked_socket;
+	bool         _chunked_head_or_load;
+	long long    _chunked_curr_line_expect_count;
+	std::string  raw_expect;
+	long long    _chunked_curr_line_read_count;
+	std::string  raw_read;
 
 public:	//TODO: make private with get and set
 	std::string		_copy_raw;

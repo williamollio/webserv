@@ -4,4 +4,4 @@
 
 #include "HTTPRequestDelete.hpp"
 
-HTTPRequestDelete::HTTPRequestDelete(): HTTPRequest(DELETE) {}
+//HTTPRequestDelete::HTTPRequestDelete(): HTTPRequest(DELETE) {}

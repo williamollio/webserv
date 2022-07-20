@@ -28,6 +28,8 @@ class HTTPReader {
         const Socket & getSocket() const;
         void           setSocket(const Socket &);
 
+		HTTPRequest*  getRequest() const;
+
         int  getUsedPort() const;
         void setUsedPort(int port);
 

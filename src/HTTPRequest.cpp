@@ -196,10 +196,9 @@ void HTTPRequest::isChunkedRequest(const std::string &data)
 }
 
 bool HTTPRequest::ff_nextline() {
-//	int i = 0;
 	char buffer;
 	bool boll = false;
-	while (read(_chunked_socket.get_fd(), &buffer, 1)) {
+	while (read(_chunked_socket.get_fd(), &buffer, 1) > 0) {
 		if (buffer == '\r')
 			boll = true;
 		else if (boll && buffer == '\n')

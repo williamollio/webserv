@@ -114,10 +114,10 @@ void CGICall::run(Socket & _socket) {
     }
     running = true;
     std::cerr << "Before writing" << std::endl;
-    write(in[1], _request->get_payload().c_str(), _request->get_payload().size());
-//    for (size_t i = 0; i < _request->get_payload().size(); ++i) {
-//        write(in[1], _request->get_payload().c_str() + i, 1);
-//    }
+//    write(in[1], _request->get_payload().c_str(), _request->get_payload().size());
+    for (size_t i = 0; i < _request->get_payload().size(); ++i) {
+        write(in[1], _request->get_payload().c_str() + i, 1);
+    }
     std::cerr << "After writing" << std::endl;
     close(in[1]);
     execute(in[0], out[1], requestedFile);

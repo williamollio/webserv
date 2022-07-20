@@ -100,6 +100,7 @@ void Connection::establishConnection() {
 }
 
 void Connection::removeFD(const unsigned long index) _NOEXCEPT {
+    std::cerr << "Removed " << _fds[index].fd << std::endl;
     connectionPairs.erase(_fds[index].fd);
     _fds[index].fd = -1;
 }
@@ -127,6 +128,7 @@ void Connection::handleConnection(const unsigned long index) _NOEXCEPT {
 		if (my_reader != list.end() && (*my_reader)->getRequest() && !(*my_reader)->getRequest()->loaded) {
 			reader = *my_reader;
 			reader->getRequest()->loadPayload();
+            std::cerr << reader->getRequest()->raw_read.size() << std::endl;
 		} else {
 			reader = new HTTPReader(socket);
 		}
@@ -137,8 +139,10 @@ void Connection::handleConnection(const unsigned long index) _NOEXCEPT {
 		reader->setPeerName(host);
 		reader->setUsedPort(server_fds[connectionPairs[socket.get_fd()]]);
 		delete[] host;
-		if (my_reader == list.end())
-			list.push_back(reader);
+		if (my_reader == list.end()) {
+            std::cerr << "Added " << reader->getSocket().get_fd() << std::endl;
+            list.push_back(reader);
+        }
 		if (my_reader == list.end() || (reader->getRequest() && reader->getRequest()->loaded))
 			reader->run();
     } catch (std::bad_alloc & ex) {
@@ -153,6 +157,7 @@ void Connection::handleConnection(const unsigned long index) _NOEXCEPT {
 
 static void maybeDeleteReader(HTTPReader* & reader) {
     if (!reader->isRunning() ||(reader->getRequest() && reader->getRequest()->loaded)) {
+        std::cerr << "Deleted reader with fd " << reader->getSocket().get_fd() << std::endl;
         delete reader;
         reader = NULL;
     }

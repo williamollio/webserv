@@ -64,7 +64,7 @@ private:
     /**
      * The time in seconds after which child processes are killed if they did not finish.
      */
-    static const unsigned int TIMEOUT = 5;
+    static const unsigned int TIMEOUT = 10000;
 };
 
 

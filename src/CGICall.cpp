@@ -113,9 +113,12 @@ void CGICall::run(Socket & _socket) {
         throw HTTPException(500);
     }
     running = true;
-    for (size_t i = 0; i < _request->get_payload().size(); ++i) {
-        write(in[1], _request->get_payload().c_str() + i, 1);
-    }
+    std::cerr << "Before writing" << std::endl;
+    write(in[1], _request->get_payload().c_str(), _request->get_payload().size());
+//    for (size_t i = 0; i < _request->get_payload().size(); ++i) {
+//        write(in[1], _request->get_payload().c_str() + i, 1);
+//    }
+    std::cerr << "After writing" << std::endl;
     close(in[1]);
     execute(in[0], out[1], requestedFile);
     pthread_create(&threadID, NULL, reinterpret_cast<void *(*)(void *)>(CGICall::async), this);
@@ -124,6 +127,7 @@ void CGICall::run(Socket & _socket) {
 void CGICall::async(CGICall * self) {
     try {
         self->waitOrThrow();
+        std::cerr << "After processing" << std::endl;
         HTTPHeader header = parseCGIResponse(self->out[0]);
         std::string payload;
         if (header.getTransferEncoding() == "chunked") {
@@ -150,6 +154,7 @@ void CGICall::async(CGICall * self) {
         std::clog << "INFO: Socket has been closed" << std::endl
                   << "INFO: " << exception.what()   << std::endl;
     }
+    std::cerr << "After sending" << std::endl;
     close(self->out[0]);
     close(self->socket.get_fd());
     pthread_mutex_lock(&self->runningMutex);

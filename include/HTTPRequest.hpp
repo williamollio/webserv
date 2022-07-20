@@ -60,11 +60,13 @@ public:
 
 	bool	is_payload(size_t index);
 	size_t	ff_newline(std::vector<std::string>& file, size_t index);
-	protected:
+
+    std::string  raw_read;
+protected:
 	explicit HTTPRequest(TYPE);
 	bool ff_nextline();
 
-private:
+//private:
     const TYPE  _type;
     URI          uri;
     unsigned int peerAddress;
@@ -75,8 +77,7 @@ private:
 	long long    _chunked_curr_line_expect_count;
 	std::string  raw_expect;
 	long long    _chunked_curr_line_read_count;
-	std::string  raw_read;
-	bool         fast_fowarded;
+    bool         fast_fowarded;
 
 public:	//TODO: make private with get and set
 	std::string		_copy_raw;

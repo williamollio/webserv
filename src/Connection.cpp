@@ -86,9 +86,6 @@ void Connection::establishConnection() {
                     // -----------------------
                     connectionPairs[socketDescriptor] = _fds[i].fd;
                     addFD(socketDescriptor);
-                    //_fds[nfds].fd = socketDescriptor;
-                    //_fds[nfds].events = POLLIN;
-                    //nfds++;
                 }
             } else {
                 handleConnection(i);
@@ -142,12 +139,12 @@ void Connection::denyConnection(const int fd, const int errorCode) const _NOEXCE
 
 void Connection::handleConnection(const unsigned long index) _NOEXCEPT {
     const int fd = _fds[index].fd;
-	HTTPReader *reader;
+	HTTPReader * reader;
     try {
         Socket socket = fd;
 		ReaderByFDFinder rfd(fd);
 		std::list<HTTPReader *>::iterator my_reader = std::find_if(list.begin(), list.end(), rfd);
-		if (my_reader != list.end()) {// && (*my_reader)->getRequest() && !(*my_reader)->getRequest()->loaded) {
+		if (my_reader != list.end()) {
 			reader = *my_reader;
             if (reader->runForFD(fd)) {
                 removeFD(index);
@@ -165,20 +162,16 @@ void Connection::handleConnection(const unsigned long index) _NOEXCEPT {
             reader->run();
             removeFD(index);
 		}
-		//if (my_reader == list.end() || (reader->getRequest() && reader->getRequest()->loaded))
-		//	reader->run();
     } catch (std::bad_alloc & ex) {
         denyConnection(fd, 507);
     } catch (std::exception & ex) {
         std::cerr << ">>>>>>> " << ex.what() << " <<<<<<<" << std::endl;
         denyConnection(fd, 500);
     }
-	//if (reader->getRequest() && reader->getRequest()->loaded)
-    //	removeFD(index);
 }
 
 static void maybeDeleteReader(HTTPReader* & reader) {
-    if (!reader->isRunning()) {// ||(reader->getRequest() && reader->getRequest()->loaded)) {
+    if (!reader->isRunning()) {
         delete reader;
         reader = NULL;
     }

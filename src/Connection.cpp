@@ -8,6 +8,12 @@
 
 #define INFTIM -1
 
+Connection * Connection::currentInstance = NULL;
+
+Connection & Connection::getInstance() _NOEXCEPT {
+    return *currentInstance;
+}
+
 Connection::Connection() : _timeout(INFTIM), address(), _fds() {
     const std::vector<int> & ports = Configuration::getInstance().get_server_ports();
     for (unsigned long i = 0; i < ports.size(); ++i) {
@@ -33,6 +39,7 @@ Connection::Connection() : _timeout(INFTIM), address(), _fds() {
         _fds[i].events = POLLIN;
         server_fds[server_fd] = ports[i];
     }
+    currentInstance = this;
 }
 
 static void forceRemoveHTTPReader(HTTPReader* & reader) {
@@ -45,9 +52,9 @@ Connection::~Connection() {
 
 void Connection::establishConnection() {
     int rc;
-    unsigned long current_size = 0,
-                  nfds         = server_fds.size();
+    unsigned long current_size;
 
+    nfds = server_fds.size();
     while ((rc = poll(_fds, nfds, _timeout)) > 0) {
         current_size = nfds;
         for (unsigned long i = 0; i < current_size; i++) {
@@ -68,23 +75,26 @@ void Connection::establishConnection() {
             } else if (isServingFD(_fds[i].fd)) {
                 int socketDescriptor;
                 while ((socketDescriptor = accept(_fds[i].fd, NULL, NULL)) >= 0) {
+                    // TODO: Remove protection
                     if (nfds == NUM_FDS) {
-                        nfds = clearPollArray(nfds);
+                        clearPollArray();
                         if (nfds == NUM_FDS) {
                             denyConnection(socketDescriptor);
                             continue;
                         }
                     }
+                    // -----------------------
                     connectionPairs[socketDescriptor] = _fds[i].fd;
-                    _fds[nfds].fd = socketDescriptor;
-                    _fds[nfds].events = POLLIN;
-                    nfds++;
+                    addFD(socketDescriptor);
+                    //_fds[nfds].fd = socketDescriptor;
+                    //_fds[nfds].events = POLLIN;
+                    //nfds++;
                 }
             } else {
                 handleConnection(i);
             }
         }
-        nfds = clearPollArray(nfds);
+        clearPollArray();
         cleanReaders();
     }
     for (unsigned long i = 0; i < nfds; i++) {
@@ -99,8 +109,20 @@ void Connection::establishConnection() {
     }
 }
 
+void Connection::addFD(int fd, bool read) _NOEXCEPT {
+    if (nfds == NUM_FDS) {
+        clearPollArray();
+        if (nfds == NUM_FDS) {
+            // FIXME: What happens if there is no space left for polling?
+            throw false;
+        }
+    }
+    _fds[nfds].fd = fd;
+    _fds[nfds].events = read ? POLLIN : POLLOUT;
+    nfds++;
+}
+
 void Connection::removeFD(const unsigned long index) _NOEXCEPT {
-    std::cerr << "Removed " << _fds[index].fd << std::endl;
     connectionPairs.erase(_fds[index].fd);
     _fds[index].fd = -1;
 }
@@ -125,40 +147,38 @@ void Connection::handleConnection(const unsigned long index) _NOEXCEPT {
         Socket socket = fd;
 		ReaderByFDFinder rfd(fd);
 		std::list<HTTPReader *>::iterator my_reader = std::find_if(list.begin(), list.end(), rfd);
-		if (my_reader != list.end() && (*my_reader)->getRequest() && !(*my_reader)->getRequest()->loaded) {
+		if (my_reader != list.end()) {// && (*my_reader)->getRequest() && !(*my_reader)->getRequest()->loaded) {
 			reader = *my_reader;
-			reader->getRequest()->loadPayload();
-            std::cerr << "size: " << reader->getRequest()->raw_read.size() << std::endl;
-            std::cerr << "expected: " << reader->getRequest()->_chunked_curr_line_expect_count << std::endl;
+            if (reader->runForFD(fd)) {
+                removeFD(index);
+            }
 		} else {
 			reader = new HTTPReader(socket);
-		}
-		getpeername(socket.get_fd(), (struct sockaddr *) &address, (socklen_t *) &addrlen);
-		reader->setPeerAddress(ntohl(address.sin_addr.s_addr));
-		char * host = new char[50]();
-		getnameinfo((struct sockaddr *) &address, (socklen_t) addrlen, host, (socklen_t) 50, NULL, 0, 0);
-		reader->setPeerName(host);
-		reader->setUsedPort(server_fds[connectionPairs[socket.get_fd()]]);
-		delete[] host;
-		if (my_reader == list.end()) {
-            std::cerr << "Added " << reader->getSocket().get_fd() << std::endl;
+            getpeername(socket.get_fd(), (struct sockaddr *) &address, (socklen_t *) &addrlen);
+            reader->setPeerAddress(ntohl(address.sin_addr.s_addr));
+            char * host = new char[50]();
+            getnameinfo((struct sockaddr *) &address, (socklen_t) addrlen, host, (socklen_t) 50, NULL, 0, 0);
+            reader->setPeerName(host);
+            delete[] host;
+            reader->setUsedPort(server_fds[connectionPairs[socket.get_fd()]]);
             list.push_back(reader);
-        }
-		if (my_reader == list.end() || (reader->getRequest() && reader->getRequest()->loaded))
-			reader->run();
+            reader->run();
+            removeFD(index);
+		}
+		//if (my_reader == list.end() || (reader->getRequest() && reader->getRequest()->loaded))
+		//	reader->run();
     } catch (std::bad_alloc & ex) {
         denyConnection(fd, 507);
     } catch (std::exception & ex) {
         std::cerr << ">>>>>>> " << ex.what() << " <<<<<<<" << std::endl;
         denyConnection(fd, 500);
     }
-	if (reader->getRequest() && reader->getRequest()->loaded)
-    	removeFD(index);
+	//if (reader->getRequest() && reader->getRequest()->loaded)
+    //	removeFD(index);
 }
 
 static void maybeDeleteReader(HTTPReader* & reader) {
-    if (!reader->isRunning() ||(reader->getRequest() && reader->getRequest()->loaded)) {
-        std::cerr << "Deleted reader with fd " << reader->getSocket().get_fd() << std::endl;
+    if (!reader->isRunning()) {// ||(reader->getRequest() && reader->getRequest()->loaded)) {
         delete reader;
         reader = NULL;
     }
@@ -174,14 +194,14 @@ bool Connection::isServingFD(int fd) _NOEXCEPT {
     return it != server_fds.end();
 }
 
-unsigned long Connection::clearPollArray(unsigned long nfds) _NOEXCEPT {
+void Connection::clearPollArray() _NOEXCEPT {
     unsigned long i, j;
     for (i = 0, j = 0; i < nfds; ++i) {
         if (_fds[i].fd != -1) {
             _fds[j++] = _fds[i];
         }
     }
-    return j;
+    nfds = j;
 }
 
 // R E A D E R B Y F D F I N D E R   I M P L E M E N T A T I O N
@@ -189,5 +209,6 @@ unsigned long Connection::clearPollArray(unsigned long nfds) _NOEXCEPT {
 Connection::ReaderByFDFinder::ReaderByFDFinder(int fd) : fd(fd) {}
 
 bool Connection::ReaderByFDFinder::operator()(HTTPReader *  & reader) const {
-    return reader->getSocket().get_fd() == fd;
+    return reader->hasFD(fd);
+    //return reader->getSocket().get_fd() == fd;
 }

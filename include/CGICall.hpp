@@ -13,6 +13,7 @@ public:
     virtual ~CGICall();
 
     void run(Socket & socket);
+    bool runForFD(int);
     bool isRunning();
 
 protected:

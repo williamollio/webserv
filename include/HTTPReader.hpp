@@ -16,22 +16,19 @@ class HTTPReader {
         explicit HTTPReader(Socket &);
         ~HTTPReader();
 
-        void run();
-        bool isRunning() const;
-
-        unsigned int getPeerAddress() const;
-        void         setPeerAddress(unsigned int peerAddress);
-
-        const std::string & getPeerName() const;
-        void                setPeerName(const std::string &peerName);
-
-        const Socket & getSocket() const;
-        void           setSocket(const Socket &);
-
-		HTTPRequest*  getRequest() const;
-
-        int  getUsedPort() const;
-        void setUsedPort(int port);
+        void                run();
+        bool                runForFD(int);
+        void                setPeerAddress(unsigned int);
+        void                setPeerName(const std::string &);
+        void                setSocket(const Socket &);
+        void                setUsedPort(int port);
+        bool                hasFD(int)                       const;
+        bool                isRunning()                      const;
+        unsigned int        getPeerAddress()                 const;
+        const std::string & getPeerName()                    const;
+        const Socket &      getSocket()                      const;
+		HTTPRequest *       getRequest()                     const;
+        int                 getUsedPort()                    const;
 
 private:
         Socket        _socket;

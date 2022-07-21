@@ -11,6 +11,7 @@
 #include "URI.hpp"
 #include "CGICall.hpp"
 #include "HTTPRequest.hpp"
+#include "Connection.hpp"
 
 #include <cstdlib>
 #include <iostream>
@@ -29,28 +30,38 @@ HTTPReader::~HTTPReader() {
     }
 }
 
+bool HTTPReader::runForFD(int fd) {
+    if (_socket.get_fd() == fd) {
+        request->loadPayload();
+        return request->loaded;
+    } else {
+        return response->runForFD(fd);
+    }
+}
+
 void HTTPReader::run() {
     try {
-		if (!getRequest())
-        	request = _parse();
-		if (!request->loaded)
-			return;
-        request->setURI(URI(request->_path));
-        request->setPeerAddress(peerAddress);
-        request->setPeerName(peerName);
-        request->setUsedPort(port);
-        if (request->getURI().isCGIIdentifier() && _isCGIMethod(request->getType())) {
-            response = new CGICall(request);
-        } else {
-            switch (request->getType()) {
-                case HTTPRequest::GET:    response = new CGIResponseGet(request);    break;
-                case HTTPRequest::POST:   response = new CGIResponsePost(request);   break;
-                case HTTPRequest::DELETE: response = new CGIResponseDelete(request); break;
-                default:
-                    throw HTTPException(400);
+        request = _parse();
+		if (request->loaded) {
+            request->setURI(URI(request->_path));
+            request->setPeerAddress(peerAddress);
+            request->setPeerName(peerName);
+            request->setUsedPort(port);
+            if (request->getURI().isCGIIdentifier() && _isCGIMethod(request->getType())) {
+                response = new CGICall(request);
+            } else {
+                switch (request->getType()) {
+                    case HTTPRequest::GET:    response = new CGIResponseGet(request);    break;
+                    case HTTPRequest::POST:   response = new CGIResponsePost(request);   break;
+                    case HTTPRequest::DELETE: response = new CGIResponseDelete(request); break;
+                    default:
+                        throw HTTPException(400);
+                }
             }
+            response->run(_socket);
+        } else {
+            Connection::getInstance().addFD(_socket.get_fd());
         }
-        response->run(_socket);
     }
 	catch (HTTPException & ex) {
         std::cerr << ":" << ex.what() << std::endl;
@@ -171,8 +182,6 @@ HTTPRequest* HTTPReader::_parse() throw(std::exception) {
 
 }
 
-
-
 bool HTTPReader::isRunning() const {
     return response == NULL || response->isRunning();
 }
@@ -185,11 +194,11 @@ void HTTPReader::setPeerAddress(unsigned int peerAddress) {
     HTTPReader::peerAddress = peerAddress;
 }
 
-const std::string &HTTPReader::getPeerName() const {
+const std::string & HTTPReader::getPeerName() const {
     return peerName;
 }
 
-void HTTPReader::setPeerName(const std::string &peerName) {
+void HTTPReader::setPeerName(const std::string & peerName) {
     HTTPReader::peerName = peerName;
 }
 
@@ -223,6 +232,10 @@ bool HTTPReader::_isCGIMethod(HTTPRequest::TYPE type) {
     return false;
 }
 
-HTTPRequest* HTTPReader::getRequest() const {
+HTTPRequest * HTTPReader::getRequest() const {
 	return request;
+}
+
+bool HTTPReader::hasFD(int fd) const {
+    return _socket.get_fd() == fd || response->hasFD(fd);
 }

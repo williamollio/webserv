@@ -58,6 +58,11 @@ CGICall::~CGICall() {
     pthread_mutex_destroy(&runningMutex);
 }
 
+bool CGICall::runForFD(int fd) {
+    // TODO
+    return true;
+}
+
 void CGICall::run(Socket & _socket) {
     socket = _socket;
     switch (_request->getType()) {

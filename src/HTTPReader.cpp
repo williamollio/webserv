@@ -33,6 +33,9 @@ HTTPReader::~HTTPReader() {
 bool HTTPReader::runForFD(int fd) {
     if (_socket.get_fd() == fd) {
         request->loadPayload();
+        if (request->loaded) {
+            run();
+        }
         return request->loaded;
     } else {
         return response->runForFD(fd);
@@ -41,7 +44,9 @@ bool HTTPReader::runForFD(int fd) {
 
 void HTTPReader::run() {
     try {
-        request = _parse();
+        if (request == NULL) {
+            request = _parse();
+        }
 		if (request->loaded) {
             request->setURI(URI(request->_path));
             request->setPeerAddress(peerAddress);
@@ -237,5 +242,5 @@ HTTPRequest * HTTPReader::getRequest() const {
 }
 
 bool HTTPReader::hasFD(int fd) const {
-    return _socket.get_fd() == fd || response->hasFD(fd);
+    return _socket.get_fd() == fd || (response != NULL && response->hasFD(fd));
 }

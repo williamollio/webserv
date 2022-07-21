@@ -8,6 +8,12 @@
 
 #define INFTIM -1
 
+static volatile bool end_server = false;
+
+static void stopper(int) {
+    end_server = true;
+}
+
 Connection * Connection::currentInstance = NULL;
 
 Connection & Connection::getInstance() _NOEXCEPT {
@@ -54,8 +60,11 @@ void Connection::establishConnection() {
     int rc;
     unsigned long current_size;
 
+    signal(SIGINT, stopper);
+    signal(SIGTERM, stopper);
+    signal(SIGKILL, stopper);
     nfds = server_fds.size();
-    while ((rc = poll(_fds, nfds, _timeout)) > 0) {
+    while ((rc = poll(_fds, nfds, _timeout)) > 0 || !end_server) {
         current_size = nfds;
         for (unsigned long i = 0; i < current_size; i++) {
             if (_fds[i].revents == 0) {
@@ -99,11 +108,14 @@ void Connection::establishConnection() {
             close(_fds[i].fd);
         }
     }
-    if (rc == 0) {
+    if (end_server) {
+        std::cout << "Interrupted, exiting..." << std::endl;
+    } else if (rc == 0) {
         std::cout << "Time out, exiting..."      << std::endl;
     } else {
         std::cerr << "Polling error! Exiting..." << std::endl;
     }
+    signal(SIGINT, SIG_DFL);
 }
 
 void Connection::addFD(int fd, bool read) _NOEXCEPT {

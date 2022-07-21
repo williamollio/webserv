@@ -51,7 +51,7 @@ public:
 
     void establishConnection();
     void addFD(int fd, bool read = true) _NOEXCEPT;
-    void removeFD(unsigned long index)   _NOEXCEPT;
+    void removeFD(int)                   _NOEXCEPT;
 
     static Connection & getInstance() _NOEXCEPT;
 };

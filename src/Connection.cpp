@@ -69,9 +69,9 @@ void Connection::establishConnection() {
                 }
                 list.remove(NULL);
                 close(_fds[i].fd);
-                removeFD(i);
+                removeFD(_fds[i].fd);
             } else if (_fds[i].revents == POLLNVAL) {
-                removeFD(i);
+                removeFD(_fds[i].fd);
             } else if (isServingFD(_fds[i].fd)) {
                 int socketDescriptor;
                 while ((socketDescriptor = accept(_fds[i].fd, NULL, NULL)) >= 0) {
@@ -119,9 +119,13 @@ void Connection::addFD(int fd, bool read) _NOEXCEPT {
     nfds++;
 }
 
-void Connection::removeFD(const unsigned long index) _NOEXCEPT {
-    connectionPairs.erase(_fds[index].fd);
-    _fds[index].fd = -1;
+void Connection::removeFD(const int fd) _NOEXCEPT {
+    unsigned long i;
+    for (i = 0; i < nfds && _fds[i].fd != fd; ++i);
+    if (i != nfds) {
+        connectionPairs.erase(_fds[i].fd);
+        _fds[i].fd = -1;
+    }
 }
 
 void Connection::denyConnection(const int fd, const int errorCode) const _NOEXCEPT {
@@ -147,7 +151,7 @@ void Connection::handleConnection(const unsigned long index) _NOEXCEPT {
 		if (my_reader != list.end()) {
 			reader = *my_reader;
             if (reader->runForFD(fd)) {
-                removeFD(index);
+                removeFD(fd);
             }
 		} else {
 			reader = new HTTPReader(socket);
@@ -160,7 +164,7 @@ void Connection::handleConnection(const unsigned long index) _NOEXCEPT {
             reader->setUsedPort(server_fds[connectionPairs[socket.get_fd()]]);
             list.push_back(reader);
             reader->run();
-            removeFD(index);
+            removeFD(fd);
 		}
     } catch (std::bad_alloc & ex) {
         denyConnection(fd, 507);

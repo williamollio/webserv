@@ -180,7 +180,7 @@ void CGICall::processCGIOutput() {
                   << "INFO: " << ex.what()          << std::endl;
     }
     close(socket.get_fd());
-    //Connection::removeFD(socket.get_fd());
+    Connection::getInstance().removeFD(socket.get_fd());
     pthread_mutex_lock(&runningMutex);
     running = false;
     pthread_mutex_unlock(&runningMutex);

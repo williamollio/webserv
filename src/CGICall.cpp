@@ -9,6 +9,7 @@
 #include "HTTPException.hpp"
 #include "CGIResponseError.hpp"
 #include "Configuration.hpp"
+#include "Connection.hpp"
 
 CGICall::CGICall(HTTPRequest * request)
         : CGIResponse(request),
@@ -37,6 +38,7 @@ CGICall::CGICall(HTTPRequest * request)
           threadID(),
           in(),
           out(),
+          payloadCounter(),
           running(false),
           runningMutex() {
     pthread_mutex_init(&runningMutex, NULL);
@@ -58,9 +60,43 @@ CGICall::~CGICall() {
     pthread_mutex_destroy(&runningMutex);
 }
 
-bool CGICall::runForFD(int fd) {
-    // TODO
+bool CGICall::hasFD(int fd) {
+    return fd == socket.get_fd() || fd == out[0] || fd == in[1];
+}
+
+bool CGICall::writePayload() {
+    for (; payloadCounter < _request->get_payload().size(); ++payloadCounter) {
+        if (write(in[1], _request->get_payload().c_str() + payloadCounter, 1) < 0) {
+            return false;
+        }
+    }
+    close(in[1]);
     return true;
+}
+
+bool CGICall::readPayload() {
+    ssize_t r;
+    char    b;
+
+    while ((r = read(out[0], &b, 1)) > 0) {
+        buffer += b;
+    }
+    if (r < 0) {
+        return false;
+    }
+    close(out[0]);
+    processCGIOutput();
+    return true;
+}
+
+bool CGICall::runForFD(int fd) {
+    if (fd == in[1]) {
+        return writePayload();
+    } else if (fd == out[0]) {
+        return readPayload();
+    } else {
+        return true;
+    }
 }
 
 void CGICall::run(Socket & _socket) {
@@ -94,7 +130,6 @@ void CGICall::run(Socket & _socket) {
     httpConnection += _request->_keep_alive ? "keep-alive" : "";
     scriptName += computeRequestedFile();
     const std::string & requestedFile = computeRequestedFile();
-	std::cout << requestedFile << std::endl;
     if (access(requestedFile.c_str(), F_OK) < 0) throw HTTPException(404);
     if (access(requestedFile.c_str(), X_OK) < 0) throw HTTPException(403);
     if (pipe(in) < 0) throw HTTPException(500);
@@ -104,21 +139,57 @@ void CGICall::run(Socket & _socket) {
         throw HTTPException(500);
     }
     running = true;
-    std::cerr << "Before writing" << std::endl;
-//    write(in[1], _request->get_payload().c_str(), _request->get_payload().size());
-    for (size_t i = 0; i < _request->get_payload().size(); ++i) {
-        write(in[1], _request->get_payload().c_str() + i, 1);
+    fcntl(in[1], F_SETFL, O_NONBLOCK);
+    if (!writePayload()) {
+        Connection::getInstance().addFD(in[1], false);
     }
-    std::cerr << "After writing" << std::endl;
-    close(in[1]);
+    fcntl(out[0], F_SETFL, O_NONBLOCK);
+    Connection::getInstance().addFD(out[0]);
     execute(in[0], out[1], requestedFile);
-    pthread_create(&threadID, NULL, reinterpret_cast<void *(*)(void *)>(CGICall::async), this);
+    pthread_create(&threadID, NULL, reinterpret_cast<void *(*)(void *)>(CGICall::waitOrThrow), this);
+    //pthread_create(&threadID, NULL, reinterpret_cast<void *(*)(void *)>(CGICall::async), this);
+}
+
+void CGICall::processCGIOutput() {
+    std::stringstream s(buffer);
+    try {
+        HTTPHeader header = parseCGIResponse(s);
+        std::string payload;
+        if (header.getTransferEncoding() == "chunked") {
+            header.setTransferEncoding("");
+            std::string line;
+            while (std::getline(s, line) && !(line.empty() || line == "\r")) {
+                unsigned long length = strtol(line.c_str(), NULL, 10); // Or base 16?
+                std::getline(s, line);
+                payload.append(line.c_str(), length);
+            }
+        } else {
+            char b;
+            while (s.read(&b, 1)) {
+                payload += b;
+            }
+        }
+        header.set_content_length(static_cast<int>(payload.size()));
+        socket.send(header.tostring());
+        socket.send("\r\n\r\n");
+        socket.send(payload);
+    } catch (HTTPException & ex) {
+        sendError(ex.get_error_code());
+    } catch (std::exception & ex) {
+        std::clog << "INFO: Socket has been closed" << std::endl
+                  << "INFO: " << ex.what()          << std::endl;
+    }
+    close(socket.get_fd());
+    //Connection::removeFD(socket.get_fd());
+    pthread_mutex_lock(&runningMutex);
+    running = false;
+    pthread_mutex_unlock(&runningMutex);
 }
 
 void CGICall::async(CGICall * self) {
     try {
-        self->waitOrThrow();
-        std::cerr << "After processing" << std::endl;
+        //self->waitOrThrow();
+        waitOrThrow(self);
         HTTPHeader header = parseCGIResponse(self->out[0]);
         std::string payload;
         if (header.getTransferEncoding() == "chunked") {
@@ -145,7 +216,6 @@ void CGICall::async(CGICall * self) {
         std::clog << "INFO: Socket has been closed" << std::endl
                   << "INFO: " << exception.what()   << std::endl;
     }
-    std::cerr << "After sending" << std::endl;
     close(self->out[0]);
     close(self->socket.get_fd());
     pthread_mutex_lock(&self->runningMutex);
@@ -213,7 +283,7 @@ bool CGICall::isRunning() {
     return ret;
 }
 
-void CGICall::waitOrThrow() {
+void CGICall::waitOrThrow(CGICall * self) {
     int status, ret;
     unsigned int timeElapsed;
     struct timeval start, now;
@@ -222,15 +292,15 @@ void CGICall::waitOrThrow() {
         usleep(100000);
         gettimeofday(&now, NULL);
         timeElapsed = ((now.tv_sec - start.tv_sec) * 1000) + ((now.tv_usec - start.tv_usec) / 1000);
-        ret = waitpid(child, &status, WNOHANG);
+        ret = waitpid(self->child, &status, WNOHANG);
     } while (ret == 0 && timeElapsed <= (TIMEOUT * 1000));
     if (ret == 0) {
-        kill(child, SIGTERM);
+        kill(self->child, SIGTERM);
     }
-    close(in[0]);
-    close(out[1]);
-    if (ret == 0) throw HTTPException(408);
-    else if (status != 0) throw HTTPException(500);
+    close(self->in[0]);
+    close(self->out[1]);
+    //if (ret == 0) throw HTTPException(408);
+    //else if (status != 0) throw HTTPException(500);
 }
 
 std::string CGICall::computeRequestedFile() {
@@ -261,6 +331,51 @@ std::string CGICall::computeRequestedFile() {
 
 std::string CGICall::computeScriptDirectory() {
     return _server_location_log;
+}
+
+HTTPHeader CGICall::parseCGIResponse(std::stringstream & s) {
+    HTTPHeader header;
+    header.setStatusCode(200);
+    header.setStatusMessage(get_message(200));
+    std::map<std::string, std::string> vars;
+    std::string line;
+    while (std::getline(s, line) && !(line.empty() || line == "\r")) {
+        unsigned long i = line.find(':');
+        if (i != std::string::npos) {
+            std::string varName = line.substr(0, i);
+            i = skipWhitespaces(line, ++i);
+            std::string arg = line.substr(i, line.size());
+            if (vars.find(varName) == vars.end()) {
+                vars[varName] = arg;
+            } else throw HTTPException(500);
+        }
+    }
+    if (vars.empty()) throw HTTPException(500);
+    for (std::map<std::string, std::string>::const_iterator it = vars.begin(); it != vars.end(); ++it) {
+        const std::string & varName = it->first;
+        const std::string & arg = it->second;
+        if (varName == "Content-Type") header.set_content_type(arg);
+        else if (varName == "Status") {
+            const char * const str = arg.c_str();
+            char * pos;
+            long status = strtol(str, &pos, 10);
+            header.setStatusCode(static_cast<int>(status));
+            unsigned long i = pos - str;
+            i = skipWhitespaces(arg, i);
+            header.setStatusMessage(arg.substr(i, arg.size()));
+        } else if (varName == "Content-Length") {
+            header.set_content_length(static_cast<int>(strtol(arg.c_str(), NULL, 10)));
+        } else if (varName == "Connection") {
+            header.setConnection(arg);
+        } else if (varName == "Transfer-Encoding") {
+            header.setTransferEncoding(arg);
+        } else if (varName == "Content-Encoding") {
+            header.setContentEncoding(arg);
+        } else if (varName.compare(0, 6, "X-CGI-") == 0) {
+            // Ignore...
+        } else throw HTTPException(500);
+    }
+    return header;
 }
 
 HTTPHeader CGICall::parseCGIResponse(const int fd) {

@@ -15,6 +15,7 @@ public:
     void run(Socket & socket);
     bool runForFD(int);
     bool isRunning();
+    bool hasFD(int);
 
 protected:
     virtual std::string computeRequestedFile();
@@ -44,23 +45,29 @@ private:
     std::string     httpConnection;
     std::string     httpContentLength;
     std::string     httpExpect;
+    std::string     buffer;
     Socket          socket;
     pid_t           child;
     pthread_t       threadID;
     int             in[2];
     int             out[2];
+    size_t          payloadCounter;
     bool            running;
     pthread_mutex_t runningMutex;
 
     void execute(int, int, const std::string &);
-    void waitOrThrow();
     void sendError(int errorCode) _NOEXCEPT;
+    void processCGIOutput();
+    bool writePayload();
+    bool readPayload();
 
     static std::string   vectorToString(const std::vector<std::string> &);
     static std::string   nextLine(int);
     static bool          isFolder(const std::string &);
     static HTTPHeader    parseCGIResponse(int);
+    static HTTPHeader    parseCGIResponse(std::stringstream &);
     static unsigned long skipWhitespaces(const std::string &, unsigned long);
+    static void          waitOrThrow(CGICall *);
     static void          async(CGICall *);
 
     /**

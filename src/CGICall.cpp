@@ -80,29 +80,15 @@ void CGICall::run(Socket & _socket) {
     serverName += Configuration::getInstance().get_server_names().at(0);
     serverPort += int_to_string(_request->getUsedPort());
     if (_request->_content) {
-        std::stringstream s;
-        s << "CONTENT_LENGTH=" << _request->_content_length;
-        contentLength = s.str();
+        contentLength = "CONTENT_LENGTH=" + int_to_string(static_cast<int>(_request->_content_length));
         contentType = "CONTENT_TYPE=";
-        for (std::vector<std::string>::const_iterator it = _request->_content_type.begin(); it != _request->_content_type.end(); ++it) {
-            contentType += *it + ",";
-        }
+        contentType += vectorToString(_request->_content_type);
     }
     httpUserAgent += _request->_user_agent;
     httpHost += _request->_host;
-    for (std::vector<std::string>::const_iterator it = _request->_lang.begin(); it != _request->_lang.end(); ++it) {
-        httpLang += *it + ",";
-    }
-    httpLang.pop_back();
-    httpLang.pop_back();
-    for (std::vector<std::string>::const_iterator it = _request->_encoding.begin(); it != _request->_encoding.end(); ++it) {
-        httpEncoding += *it + ",";
-    }
-    httpEncoding.pop_back();
-    httpEncoding.pop_back();
-    for (std::vector<std::string>::const_iterator it = _request->_content_type.begin(); it != _request->_content_type.end(); ++it) {
-        httpAccept += *it + ",";
-    }
+    httpLang += vectorToString(_request->_lang);
+    httpEncoding += vectorToString(_request->_encoding);
+    httpAccept += vectorToString(_request->_content_type);
     httpContentLength += int_to_string(static_cast<int>(_request->_content_length));
     httpExpect += _request->_expect;
     httpConnection += _request->_keep_alive ? "keep-alive" : "";
@@ -347,4 +333,15 @@ bool CGICall::isFolder(const std::string & path) {
         return true;
     }
     return false;
+}
+
+std::string CGICall::vectorToString(const std::vector<std::string> & vector) {
+    std::string ret;
+    for (std::vector<std::string>::const_iterator it = vector.begin(); it != vector.end(); ++it) {
+        ret += *it;
+        if ((it + 1) != vector.end()) {
+            ret += ",";
+        }
+    }
+    return ret;
 }

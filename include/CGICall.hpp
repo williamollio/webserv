@@ -56,6 +56,7 @@ private:
     void waitOrThrow();
     void sendError(int errorCode) _NOEXCEPT;
 
+    static std::string   vectorToString(const std::vector<std::string> &);
     static std::string   nextLine(int);
     static bool          isFolder(const std::string &);
     static HTTPHeader    parseCGIResponse(int);

@@ -42,12 +42,13 @@ bool HTTPReader::runForFD(int fd) {
     }
 }
 
-void HTTPReader::run() {
+bool HTTPReader::run() {
     try {
         if (request == NULL) {
             request = _parse();
         }
 		if (request->loaded) {
+            std::cerr << "Loaded, size " << request->get_payload().size() << " bytes" << std::endl;
             request->setURI(URI(request->_path));
             request->setPeerAddress(peerAddress);
             request->setPeerName(peerName);
@@ -65,7 +66,7 @@ void HTTPReader::run() {
             }
             response->run(_socket);
         } else {
-            Connection::getInstance().addFD(_socket.get_fd());
+            return false;
         }
     }
 	catch (HTTPException & ex) {
@@ -74,6 +75,7 @@ void HTTPReader::run() {
 		error.set_error_code(ex.get_error_code());
 		error.run(_socket);
     }
+    return true;
 }
 
 std::vector<std::string>	split_str_vector(const std::string& tosplit, const std::string& needle) {

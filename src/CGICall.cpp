@@ -65,6 +65,7 @@ bool CGICall::hasFD(int fd) {
 }
 
 bool CGICall::writePayload() {
+    std::cerr << in[1] << " size " << payloadCounter << std::endl;
     for (; payloadCounter < _request->get_payload().size(); ++payloadCounter) {
         if (write(in[1], _request->get_payload().c_str() + payloadCounter, 1) < 0) {
             return false;
@@ -78,6 +79,7 @@ bool CGICall::readPayload() {
     ssize_t r;
     char    b;
 
+    std::cerr << out[0] << " size " << buffer.size() << std::endl;
     while ((r = read(out[0], &b, 1)) > 0) {
         buffer += b;
     }
@@ -85,6 +87,7 @@ bool CGICall::readPayload() {
         return false;
     }
     close(out[0]);
+    std::cerr << "Processing CGI output (" << buffer.size() << " bytes)" << std::endl;
     processCGIOutput();
     return true;
 }
@@ -296,7 +299,9 @@ void CGICall::waitOrThrow(CGICall * self) {
     } while (ret == 0 && timeElapsed <= (TIMEOUT * 1000));
     if (ret == 0) {
         kill(self->child, SIGTERM);
+        std::cerr << "CGI killed" << std::endl;
     }
+    std::cerr << "CGI finished" << std::endl;
     close(self->in[0]);
     close(self->out[1]);
     //if (ret == 0) throw HTTPException(408);

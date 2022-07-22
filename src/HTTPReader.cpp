@@ -24,7 +24,7 @@ HTTPReader::~HTTPReader() {
     if (response != NULL) delete response;
     if (request != NULL) delete request;
     try {
-        _socket.close_socket();
+        _socket.close();
     } catch (std::exception & exception) {
         std::cerr << exception.what() << std::endl;
     }
@@ -168,9 +168,16 @@ HTTPRequest* HTTPReader::_parse() throw(std::exception) {
 	std::string raw(buff);
 
 	while (raw.find("\r\n\r\n", 0) == std::string::npos) {
-		if (!read(_socket.get_fd(), buff, 1))
-			throw HTTPException(504);
-		raw += buff;
+        try {
+            raw += _socket.read();
+        } catch (IOException & ex) {
+            std::cerr << "PARSING: " << ex.what() << std::endl;
+            throw HTTPException(504);
+            // Maybe just poll instead...
+        }
+		//if (!read(_socket.get_fd(), buff, 1))
+		//	throw HTTPException(504);
+		//raw += buff;
 	}
 	std::cout << raw << std::endl;
 	std::string	head = raw;

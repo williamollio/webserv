@@ -6,12 +6,9 @@
 #include "HTTPException.hpp"
 #include <cstdlib>
 
-
 HTTPRequest::TYPE HTTPRequest::getType() const {
     return _type;
 }
-
-//HTTPRequest::HTTPRequest(HTTPRequest::TYPE type): loaded(true), _type(type), _keep_alive(false), _content(false), _chunked(false), _content_length(0){}
 
 bool	HTTPRequest::is_payload(size_t index) {
 	return 	_copy_raw.find("\r\n\r\n", 0) <= index;
@@ -82,8 +79,8 @@ size_t	HTTPRequest::ff_newline(std::vector<std::string>& file, size_t index) {
 }
 
 HTTPRequest::HTTPRequest(HTTPRequest::TYPE type, std::vector<std::string> &file, std::string &raw, Socket &_socket)
-		: loaded(true), _type(type), _chunked_socket(_socket), _chunked_head_or_load(false), _keep_alive(false), _content(false), _content_length(0),
-		  fast_fowarded(true) {
+		: loaded(true), _type(type), _chunked_socket(_socket), _chunked_head_or_load(false), fast_fowarded(true), _keep_alive(false), _content(false),
+		  _content_length(0) {
 	size_t	index = 1;
 	_copy_raw = raw;
 	_path = file[index++];
@@ -151,11 +148,11 @@ HTTPRequest::HTTPRequest(HTTPRequest::TYPE type, std::vector<std::string> &file,
 		_content = false;
 }
 
-const URI &HTTPRequest::getURI() const {
+const URI & HTTPRequest::getURI() const {
     return uri;
 }
 
-void HTTPRequest::setURI(const URI &uri) {
+void HTTPRequest::setURI(const URI & uri) {
     HTTPRequest::uri = uri;
 }
 
@@ -198,30 +195,47 @@ void HTTPRequest::isChunkedRequest(const std::string &data)
 bool HTTPRequest::ff_nextline() {
 	char buffer;
 	bool boll = false;
-	while (read(_chunked_socket.get_fd(), &buffer, 1) > 0) {
+    try {
+        while ((buffer = _chunked_socket.read()) > 0) {
+            if (buffer == '\r')
+                boll = true;
+            else if (boll && buffer == '\n')
+                return true;
+            else
+                boll = false;
+        }
+    } catch (IOException & ex) {
+        return false;
+    }
+	/*while (read(_chunked_socket.get_fd(), &buffer, 1) > 0) {
 		if (buffer == '\r')
 			boll = true;
 		else if (boll && buffer == '\n')
 			return true;
 		else
 			boll = false;
-	}
+	}*/
 	return false;
 }
 
 void HTTPRequest::loadPayload() {
 	loaded = false;
 
-	char buff[2] = {'\0', '\0'};
+	//char buff[2] = {'\0', '\0'};
 
 		if (!_chunked_head_or_load) {
 			if (!fast_fowarded && !ff_nextline())
 				return;
 			fast_fowarded = true;
 			while (raw_expect.find("\r\n") == std::string::npos) {
-				if (read(_chunked_socket.get_fd(), buff, 1) < 0)
-					return;
-				raw_expect += buff;
+                try {
+                    raw_expect += _chunked_socket.read();
+                } catch (IOException & ex) {
+                    return;
+                }
+				//if (read(_chunked_socket.get_fd(), buff, 1) < 0)
+				//	return;
+				//raw_expect += buff;
 			}
 			_chunked_head_or_load = true;
 			_chunked_curr_line_read_count = 0;
@@ -244,7 +258,7 @@ void HTTPRequest::loadPayload() {
 		long long tmp = 0;
 		char *heap_buffer = new char[_chunked_curr_line_expect_count + 1]();
 		while (raw_read.find("\r\n") == std::string::npos && _chunked_curr_line_expect_count > _chunked_curr_line_read_count) {
-			tmp = read(_chunked_socket.get_fd(), heap_buffer, _chunked_curr_line_expect_count - _chunked_curr_line_read_count);
+			tmp = _chunked_socket.read(heap_buffer, _chunked_curr_line_expect_count - _chunked_curr_line_read_count);
 			if (tmp <= 0)
 				break;
 			_chunked_curr_line_read_count += tmp;
@@ -258,7 +272,7 @@ void HTTPRequest::loadPayload() {
 			return;
 		} else if (raw_read.find("\r\n") != std::string::npos)
 			raw_read.erase(raw_read.find("\r\n"), 2);
-	///DEPRICATED
+	///DEPRECATED
 //	loaded = false;
 //	char buff[2] = {'\0', '\0'};
 //	std::string raw(buff);

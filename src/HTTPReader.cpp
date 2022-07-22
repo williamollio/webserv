@@ -164,8 +164,8 @@ int	HTTPRequest::checktype(std::string& word) {
 
 
 HTTPRequest* HTTPReader::_parse() throw(std::exception) {
-	char buff[2] = {'\0', '\0'};
-	std::string raw(buff);
+	//char buff[2] = {'\0', '\0'};
+	std::string raw;//(buff);
 
 	while (raw.find("\r\n\r\n", 0) == std::string::npos) {
         try {

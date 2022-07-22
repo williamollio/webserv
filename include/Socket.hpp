@@ -20,6 +20,8 @@ public:
     ~Socket();
 
     char        read()                            throw (IOException);
+    ssize_t     read(char *, size_t)              _NOEXCEPT;
+    void        send(const std::string &)         throw (IOException) __attribute__ ((deprecated));
     ssize_t     write(const std::string &)        throw (IOException);
     ssize_t     write(const char *, size_t)       throw (IOException);
     ssize_t     write(char)                       throw (IOException);

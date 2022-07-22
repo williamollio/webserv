@@ -47,33 +47,22 @@ char Socket::read() throw(IOException) {
     return _buffer_fill == 0 ? 0 : _buffer[_read_index++];
 }
 
-/*std::string Socket::read() throw (IOException)
-{
-	char*	read_buffer = new char[30001];
-	u_long	amount = 0;
-	amount = read(_fd, read_buffer, 30000);
-	if (amount < 0)
-		throw IOException("Could not read from the socket!");
-	std::string tmp = std::string(read_buffer);
-	delete[] read_buffer;
-	return(tmp);
-}*/
-
-/*void Socket::send_header(const std::string & type)
-{
-	_type_header = type;
-}*/
-
-/*void Socket::send(const std::string & content) throw (IOException)
-{
-	#if DEBUG
-		std::cout << "\n\n"<< std::endl;
-	#endif
-    for (size_t i = 0; i < content.length(); ++i) {
-        if (write(_fd, content.c_str() + i, 1) < 0)
-            throw (IOException("Could not send the data! Data: " + content));
+ssize_t Socket::read(char * buffer, size_t size) _NOEXCEPT {
+    ssize_t ret = 0;
+    try {
+        char c;
+        for (size_t i = 0; i < size && (c = read()) > 0; ++i, ++ret) {
+            buffer[i] = c;
+        }
+    } catch (IOException & ex) {
+        ret = ret == 0 ? -1 : ret;
     }
-}*/
+    return ret;
+}
+
+void Socket::send(const std::string & data) throw(IOException) {
+    (void) write(data);
+}
 
 void Socket::close() const throw (IOException)
 {

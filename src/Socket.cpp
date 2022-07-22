@@ -48,7 +48,7 @@ char Socket::read() throw(IOException) {
     if (_read_index == _buffer_fill) {
         read_buffer();
     }
-    return _buffer_fill == 0 ? 0 : _buffer[_read_index++];
+    return _buffer_fill == 0 ? static_cast<char>(0) : _buffer[_read_index++];
 }
 
 ssize_t Socket::read(char * buffer, size_t size) _NOEXCEPT {

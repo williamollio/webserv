@@ -204,6 +204,7 @@ bool HTTPRequest::ff_nextline() {
             else
                 boll = false;
         }
+        if (buffer == 0) std::cerr << "HTTPRequest: EOF!" << std::endl;
     } catch (IOException & ex) {
         return false;
     }
@@ -224,13 +225,17 @@ void HTTPRequest::loadPayload() {
 	//char buff[2] = {'\0', '\0'};
 
 		if (!_chunked_head_or_load) {
-			if (!fast_fowarded && !ff_nextline())
-				return;
+			if (!fast_fowarded && !ff_nextline()) {
+                std::cerr << "HTTPRequest: Back to poll, size: " << raw_read.size() << std::endl;
+                return;
+            }
 			fast_fowarded = true;
 			while (raw_expect.find("\r\n") == std::string::npos) {
                 try {
                     raw_expect += _chunked_socket.read();
+                    if (raw_expect.back() == 0) std::cerr << "HTTPRequest: EOF!" << std::endl;
                 } catch (IOException & ex) {
+                    std::cerr << "HTTPRequest: Back to poll, size: " << raw_read.size() << std::endl;
                     return;
                 }
 				//if (read(_chunked_socket.get_fd(), buff, 1) < 0)
@@ -261,7 +266,8 @@ void HTTPRequest::loadPayload() {
 			tmp = _chunked_socket.read(heap_buffer, _chunked_curr_line_expect_count - _chunked_curr_line_read_count);
 			if (tmp <= 0)
 				break;
-			_chunked_curr_line_read_count += tmp;
+            if (tmp == 0) std::cerr << "HTTPRequest: EOF!" << std::endl;
+            _chunked_curr_line_read_count += tmp;
 			raw_read += heap_buffer;
 		}
 		if (_chunked_curr_line_expect_count <= _chunked_curr_line_read_count)
@@ -269,9 +275,11 @@ void HTTPRequest::loadPayload() {
 		delete[] heap_buffer;
 		if (raw_read.find("\r\n") == std::string::npos && !ff_nextline()) {
 			fast_fowarded = false;
+            std::cerr << "HTTPRequest: Back to poll, size: " << raw_read.size() << std::endl;
 			return;
 		} else if (raw_read.find("\r\n") != std::string::npos)
 			raw_read.erase(raw_read.find("\r\n"), 2);
+        std::cerr << "HTTPRequest: Back top poll, size: " << raw_read.size() << std::endl;
 	///DEPRECATED
 //	loaded = false;
 //	char buff[2] = {'\0', '\0'};

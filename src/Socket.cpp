@@ -1,11 +1,14 @@
+#include <iostream>
 #include "Socket.hpp"
 
 Socket::Socket() {}
 
-Socket::~Socket() {}
+Socket::~Socket() {
+    std::cerr << "SOCKET: fd: " << _fd << ", total bytes: " << total_read << std::endl;
+}
 
 Socket::Socket(int fd) throw (IOException)
-    : _fd(fd), _read_index(0), _buffer()
+    : _fd(fd), _read_index(0), _buffer_fill(), _buffer(), total_read(0)
 {
 	if (fd < 0)
 		throw IOException("Invalid socket descriptor!");
@@ -37,6 +40,7 @@ void Socket::read_buffer() throw(IOException) {
     if (tmp < 0) {
         throw IOException("Could not read any data!");
     }
+    total_read += tmp;
     _buffer_fill = tmp;
 }
 

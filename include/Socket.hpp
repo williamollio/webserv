@@ -12,6 +12,8 @@ class Socket {
     size_t _buffer_fill;
     char   _buffer[BUFFER_SIZE];
 
+    size_t total_read;
+
     void read_buffer() throw (IOException);
 
 public:

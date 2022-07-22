@@ -10,6 +10,7 @@
 #include "CGIResponseError.hpp"
 #include "Configuration.hpp"
 #include "Connection.hpp"
+#include <fcntl.h>
 
 CGICall::CGICall(HTTPRequest * request)
         : CGIResponse(request),

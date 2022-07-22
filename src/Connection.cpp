@@ -5,6 +5,7 @@
 #include "CGIResponseError.hpp"
 #include <poll.h>
 #include <netdb.h>
+#include <fcntl.h>
 
 #define INFTIM -1
 
@@ -20,7 +21,7 @@ Connection & Connection::getInstance() _NOEXCEPT {
     return *currentInstance;
 }
 
-Connection::Connection() : _timeout(INFTIM), address(), _fds() {
+Connection::Connection() : _timeout(INFTIM), nfds(), address(), _fds() {
     const std::vector<int> & ports = Configuration::getInstance().get_server_ports();
     for (unsigned long i = 0; i < ports.size(); ++i) {
         addrlen = sizeof(address);

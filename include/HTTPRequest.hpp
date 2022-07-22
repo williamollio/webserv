@@ -12,9 +12,9 @@
 #include "Socket.hpp"
 #include "URI.hpp"
 
-#ifndef BUFFER
-# define BUFFER 30000
-#endif /* BUFFER */
+//#ifndef BUFFER
+//# define BUFFER 30000
+//#endif /* BUFFER */
 
 class HTTPRequest {
 private:
@@ -24,7 +24,7 @@ public:
         GET, POST, DELETE, ERROR
     };
 	enum REQ_INFO {
-		USER_AGENT, HOSTNAME, LANG_SUPP, ENCODING, CON_TYPE, CONTENT_TYPE, CON_LENGTH, EXPECT ,DEFAULT
+		USER_AGENT, HOSTNAME, LANG_SUPP, ENCODING, CON_TYPE, CONTENT_TYPE, CON_LENGTH, EXPECT, DEFAULT
 	};
 
 	bool			loaded;
@@ -63,7 +63,6 @@ public:
 
     std::string  raw_read;
 protected:
-	explicit HTTPRequest(TYPE);
 	bool ff_nextline();
 
 public:

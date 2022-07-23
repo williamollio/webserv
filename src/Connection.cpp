@@ -99,6 +99,7 @@ void Connection::establishConnection() {
                     *it = NULL;
                 }
                 list.remove(NULL);
+                std::cerr << "CONN: Closing " << _fds[i].fd << std::endl;
                 close(_fds[i].fd);
                 removeFD(_fds[i].fd);
             } else if (_fds[i].revents == POLLNVAL) {

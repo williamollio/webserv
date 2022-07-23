@@ -66,11 +66,8 @@ ssize_t Socket::read(char * buffer, size_t size) _NOEXCEPT {
 }
 
 void Socket::send(const std::string & data) throw(IOException) {
+    std::cerr << "Socket: send(data) -> " << data << std::endl;
     (void) write(data);
-}
-
-bool Socket::eof() const _NOEXCEPT {
-    return _end_of_file;
 }
 
 void Socket::close() const throw (IOException)

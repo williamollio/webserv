@@ -183,7 +183,8 @@ void CGICall::processCGIOutput() {
         std::clog << "INFO: Socket has been closed" << std::endl
                   << "INFO: " << ex.what()          << std::endl;
     }
-    close(socket.get_fd());
+    std::cerr << "CGICall: Closing socket (fd: " << socket.get_fd() << ")" << std::endl;
+    std::cerr << "CGICall: " << close(socket.get_fd()) << std::endl;
     Connection::getInstance().removeFD(socket.get_fd());
     pthread_mutex_lock(&runningMutex);
     running = false;

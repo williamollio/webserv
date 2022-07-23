@@ -193,21 +193,17 @@ void HTTPRequest::isChunkedRequest(const std::string &data)
 }
 
 bool HTTPRequest::ff_nextline() {
-	char buffer;
-	bool boll = false;
-    try {
-        while ((buffer = _chunked_socket.read()) > 0) {
-            if (buffer == '\r')
-                boll = true;
-            else if (boll && buffer == '\n')
-                return true;
-            else
-                boll = false;
-        }
-        if (buffer == 0) std::cerr << "HTTPRequest: EOF!" << std::endl;
-    } catch (IOException & ex) {
-        return false;
+    char buffer;
+    bool boll = false;
+    while ((buffer = _chunked_socket.read()) > 0) {
+        if (buffer == '\r')
+            boll = true;
+        else if (boll && buffer == '\n')
+            return true;
+        else
+            boll = false;
     }
+    if (buffer == 0) std::cerr << "HTTPRequest: EOF!" << std::endl;
 	/*while (read(_chunked_socket.get_fd(), &buffer, 1) > 0) {
 		if (buffer == '\r')
 			boll = true;
@@ -216,18 +212,30 @@ bool HTTPRequest::ff_nextline() {
 		else
 			boll = false;
 	}*/
-	return false;
+    return false;
 }
 
 void HTTPRequest::loadPayload() {
 	loaded = false;
 
 	//char buff[2] = {'\0', '\0'};
-    for (;;) {
+    while (!loaded) {
         if (!_chunked_head_or_load) {
-            if (!fast_fowarded && !ff_nextline()) {
-                std::cerr << "HTTPRequest: Back to poll0, size: " << raw_read.size() << std::endl;
-                return;
+            if (!fast_fowarded) {
+                try {
+                    if (!ff_nextline()) {
+                        // Should not happen... or does it?
+                        loaded = true;
+                        std::cout << "finished2" << std::endl;
+                        while (raw_read.find("\r\n") != std::string::npos)
+                            raw_read.erase(raw_read.find("\r\n"), 2);
+                        _payload = raw_read;
+                        return;
+                    }
+                } catch (IOException & ex) {
+                    std::cerr << "HTTPRequest: Back to poll0, size: " << raw_read.size() << std::endl;
+                    return;
+                }
             }
             fast_fowarded = true;
             while (raw_expect.find("\r\n") == std::string::npos) {
@@ -283,7 +291,7 @@ void HTTPRequest::loadPayload() {
         } else if (raw_read.find("\r\n") != std::string::npos)
             raw_read.erase(raw_read.find("\r\n"), 2);
     }
-    //    std::cerr << "HTTPRequest: Back top poll3, size: " << raw_read.size() << ", eof: " << _chunked_socket.eof() << std::endl;
+    std::cerr << "HTTPRequest: Back top poll3, size: " << raw_read.size() << std::endl;
 	///DEPRECATED
 //	loaded = false;
 //	char buff[2] = {'\0', '\0'};

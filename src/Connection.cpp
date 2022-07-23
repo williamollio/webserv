@@ -138,6 +138,8 @@ void Connection::establishConnection() {
         std::cerr << "Polling error! Exiting..." << std::endl;
     }
     signal(SIGINT, SIG_DFL);
+    signal(SIGKILL, SIG_DFL);
+    signal(SIGTERM, SIG_DFL);
 }
 
 void Connection::addFD(int fd, bool read) _NOEXCEPT {

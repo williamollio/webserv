@@ -22,7 +22,7 @@ public:
     ~Socket();
 
     char        read()                            throw (IOException);
-    void        send(const std::string &)         throw (IOException) __attribute__ ((deprecated));
+    void        send(const std::string &)         throw (IOException) __attribute__ ((deprecated("Use write instead")));
     ssize_t     write(const std::string &)        throw (IOException);
     ssize_t     write(const char *, size_t)       throw (IOException);
     ssize_t     write(char)                       throw (IOException);

@@ -67,12 +67,13 @@ bool CGICall::hasFD(int fd) {
 }
 
 bool CGICall::writePayload() {
-    std::cerr << in[1] << " size " << payloadCounter << std::endl;
     for (; payloadCounter < _request->get_payload().size(); ++payloadCounter) {
         if (write(in[1], _request->get_payload().c_str() + payloadCounter, 1) < 0) {
+            std::cerr << "CGICall: write with fd " << in[1] << " size " << payloadCounter << std::endl;
             return false;
         }
     }
+    std::cerr << "CGICall: write with fd " << in[1] << " size " << payloadCounter << std::endl;
     std::cerr << "Closing server -> cgi" << std::endl;
     close(in[1]);
     return true;
@@ -82,10 +83,10 @@ bool CGICall::readPayload() {
     ssize_t r;
     char    b;
 
-    std::cerr << out[0] << " size " << buffer.size() << std::endl;
     while ((r = read(out[0], &b, 1)) > 0) {
         buffer += b;
     }
+    std::cerr << "CGICall: read with fd " << out[0] << " size " << buffer.size() << ", r: " << r << std::endl;
     if (r < 0) {
         return false;
     }

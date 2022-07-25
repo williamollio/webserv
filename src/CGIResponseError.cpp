@@ -29,7 +29,8 @@ void CGIResponseError::run(Socket & socket)
         setBody(_error_code, body);
         header.set_content_length(body.length());
     } else {
-        header.set_content_length(0);
+        header.set_content_length(5);
+        body = "ARSCH";
     }
 
 	socket.send(header.tostring() + "\r\n\r\n" + body);

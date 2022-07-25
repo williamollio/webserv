@@ -8,7 +8,7 @@ Socket::~Socket() {
 }
 
 Socket::Socket(int fd) throw (IOException)
-    : _fd(fd), _read_index(0), _buffer_fill(), _buffer(), total_read(0)
+    : _fd(fd), _read_index(0), _buffer_fill(), _buffer(), _state(1), total_read(0)
 {
 	if (fd < 0)
 		throw IOException("Invalid socket descriptor!");
@@ -39,7 +39,10 @@ void Socket::read_buffer() throw(IOException) {
     ssize_t tmp = ::read(_fd, _buffer, BUFFER_SIZE);
     std::cerr << "SOCKET: " << _fd << " read: " << tmp << std::endl;
     if (tmp < 0) {
+        _state = -1;
         throw IOException("Could not read any data!");
+    } else if (tmp == 0) {
+        _state = 0;
     }
     total_read += tmp;
     _buffer_fill = tmp;
@@ -63,6 +66,14 @@ ssize_t Socket::read(char * buffer, size_t size) _NOEXCEPT {
         ret = ret == 0 ? -1 : ret;
     }
     return ret;
+}
+
+bool Socket::bad() const _NOEXCEPT {
+    return _state == -1;
+}
+
+bool Socket::eof() const _NOEXCEPT {
+    return _state == 0;
 }
 
 void Socket::send(const std::string & data) throw(IOException) {

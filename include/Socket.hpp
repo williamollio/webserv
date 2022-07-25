@@ -11,6 +11,7 @@ class Socket {
     size_t _read_index;
     size_t _buffer_fill;
     char   _buffer[BUFFER_SIZE];
+    char   _state;
 
     size_t total_read;
 
@@ -29,4 +30,6 @@ public:
     void        close()                     const throw (IOException);
     ssize_t     read(char *, size_t)              _NOEXCEPT;
     int         get_fd()                    const _NOEXCEPT;
+    bool        bad()                       const _NOEXCEPT;
+    bool        eof()                       const _NOEXCEPT;
 };

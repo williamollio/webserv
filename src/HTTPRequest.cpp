@@ -79,8 +79,8 @@ size_t	HTTPRequest::ff_newline(std::vector<std::string>& file, size_t index) {
 }
 
 HTTPRequest::HTTPRequest(HTTPRequest::TYPE type, std::vector<std::string> &file, std::string &raw, Socket &_socket)
-		: loaded(true), _type(type), _chunked_socket(_socket), _chunked_head_or_load(false), fast_fowarded(true), _keep_alive(false), _content(false),
-		  _content_length(0) {
+		: loaded(true), _type(type), _chunked_socket(_socket), _chunked_head_or_load(false), fast_fowarded(true), wasFullLine(false), _keep_alive(false),
+		  _content(false), _content_length(0) {
 	size_t	index = 1;
 	_copy_raw = raw;
 	_path = file[index++];
@@ -192,7 +192,7 @@ void HTTPRequest::isChunkedRequest(const std::string &data)
 		_chunked = true;
 }
 
-bool HTTPRequest::ff_nextline() {
+/*bool HTTPRequest::ff_nextline() {
     char buffer;
     bool boll = false;
     while ((buffer = _chunked_socket.read()) > 0) {
@@ -204,18 +204,90 @@ bool HTTPRequest::ff_nextline() {
             boll = false;
     }
     if (buffer == 0) std::cerr << "HTTPRequest: EOF!" << std::endl;
-	/*while (read(_chunked_socket.get_fd(), &buffer, 1) > 0) {
+	/ *while (read(_chunked_socket.get_fd(), &buffer, 1) > 0) {
 		if (buffer == '\r')
 			boll = true;
 		else if (boll && buffer == '\n')
 			return true;
 		else
 			boll = false;
-	}*/
+	}* /
     return false;
+}*/
+
+/*bool HTTPRequest::ff_nextline() {
+    bool boll = false;
+    char c;
+    while ((c = _chunked_socket.read()) > 0) {
+        if (c == '\r') {
+            boll = true;
+        } else if (boll && c == '\n') {
+            return true;
+        } else {
+            boll = false;
+        }
+    }
+    return false;
+}*/
+
+bool HTTPRequest::readLine() _NOEXCEPT {
+    std::string tmp;
+    char c;
+    try {
+        while ((c = _chunked_socket.read()) > 0 && c != '\n') {
+            tmp += c;
+        }
+        if (c == 0) std::terminate(); // TODO: HUP
+        if (tmp.back() == '\r') {
+            tmp.erase(tmp.end() - 1);
+        }
+        if (wasFullLine) {
+            line = tmp;
+        } else {
+            line += tmp;
+        }
+        wasFullLine = true;
+        return true;
+    } catch (IOException & ex) {
+        if (wasFullLine) {
+            line = tmp;
+        } else {
+            line += tmp;
+        }
+        wasFullLine = false;
+        return false;
+    }
 }
 
 void HTTPRequest::loadPayload() {
+    loaded = false;
+
+    while (!loaded) {
+        if (!readLine()) return; // Poll again...
+        if (!_chunked_head_or_load) {
+            // Chunk size
+            std::stringstream s(line);
+            s << std::hex;
+            s >> _chunked_curr_line_expect_count;
+            _chunked_head_or_load = true;
+        } else {
+            // Body
+            if (_chunked_curr_line_expect_count < 0) {
+                throw HTTPException(400);
+            } else if (_chunked_curr_line_expect_count == 0) {
+                loaded = true;
+                std::cout << "HTTPRequest: finished loading payload" << std::endl;
+                return; // For never coming back again...
+            } else {
+                _payload.append(line.c_str(), _chunked_curr_line_expect_count);
+                _chunked_head_or_load = false;
+            }
+        }
+        std::cerr << "HTTPRequest: Payload size: " << _payload.size() << std::endl;
+    }
+}
+
+/*void HTTPRequest::loadPayload() {
 	loaded = false;
 
 	//char buff[2] = {'\0', '\0'};
@@ -284,12 +356,12 @@ void HTTPRequest::loadPayload() {
         if (_chunked_curr_line_expect_count <= _chunked_curr_line_read_count)
             _chunked_head_or_load = false;
         delete[] heap_buffer;
-        if (raw_read.find("\r\n") == std::string::npos && !ff_nextline()) {
+        / *if (raw_read.find("\r\n") == std::string::npos && !ff_nextline()) {
             fast_fowarded = false;
             std::cerr << "HTTPRequest: Back to poll2, size: " << raw_read.size() << std::endl;
             return;
         } else if (raw_read.find("\r\n") != std::string::npos)
-            raw_read.erase(raw_read.find("\r\n"), 2);
+            raw_read.erase(raw_read.find("\r\n"), 2);* /
     }
     std::cerr << "HTTPRequest: Back top poll3, size: " << raw_read.size() << std::endl;
 	///DEPRECATED
@@ -359,7 +431,7 @@ void HTTPRequest::loadPayload() {
 //	}
 //	_payload += raw;
 //	std::cout << "size: " << _payload.size() << std::endl;
-}
+}*/
 
 void HTTPRequest::set_payload(const std::string& data, Socket& _socket) throw(std::exception) {
 	size_t	cursor = data.find("\r\n\r\n", 0);

@@ -61,6 +61,8 @@ public:
 	bool	is_payload(size_t index);
 	size_t	ff_newline(std::vector<std::string>& file, size_t index);
 
+    bool readLine() _NOEXCEPT;
+
     std::string  raw_read;
 protected:
 	bool ff_nextline();
@@ -77,6 +79,9 @@ public:
 	std::string  raw_expect;
 	long long    _chunked_curr_line_read_count;
     bool         fast_fowarded;
+
+    bool wasFullLine;
+    std::string line;
 
 public:	//TODO: make private with get and set
 	std::string		_copy_raw;

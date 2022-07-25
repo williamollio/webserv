@@ -186,7 +186,6 @@ void Connection::handleConnection(const unsigned long index) _NOEXCEPT {
     const int fd = _fds[index].fd;
 	HTTPReader * reader;
     try {
-        Socket socket = fd;
 		ReaderByFDFinder rfd(fd);
 		std::list<HTTPReader *>::iterator my_reader = std::find_if(list.begin(), list.end(), rfd);
 		if (my_reader != list.end()) {
@@ -196,6 +195,7 @@ void Connection::handleConnection(const unsigned long index) _NOEXCEPT {
                 removeFD(fd);
             }
 		} else {
+            Socket socket = fd;
 			reader = new HTTPReader(socket);
             getpeername(socket.get_fd(), (struct sockaddr *) &address, (socklen_t *) &addrlen);
             reader->setPeerAddress(ntohl(address.sin_addr.s_addr));

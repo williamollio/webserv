@@ -5,6 +5,10 @@ void CGIResponseError::set_error_code(int error_code)
 	_error_code = error_code;
 }
 
+void CGIResponseError::set_head_only(bool only) {
+    _head = only;
+}
+
 void CGIResponseError::setBody(int error_code, std::string &body)
 {
 	std::string _default_error_file("../error404.html");
@@ -14,7 +18,6 @@ void CGIResponseError::setBody(int error_code, std::string &body)
 		body = read_file(it->second);
 	else
 		body = read_file(_default_error_file);
-	return;
 }
 
 void CGIResponseError::run(Socket & socket)
@@ -25,15 +28,23 @@ void CGIResponseError::run(Socket & socket)
 	header.setStatusCode(_error_code);
 	header.setStatusMessage(get_message(_error_code));
 
-    if (_error_code != 405) {
+    if (!_head) {
         setBody(_error_code, body);
-        header.set_content_length(body.length());
+        header.set_content_length(static_cast<int>(body.length()));
+        socket.write(header.tostring() + "\r\n\r\n" + body);
     } else {
-        header.set_content_length(5);
-        body = "ARSCH";
+        socket.write(header.tostring() + "\r\n\r\n");
     }
+    //if (_error_code != 405) {
+        //setBody(_error_code, body);
+        //header.set_content_length(body.length());
+    //} else {
+        //header.set_content_length(5);
+        //body = "ARSCH";
+    //    socket.write(header.tostring());
+    //    return;
+    //}
 
-	socket.send(header.tostring() + "\r\n\r\n" + body);
 }
 
 CGIResponseError::CGIResponseError() : CGIResponse(NULL)

@@ -15,7 +15,7 @@
 #include <cstdlib>
 #include <iostream>
 
-HTTPReader::HTTPReader(int fd): _socket(fd), response(NULL), request(NULL) {}
+HTTPReader::HTTPReader(int fd): _socket(fd), response(NULL), request(NULL), errorHead(false) {}
 
 HTTPReader::~HTTPReader() {
     if (response != NULL) delete response;
@@ -70,6 +70,7 @@ bool HTTPReader::run() {
         std::cerr << ":" << ex.what() << std::endl;
         CGIResponseError error;
 		error.set_error_code(ex.get_error_code());
+        error.set_head_only(errorHead);
 		error.run(_socket);
     }
     return true;
@@ -156,6 +157,9 @@ int	HTTPRequest::checktype(std::string& word) {
 		return POST;
 	if (word == "DELETE")
 		return DELETE;
+    else if (word == "HEAD") {
+        return HEAD;
+    }
 	return ERROR;
 }
 
@@ -186,6 +190,8 @@ HTTPRequest* HTTPReader::_parse() throw(std::exception) {
 			return new HTTPRequest(HTTPRequest::POST, file, raw, _socket);
 		case HTTPRequest::DELETE:
 			return new HTTPRequest(HTTPRequest::DELETE, file, raw, _socket);
+        case HTTPRequest::HEAD:
+            errorHead = true;
         default:
 			std::cerr << file[0] << std::endl;
 			throw HTTPException(405);

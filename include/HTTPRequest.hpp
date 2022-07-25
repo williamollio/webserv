@@ -21,7 +21,7 @@ private:
 	typedef std::vector<std::string>	vectorString;
 public:
     enum TYPE {
-        GET, POST, DELETE, ERROR
+        GET, POST, DELETE, HEAD, ERROR
     };
 	enum REQ_INFO {
 		USER_AGENT, HOSTNAME, LANG_SUPP, ENCODING, CON_TYPE, CONTENT_TYPE, CON_LENGTH, EXPECT, DEFAULT

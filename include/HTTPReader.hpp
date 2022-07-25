@@ -35,6 +35,7 @@ private:
         unsigned int  peerAddress;
         std::string   peerName;
         int           port;
+        bool          errorHead;
 
         HTTPRequest * _parse() throw(std::exception);
         bool          _isCGIMethod(HTTPRequest::TYPE);

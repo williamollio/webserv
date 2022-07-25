@@ -11,14 +11,11 @@
 #include "URI.hpp"
 #include "CGICall.hpp"
 #include "HTTPRequest.hpp"
-#include "Connection.hpp"
 
 #include <cstdlib>
 #include <iostream>
 
-HTTPReader::HTTPReader(): _socket(), response(NULL), request(NULL) {}
-
-HTTPReader::HTTPReader(Socket & socket): _socket(socket), response(NULL), request(NULL) {}
+HTTPReader::HTTPReader(int fd): _socket(fd), response(NULL), request(NULL) {}
 
 HTTPReader::~HTTPReader() {
     if (response != NULL) delete response;
@@ -54,7 +51,7 @@ bool HTTPReader::run() {
             request->setPeerName(peerName);
             request->setUsedPort(port);
             if (request->getURI().isCGIIdentifier() && _isCGIMethod(request->getType())) {
-                response = new CGICall(request);
+                response = new CGICall(request, _socket);
             } else {
                 switch (request->getType()) {
                     case HTTPRequest::GET:    response = new CGIResponseGet(request);    break;
@@ -218,10 +215,6 @@ void HTTPReader::setPeerName(const std::string & peerName) {
 
 const Socket & HTTPReader::getSocket() const {
     return _socket;
-}
-
-void HTTPReader::setSocket(const Socket & socket) {
-    _socket = socket;
 }
 
 int HTTPReader::getUsedPort() const {

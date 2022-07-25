@@ -12,15 +12,13 @@
 
 class HTTPReader {
     public:
-        HTTPReader();
-        explicit HTTPReader(Socket &);
+        explicit HTTPReader(int);
         ~HTTPReader();
 
         bool                run();
         bool                runForFD(int);
         void                setPeerAddress(unsigned int);
         void                setPeerName(const std::string &);
-        void                setSocket(const Socket &);
         void                setUsedPort(int port);
         bool                hasFD(int)                       const;
         bool                isRunning()                      const;

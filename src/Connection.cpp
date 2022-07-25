@@ -171,7 +171,7 @@ void Connection::removeFD(const int fd) _NOEXCEPT {
 
 void Connection::denyConnection(const int fd, const int errorCode) const _NOEXCEPT {
     try {
-        Socket socket = fd;
+        Socket socket(fd);
         CGIResponseError response;
         response.set_error_code(errorCode);
         response.run(socket);
@@ -195,15 +195,14 @@ void Connection::handleConnection(const unsigned long index) _NOEXCEPT {
                 removeFD(fd);
             }
 		} else {
-            Socket socket = fd;
-			reader = new HTTPReader(socket);
-            getpeername(socket.get_fd(), (struct sockaddr *) &address, (socklen_t *) &addrlen);
+			reader = new HTTPReader(fd);
+            getpeername(fd, (struct sockaddr *) &address, (socklen_t *) &addrlen);
             reader->setPeerAddress(ntohl(address.sin_addr.s_addr));
             char * host = new char[50]();
             getnameinfo((struct sockaddr *) &address, (socklen_t) addrlen, host, (socklen_t) 50, NULL, 0, 0);
             reader->setPeerName(host);
             delete[] host;
-            reader->setUsedPort(server_fds[connectionPairs[socket.get_fd()]]);
+            reader->setUsedPort(server_fds[connectionPairs[fd]]);
             list.push_back(reader);
             std::cerr << "CONN: Starting " << fd << std::endl;
             if (reader->run()) {

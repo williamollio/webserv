@@ -18,8 +18,7 @@ class Socket {
     void read_buffer() throw (IOException);
 
 public:
-    Socket();
-    Socket(int fd) throw (IOException);
+    explicit Socket(int fd) throw (IOException);
     ~Socket();
 
     char        read()                            throw (IOException);

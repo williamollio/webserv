@@ -9,7 +9,7 @@
 
 class CGICall: public CGIResponse {
 public:
-    explicit CGICall(HTTPRequest *);
+    explicit CGICall(HTTPRequest *, Socket &);
     virtual ~CGICall();
 
     void run(Socket & socket);
@@ -46,7 +46,7 @@ private:
     std::string     httpContentLength;
     std::string     httpExpect;
     std::string     buffer;
-    Socket          socket;
+    Socket &        socket;
     pid_t           child;
     pthread_t       threadID;
     int             in[2];

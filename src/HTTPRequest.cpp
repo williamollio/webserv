@@ -279,6 +279,7 @@ void HTTPRequest::loadPayload() {
                 std::cout << "HTTPRequest: finished loading payload" << std::endl;
                 return; // For never coming back again...
             } else {
+                _payload.reserve(_payload.size() + _chunked_curr_line_expect_count);
                 _payload.append(line.c_str(), _chunked_curr_line_expect_count);
                 _chunked_head_or_load = false;
             }
@@ -443,13 +444,18 @@ void HTTPRequest::set_payload(const std::string& data, Socket& _socket) throw(st
 	if (!_chunked) {
 		char buf[2];
 		while (_payload.length() < _content_length) {
-			if (!read(_socket.get_fd(), buf, 1))
-				throw HTTPException(504);
-			_payload += buf;
+            try {
+                if (_socket.read() < 0)
+                    throw HTTPException(504);
+                _payload += buf;
+            } catch (IOException & ex) {
+                throw HTTPException(413);
+            }
+			//if (!read(_socket.get_fd(), buf, 1))
 		}
 	} else {
 		_payload.clear();
-		_chunked_socket = _socket;
+		//_chunked_socket = _socket;
 		loadPayload();
 	}
 }

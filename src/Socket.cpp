@@ -1,8 +1,6 @@
 #include <iostream>
 #include "Socket.hpp"
 
-Socket::Socket() {}
-
 Socket::~Socket() {
     std::cerr << "SOCKET: fd: " << _fd << ", total bytes: " << total_read << std::endl;
 }

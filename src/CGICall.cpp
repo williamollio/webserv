@@ -12,7 +12,7 @@
 #include "Connection.hpp"
 #include <fcntl.h>
 
-CGICall::CGICall(HTTPRequest * request)
+CGICall::CGICall(HTTPRequest * request, Socket & socket)
         : CGIResponse(request),
           uri(request->getURI()),
           method("REQUEST_METHOD="),
@@ -35,6 +35,7 @@ CGICall::CGICall(HTTPRequest * request)
           httpConnection("HTTP_Connection="),
           httpContentLength("HTTP_Content-Length="),
           httpExpect("HTTP_Except="),
+          socket(socket),
           child(-1),
           threadID(),
           in(),
@@ -72,6 +73,7 @@ bool CGICall::writePayload() {
             return false;
         }
     }
+    std::cerr << "Closing server -> cgi" << std::endl;
     close(in[1]);
     return true;
 }
@@ -104,7 +106,7 @@ bool CGICall::runForFD(int fd) {
 }
 
 void CGICall::run(Socket & _socket) {
-    socket = _socket;
+    //socket = _socket;
     switch (_request->getType()) {
         case HTTPRequest::GET:    method += "GET";    break;
         case HTTPRequest::POST:   method += "POST";   break;

@@ -20,11 +20,11 @@ HTTPReader::HTTPReader(int fd): _socket(fd), response(NULL), request(NULL), erro
 HTTPReader::~HTTPReader() {
     if (response != NULL) delete response;
     if (request != NULL) delete request;
-    try {
+    /*try {
         _socket.close();
     } catch (std::exception & exception) {
         std::cerr << exception.what() << std::endl;
-    }
+    }*/
 }
 
 bool HTTPReader::runForFD(int fd) {

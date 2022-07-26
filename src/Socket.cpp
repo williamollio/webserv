@@ -2,6 +2,13 @@
 #include "Socket.hpp"
 
 Socket::~Socket() {
+    if (!closed()) {
+        try {
+            close();
+        } catch (IOException & exception) {
+            std::cerr << "Socket: " << exception.what() << std::endl;
+        }
+    }
     std::cerr << "SOCKET: fd: " << _fd << ", total bytes read: " << total_read << ", total bytes written: " << total_written << std::endl;
 }
 

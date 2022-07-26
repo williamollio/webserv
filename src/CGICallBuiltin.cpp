@@ -5,7 +5,7 @@
 #include "CGICallBuiltin.hpp"
 
 CGICallBuiltin::CGICallBuiltin(HTTPRequest * request, const std::string & executable)
-    : CGICall(request), executable(executable) {
+    : CGICall(request, request->_chunked_socket), executable(executable) {
 
 }
 

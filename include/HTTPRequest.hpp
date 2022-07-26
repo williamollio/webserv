@@ -13,21 +13,26 @@
 #include "URI.hpp"
 #include "Cookie.hpp"
 
-#ifndef BUFFER
-# define BUFFER 30000
-#endif /* BUFFER */
+//#ifndef BUFFER
+//# define BUFFER 30000
+//#endif /* BUFFER */
 
 class HTTPRequest {
 private:
 	typedef std::vector<std::string>	vectorString;
 public:
     enum TYPE {
-        GET, POST, DELETE, ERROR
+        GET, POST, DELETE, HEAD, ERROR
     };
 	enum REQ_INFO {
+<<<<<<< HEAD
 		USER_AGENT, HOSTNAME, LANG_SUPP, ENCODING, CON_TYPE, CONTENT_TYPE, CON_LENGTH, EXPECT , COOKIE, DEFAULT
+=======
+		USER_AGENT, HOSTNAME, LANG_SUPP, ENCODING, CON_TYPE, CONTENT_TYPE, CON_LENGTH, EXPECT, DEFAULT
+>>>>>>> feature/cgi-poller
 	};
 
+	bool			loaded;
 	static int		checktype(std::string& word);
 
     TYPE                getType() const;
@@ -48,8 +53,9 @@ public:
 
 	std::string          unchunkedPayload(const std::string &data, size_t cursor);
 	void                 isChunkedRequest(const std::string &data);
+	void				 loadPayload();
 
-	explicit HTTPRequest(TYPE, std::vector<std::string>& file, std::string& raw, Socket& _socket);
+	explicit HTTPRequest(HTTPRequest::TYPE type, std::vector<std::string> &file, std::string &raw, Socket &_socket);
 	REQ_INFO http_token_comp(std::string& word);
 
 	size_t	load_string(std::vector<std::string>& file, size_t index, std::string& target);
@@ -59,15 +65,28 @@ public:
 
 	bool	is_payload(size_t index);
 	size_t	ff_newline(std::vector<std::string>& file, size_t index);
-	protected:
-	explicit HTTPRequest(TYPE);
 
-private:
+    bool readLine() _NOEXCEPT;
+
+    std::string  raw_read;
+protected:
+	bool ff_nextline();
+
+public:
     const TYPE  _type;
     URI          uri;
     unsigned int peerAddress;
     std::string  peerName;
     int          port;
+	Socket&      _chunked_socket;
+	bool         _chunked_head_or_load;
+	long long    _chunked_curr_line_expect_count;
+	std::string  raw_expect;
+	long long    _chunked_curr_line_read_count;
+    bool         fast_fowarded;
+
+    bool wasFullLine;
+    std::string line;
 
 public:	//TODO: make private with get and set
 	std::string		_copy_raw;

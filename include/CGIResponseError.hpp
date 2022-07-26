@@ -9,11 +9,13 @@ class CGIResponseError : public CGIResponse {
 		CGIResponseError();
 
 		void set_error_code(int error_code);
+        void set_head_only(bool);
 		void setBody(int error_code, std::string &body);
 		void run(Socket & socket);
 
 	private:
-		int _error_code;
+		int  _error_code;
+        bool _head;
 };
 
 

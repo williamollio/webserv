@@ -70,7 +70,7 @@ void CGIResponsePost::createFile(std::string &payload) {
 		_filename.erase(0,1);
 	PRINT_CGIRESPONSEPOST("_filename: ", _filename);
 	std::ofstream ofs(_filename);
-	PRINT_CGIRESPONSEPOST("payload: ", payload);
+	//PRINT_CGIRESPONSEPOST("payload: ", payload);
 
 	ofs << payload << std::endl;
 	ofs.close();

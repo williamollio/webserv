@@ -1,27 +1,40 @@
 #pragma once
 
 #include <string>
-#include <sys/socket.h>
-#include <netinet/in.h>
 #include <unistd.h>
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <fcntl.h>
 #include "IOException.hpp"
 
+#define BUFFER_SIZE 65536
+
 class Socket {
-	private:
-		int			_fd;
-		std::string _type_header;
-		std::string _filename;
-	public:
-		Socket();
-		Socket(int fd) throw (IOException);
-		~Socket();
-		std::string read_socket() throw (IOException);
-		void send_header(const std::string & type);
-		void send(const std::string & content) throw (IOException);
-		void close_socket() const throw(IOException);
-		int get_fd() const _NOEXCEPT;
+    enum State { BAD, EOT, CLOSED, READY };
+
+    int    _fd;
+    size_t _read_index;
+    size_t _buffer_fill;
+    char   _buffer[BUFFER_SIZE];
+    State   _state;
+
+    size_t total_read;
+    size_t total_written;
+
+    void read_buffer() throw (IOException);
+
+public:
+    explicit Socket(int fd) throw (IOException);
+    ~Socket();
+
+    char        read()                            throw (IOException);
+    void        send(const std::string &)         throw (IOException) __attribute__ ((deprecated("Use write instead")));
+    ssize_t     write(const std::string &)        throw (IOException);
+    ssize_t     write(const char *, size_t)       throw (IOException);
+    ssize_t     write(char)                       throw (IOException);
+    void        close()                           throw (IOException);
+    ssize_t     read(char *, size_t)              _NOEXCEPT;
+    int         get_fd()                    const _NOEXCEPT;
+    bool        bad()                       const _NOEXCEPT;
+    bool        eof()                       const _NOEXCEPT;
+    bool        closed()                    const _NOEXCEPT;
+    bool        ready()                     const _NOEXCEPT;
+    State       get_state()                 const _NOEXCEPT;
 };

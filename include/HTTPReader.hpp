@@ -14,25 +14,21 @@
 
 class HTTPReader {
     public:
-        HTTPReader();
-        explicit HTTPReader(Socket &);
+        explicit HTTPReader(int);
         ~HTTPReader();
 
-        void run();
-        bool isRunning() const;
-
-        unsigned int getPeerAddress() const;
-        void         setPeerAddress(unsigned int peerAddress);
-
-        const std::string & getPeerName() const;
-        void                setPeerName(const std::string &peerName);
-
-        const Socket & getSocket() const;
-        void           setSocket(const Socket &);
-
-        int  getUsedPort() const;
-        void setUsedPort(int port);
-		Cookie get_cookie(Cookie cookie);
+        bool                run();
+        bool                runForFD(int);
+        void                setPeerAddress(unsigned int);
+        void                setPeerName(const std::string &);
+        void                setUsedPort(int port);
+        bool                hasFD(int)                       const;
+        bool                isRunning()                      const;
+        unsigned int        getPeerAddress()                 const;
+        const std::string & getPeerName()                    const;
+        const Socket &      getSocket()                      const;
+		HTTPRequest *       getRequest()                     const;
+        int                 getUsedPort()                    const;
 
 private:
         Socket        _socket;
@@ -44,6 +40,7 @@ private:
 		Cookie        cookie;
 		static std::list<Cookie> session_management;
 		size_t        _max_size_body;
+        bool          errorHead;
 
         HTTPRequest * _parse() throw(std::exception);
         bool          _isCGIMethod(HTTPRequest::TYPE);

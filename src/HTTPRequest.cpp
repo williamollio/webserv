@@ -6,12 +6,9 @@
 #include "HTTPException.hpp"
 #include <cstdlib>
 
-
 HTTPRequest::TYPE HTTPRequest::getType() const {
     return _type;
 }
-
-HTTPRequest::HTTPRequest(HTTPRequest::TYPE type): _type(type), _keep_alive(false), _content(false), _chunked(false), _content_length(0){}
 
 bool	HTTPRequest::is_payload(size_t index) {
 	return 	_copy_raw.find("\r\n\r\n", 0) <= index;
@@ -83,7 +80,9 @@ size_t	HTTPRequest::ff_newline(std::vector<std::string>& file, size_t index) {
 	return index + 1;
 }
 
-HTTPRequest::HTTPRequest(HTTPRequest::TYPE type, std::vector<std::string> &file, std::string& raw, Socket& _socket) : _type(type), _keep_alive(false), _content(false), _content_length(0) {
+HTTPRequest::HTTPRequest(HTTPRequest::TYPE type, std::vector<std::string> &file, std::string &raw, Socket &_socket)
+		: loaded(true), _type(type), _chunked_socket(_socket), _chunked_head_or_load(false), fast_fowarded(true), wasFullLine(false), _keep_alive(false),
+		  _content(false), _content_length(0) {
 	size_t	index = 1;
 	_copy_raw = raw;
 	_path = file[index++];
@@ -176,11 +175,11 @@ Cookie HTTPRequest::parse_cookie() {
 	return cookie;
 }
 
-const URI &HTTPRequest::getURI() const {
+const URI & HTTPRequest::getURI() const {
     return uri;
 }
 
-void HTTPRequest::setURI(const URI &uri) {
+void HTTPRequest::setURI(const URI & uri) {
     HTTPRequest::uri = uri;
 }
 
@@ -189,21 +188,27 @@ std::string HTTPRequest::unchunkedPayload(const std::string &data, size_t cursor
 	std::string payload;
 	std::string buffer;
 	std::string line;
-	payload = data.substr(cursor+2);
+	payload = data.substr(0);
 	std::istringstream tmp(payload);
 
-	int i = 1;
+	size_t i = 1;
+	size_t size = 0;
 	do
 	{
 		getline(tmp, line);
+//		if (i % 2 == 1)
+//			std::cout << line << std::endl;
 		if (i % 2 == 0)
 		{
 			line.pop_back();
 			buffer.append(line);
+			std::cout << "length: " << line.size() << std::endl;
+			size += line.size();
 			line.clear();
 		}
 		i++;
 	} while (!(line.front() == '0' && line.length() == 3) && !tmp.eof());
+	std::cout << "size: " << size << std::endl;
 	payload.clear();
 	return (buffer);
 }
@@ -213,6 +218,248 @@ void HTTPRequest::isChunkedRequest(const std::string &data)
 	if (data.find("Transfer-Encoding: chunked") != std::string::npos || data.find("Expect: 100-continue") != std::string::npos)
 		_chunked = true;
 }
+
+/*bool HTTPRequest::ff_nextline() {
+    char buffer;
+    bool boll = false;
+    while ((buffer = _chunked_socket.read()) > 0) {
+        if (buffer == '\r')
+            boll = true;
+        else if (boll && buffer == '\n')
+            return true;
+        else
+            boll = false;
+    }
+    if (buffer == 0) std::cerr << "HTTPRequest: EOF!" << std::endl;
+	/ *while (read(_chunked_socket.get_fd(), &buffer, 1) > 0) {
+		if (buffer == '\r')
+			boll = true;
+		else if (boll && buffer == '\n')
+			return true;
+		else
+			boll = false;
+	}* /
+    return false;
+}*/
+
+/*bool HTTPRequest::ff_nextline() {
+    bool boll = false;
+    char c;
+    while ((c = _chunked_socket.read()) > 0) {
+        if (c == '\r') {
+            boll = true;
+        } else if (boll && c == '\n') {
+            return true;
+        } else {
+            boll = false;
+        }
+    }
+    return false;
+}*/
+
+bool HTTPRequest::readLine() _NOEXCEPT {
+    std::string tmp;
+    char c;
+    try {
+        while ((c = _chunked_socket.read()) > 0 && c != '\n') {
+            tmp += c;
+        }
+        if (c == 0) std::terminate(); // TODO: HUP
+        if (tmp.back() == '\r') {
+            tmp.erase(tmp.end() - 1);
+        }
+        if (wasFullLine) {
+            line = tmp;
+        } else {
+            line += tmp;
+        }
+        wasFullLine = true;
+        return true;
+    } catch (IOException & ex) {
+        if (wasFullLine) {
+            line = tmp;
+        } else {
+            line += tmp;
+        }
+        wasFullLine = false;
+        return false;
+    }
+}
+
+void HTTPRequest::loadPayload() {
+    loaded = false;
+
+    while (!loaded) {
+        if (!readLine()) return; // Poll again...
+        if (!_chunked_head_or_load) {
+            // Chunk size
+            std::stringstream s(line);
+            s << std::hex;
+            s >> _chunked_curr_line_expect_count;
+            _chunked_head_or_load = true;
+        } else {
+            // Body
+            if (_chunked_curr_line_expect_count < 0) {
+                throw HTTPException(400);
+            } else if (_chunked_curr_line_expect_count == 0) {
+                loaded = true;
+                std::cout << "HTTPRequest: finished loading payload" << std::endl;
+                return; // For never coming back again...
+            } else {
+                _payload.reserve(_payload.size() + _chunked_curr_line_expect_count);
+                _payload.append(line.c_str(), _chunked_curr_line_expect_count);
+                _chunked_head_or_load = false;
+            }
+        }
+        std::cerr << "HTTPRequest: Payload size: " << _payload.size() << std::endl;
+    }
+}
+
+/*void HTTPRequest::loadPayload() {
+	loaded = false;
+
+	//char buff[2] = {'\0', '\0'};
+    while (!loaded) {
+        if (!_chunked_head_or_load) {
+            if (!fast_fowarded) {
+                try {
+                    if (!ff_nextline()) {
+                        // Should not happen... or does it?
+                        loaded = true;
+                        std::cout << "finished2" << std::endl;
+                        while (raw_read.find("\r\n") != std::string::npos)
+                            raw_read.erase(raw_read.find("\r\n"), 2);
+                        _payload = raw_read;
+                        return;
+                    }
+                } catch (IOException & ex) {
+                    std::cerr << "HTTPRequest: Back to poll0, size: " << raw_read.size() << std::endl;
+                    return;
+                }
+            }
+            fast_fowarded = true;
+            while (raw_expect.find("\r\n") == std::string::npos) {
+                try {
+                    raw_expect += _chunked_socket.read();
+                    if (raw_expect.back() == 0) std::cerr << "HTTPRequest: EOF1!" << std::endl;
+                } catch (IOException &ex) {
+                    std::cerr << "HTTPRequest: Back to poll1, size: " << raw_read.size() << std::endl;
+                    return;
+                }
+                //if (read(_chunked_socket.get_fd(), buff, 1) < 0)
+                //	return;
+                //raw_expect += buff;
+            }
+            _chunked_head_or_load = true;
+            _chunked_curr_line_read_count = 0;
+            raw_expect.erase(raw_expect.find("\r\n"), 2);
+            std::stringstream ss;
+            ss << std::hex << raw_expect;
+            ss >> _chunked_curr_line_expect_count;
+            std::cerr << "HTTPRequest: " << _chunked_curr_line_expect_count << std::endl;
+            raw_expect.clear();
+            if (_chunked_curr_line_expect_count < 0) {
+                throw HTTPException(400);
+            } else if (_chunked_curr_line_expect_count == 0) {
+                loaded = true;
+                std::cout << "finished" << std::endl;
+                while (raw_read.find("\r\n") != std::string::npos)
+                    raw_read.erase(raw_read.find("\r\n"), 2);
+                _payload = raw_read;
+                return;
+            }
+        }
+        long long tmp = 0;
+        char *heap_buffer = new char[_chunked_curr_line_expect_count + 1]();
+        while (raw_read.find("\r\n") == std::string::npos &&
+               _chunked_curr_line_expect_count > _chunked_curr_line_read_count) {
+            tmp = _chunked_socket.read(heap_buffer, _chunked_curr_line_expect_count - _chunked_curr_line_read_count);
+            if (tmp == 0)
+                std::cerr << "HTTPRequest: EOF2!" << std::endl;
+            if (tmp <= 0)
+                break;
+            _chunked_curr_line_read_count += tmp;
+            raw_read += heap_buffer;
+        }
+        if (_chunked_curr_line_expect_count <= _chunked_curr_line_read_count)
+            _chunked_head_or_load = false;
+        delete[] heap_buffer;
+        / *if (raw_read.find("\r\n") == std::string::npos && !ff_nextline()) {
+            fast_fowarded = false;
+            std::cerr << "HTTPRequest: Back to poll2, size: " << raw_read.size() << std::endl;
+            return;
+        } else if (raw_read.find("\r\n") != std::string::npos)
+            raw_read.erase(raw_read.find("\r\n"), 2);* /
+    }
+    std::cerr << "HTTPRequest: Back top poll3, size: " << raw_read.size() << std::endl;
+	///DEPRECATED
+//	loaded = false;
+//	char buff[2] = {'\0', '\0'};
+//	std::string raw(buff);
+//	std::string payload_num;
+//	size_t		size = 0;
+//	long long	char_count = 0;
+//	long long	ret = 0;
+//	bool		failed = false;
+//	while (raw.find("\r\n\r\n", 0) == std::string::npos) {
+//		payload_num.clear();
+//		while (payload_num.find("\r\n\r\n", 0) == std::string::npos && payload_num.find("\r\n", size) == std::string::npos) {
+//			if (!read(_chunked_socket.get_fd(), buff, 1))
+//				throw HTTPException(504);
+//			payload_num += buff;
+//		}
+//		failed = false;
+//		std::stringstream ss;
+//		ss << std::hex << payload_num;
+//		ss >> char_count;
+//		if (payload_num.find("\r\n\r\n", 0) != std::string::npos || char_count <= 0){
+//			loaded = true;
+//			break;
+//		}
+//		{
+//			char * ex_buff = new char[char_count + 1]();
+//			std::cout << char_count << std::endl;
+//			ret = read(_chunked_socket.get_fd(), ex_buff, char_count);
+//			raw += ex_buff;
+//			if (ret < 0) {
+//				delete[] ex_buff;
+//				loaded = false;
+//				return;
+////				throw HTTPException(504);
+//			}
+//			if (raw.find("\r\n\r\n", 0) != std::string::npos) {
+//				loaded = true;
+//				break;
+//			}
+//			long long tmp = 0;
+//			while (char_count - ret > 0 && ret < char_count && raw.find("\r\n\r\n", 0) == std::string::npos) {
+//				tmp = read(_chunked_socket.get_fd(), ex_buff, char_count - ret);
+//				if (tmp < 0 && !failed) {
+//					failed = true;
+//					usleep(100);
+//					continue;
+//				} else if (tmp < 0 && failed) {
+//					loaded = false;
+//					return;
+//				}
+//				ret += tmp;
+//				raw += ex_buff;
+//			}
+//			std::cout << ret << std::endl;
+//			if (char_count - ret < 0)
+//				std::cout << "really??" << std::endl;
+//			delete[] ex_buff;
+//		}
+//	}
+//	std::cout << "rawsize: " << raw.size() << std::endl;
+//	{
+//		while (raw.find("\r\n") != std::string::npos) {
+//			raw.erase(raw.find("\r\n"), 2);
+//		}
+//	}
+//	_payload += raw;
+//	std::cout << "size: " << _payload.size() << std::endl;
+}*/
 
 void HTTPRequest::set_payload(const std::string& data, Socket& _socket) throw(std::exception) {
 	size_t	cursor = data.find("\r\n\r\n", 0);
@@ -224,48 +471,20 @@ void HTTPRequest::set_payload(const std::string& data, Socket& _socket) throw(st
 	if (!_chunked) {
 		char buf[2];
 		while (_payload.length() < _content_length) {
-			if (!read(_socket.get_fd(), buf, 1))
-				throw HTTPException(504);
-			_payload += buf;
+            try {
+                if (_socket.read() < 0)
+                    throw HTTPException(504);
+                _payload += buf;
+            } catch (IOException & ex) {
+                throw HTTPException(413);
+            }
+			//if (!read(_socket.get_fd(), buf, 1))
 		}
 	} else {
-		char buff[2] = {'\0', '\0'};
-		std::string raw(buff);
-		size_t		size = 0;
-		long long	char_count = 0;
-		while (raw.find("\r\n\r\n", 0) == std::string::npos) {
-			while (raw.find("\r\n\r\n", 0) == std::string::npos && raw.find("\r\n", size) == std::string::npos) {
-				if (!read(_socket.get_fd(), buff, 1))
-					throw HTTPException(504);
-				raw += buff;
-			}
-			if (raw.find("\r\n\r\n", 0) == std::string::npos)
-				break;
-			char_count = atoll(raw.substr(0, raw.find("\r\n", size)).c_str());
-			if (char_count != 0) {
-				char * buff = new char[char_count]();
-				long long ret = read(_socket.get_fd(), buff, char_count);
-				raw += buff;
-				if (ret < 0) {
-					delete[] buff;
-					throw HTTPException(504);
-				}
-				long long tmp;
-				while (ret != char_count) {
-					tmp = read(_socket.get_fd(), buff, char_count - ret);
-					if (tmp < 0) {
-						delete[] buff;
-						throw HTTPException(504);
-					}
-					ret += tmp;
-					raw += buff;
-				}
-				delete[] buff;
-				size = char_count;
-			}
-		}
-    	_payload = unchunkedPayload(raw, 0);
-    }
+		_payload.clear();
+		//_chunked_socket = _socket;
+		loadPayload();
+	}
 }
 
 const std::string & HTTPRequest::get_payload() const {

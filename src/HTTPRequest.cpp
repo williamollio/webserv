@@ -253,6 +253,7 @@ void HTTPRequest::loadChunkedPayload() {
     loaded = false;
 
     while (!loaded) {
+		// if (max size) return error;
         if (!readLine()) return; // Poll again...
         if (!_chunked_head_or_load) {
             // Chunk size

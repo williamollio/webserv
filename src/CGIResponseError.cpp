@@ -28,22 +28,23 @@ void CGIResponseError::run(Socket & socket)
 	header.setStatusCode(_error_code);
 	header.setStatusMessage(get_message(_error_code));
 
-    if (!_head) {
+    /*if (!_head) {
         setBody(_error_code, body);
         header.set_content_length(static_cast<int>(body.length()));
         socket.write(header.tostring() + "\r\n\r\n" + body);
     } else {
         socket.write(header.tostring() + "\r\n\r\n");
-    }
-    //if (_error_code != 405) {
-        //setBody(_error_code, body);
-        //header.set_content_length(body.length());
-    //} else {
-        //header.set_content_length(5);
-        //body = "ARSCH";
+    }*/
+    if (_error_code != 405) {
+        setBody(_error_code, body);
+        header.set_content_length(body.length());
+    } else {
+        header.set_content_length(5);
+        body = "0\r\n\r\n";
     //    socket.write(header.tostring());
     //    return;
-    //}
+    }
+    socket.write(header.tostring() + "\r\n\r\n" + body);
 
 }
 

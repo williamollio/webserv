@@ -290,6 +290,7 @@ void HTTPRequest::loadPayload() {
     loaded = false;
 
     while (!loaded) {
+		// if (max size) return error;
         if (!readLine()) return; // Poll again...
         if (!_chunked_head_or_load) {
             // Chunk size
@@ -476,6 +477,7 @@ void HTTPRequest::set_payload(const std::string& data, Socket& _socket) throw(st
                     throw HTTPException(504);
                 _payload += buf;
             } catch (IOException & ex) {
+				std::cout << "_payload.length(): " << _payload.length() << std::endl;
                 throw HTTPException(413);
             }
 			//if (!read(_socket.get_fd(), buf, 1))

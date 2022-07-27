@@ -260,6 +260,33 @@ bool HTTPRequest::readLine() _NOEXCEPT {
 }
 
 void HTTPRequest::loadPayload() {
+    std::cerr << "HTTPRequest: chunked payload: " << (_chunked ? "true" : "false") << std::endl;
+    if (_chunked) {
+        loadChunkedPayload();
+    } else {
+        loadNormalPayload();
+    }
+}
+
+void HTTPRequest::loadNormalPayload() {
+    /*char buf[2];
+    while (_payload.length() < _content_length) {
+        try {
+            if (_chunked_socket.read() < 0)
+                throw HTTPException(504);
+            _payload += buf;
+        } catch (IOException & ex) {
+            throw HTTPException(413);
+        }
+        //if (!read(_socket.get_fd(), buf, 1))
+    }*/
+    while (_payload.size() < _content_length) {
+        if (!readLine()) return;
+        _payload += line;
+    }
+}
+
+void HTTPRequest::loadChunkedPayload() {
     loaded = false;
 
     while (!loaded) {
@@ -441,7 +468,7 @@ void HTTPRequest::set_payload(const std::string& data, Socket& _socket) throw(st
 		throw HTTPException(400);
     }
 
-	if (!_chunked) {
+	/*if (!_chunked) {
 		char buf[2];
 		while (_payload.length() < _content_length) {
             try {
@@ -454,10 +481,10 @@ void HTTPRequest::set_payload(const std::string& data, Socket& _socket) throw(st
 			//if (!read(_socket.get_fd(), buf, 1))
 		}
 	} else {
-		_payload.clear();
+		_payload.clear();*/
 		//_chunked_socket = _socket;
 		loadPayload();
-	}
+	//}
 }
 
 const std::string & HTTPRequest::get_payload() const {

@@ -19,6 +19,10 @@
 class HTTPRequest {
 private:
 	typedef std::vector<std::string>	vectorString;
+
+    void loadChunkedPayload();
+    void loadNormalPayload();
+
 public:
     enum TYPE {
         GET, POST, DELETE, HEAD, ERROR
@@ -65,7 +69,7 @@ public:
 
     std::string  raw_read;
 protected:
-	bool ff_nextline();
+	//bool ff_nextline();
 
 public:
     const TYPE  _type;

@@ -98,11 +98,6 @@ Socket::State Socket::get_state() const _NOEXCEPT {
     return _state;
 }
 
-void Socket::send(const std::string & data) throw(IOException) {
-    std::cerr << "Socket: send(data) -> " << data << std::endl;
-    (void) write(data);
-}
-
 void Socket::close() throw (IOException) {
     if (_state == CLOSED) {
         throw IOException("Socket has already been closed!");

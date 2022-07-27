@@ -89,7 +89,7 @@ void Connection::establishConnection() {
         for (unsigned long i = 0; i < current_size; i++) {
             if (_fds[i].revents == 0) {
                 // Ignore...
-            } else if (_fds[i].revents == POLLERR || _fds[i].revents == POLL_HUP) {
+            } else if (_fds[i].revents == POLLERR || _fds[i].revents == POLLHUP) {
                 ReaderByFDFinder finder(_fds[i].fd);
                 std::list<HTTPReader *>::iterator it = std::find_if(list.begin(), list.end(), finder);
                 if (it != list.end()) {

@@ -2,7 +2,6 @@
 #define TOOL_HPP
 
 #include <string>
-#include "CGIResponse.hpp"
 
 #define PRINT_ERROR_CODE(message, code) (std::cout << __FILE__ << ":" << __LINE__ << " " <<  "\033[1;31m" << message << code << "\033[0m" << std::endl)
 #define PRINT_CGIRESPONSE(message, variable) (std::cout << __FILE__ << ":" << __LINE__ << " " <<  "\033[1;33m" << message << variable << "\033[0m" << std::endl)

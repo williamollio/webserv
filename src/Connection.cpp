@@ -1,9 +1,7 @@
 #include "Connection.hpp"
-#include "HTTPReader.hpp"
 #include "IOException.hpp"
 #include "Configuration.hpp"
 #include "CGIResponseError.hpp"
-#include <poll.h>
 #include <netdb.h>
 #include <fcntl.h>
 
@@ -107,17 +105,11 @@ void Connection::establishConnection() {
             } else if (isServingFD(_fds[i].fd)) {
                 int socketDescriptor;
                 while ((socketDescriptor = accept(_fds[i].fd, NULL, NULL)) >= 0) {
-                    // TODO: Remove protection
-                    if (nfds == NUM_FDS) {
-                        clearPollArray();
-                        if (nfds == NUM_FDS) {
-                            denyConnection(socketDescriptor);
-                            continue;
-                        }
+                    if (!addFD(socketDescriptor)) {
+                        denyConnection(socketDescriptor);
+                        continue;
                     }
-                    // -----------------------
                     connectionPairs[socketDescriptor] = _fds[i].fd;
-                    addFD(socketDescriptor);
                 }
             } else {
                 handleConnection(i);
@@ -143,21 +135,21 @@ void Connection::establishConnection() {
     signal(SIGTERM, SIG_DFL);
 }
 
-void Connection::addFD(int fd, bool read) _NOEXCEPT {
+bool Connection::addFD(int fd, bool read) _NOEXCEPT {
     if (nfds == NUM_FDS) {
         clearPollArray();
         if (nfds == NUM_FDS) {
-            // FIXME: What happens if there is no space left for polling?
-            throw false;
+            return false;
         }
     }
     _fds[nfds].fd = fd;
     _fds[nfds].events = read ? POLLIN : POLLOUT;
     std::cerr << "CONN: Added " << fd << " (" << nfds << ")" << std::endl;
     nfds++;
+    return true;
 }
 
-void Connection::removeFD(const int fd) _NOEXCEPT {
+bool Connection::removeFD(const int fd) _NOEXCEPT {
     unsigned long i;
     for (i = 0; i < nfds && _fds[i].fd != fd; ++i);
     if (i != nfds) {
@@ -166,7 +158,9 @@ void Connection::removeFD(const int fd) _NOEXCEPT {
         _fds[i].fd = -1;
     }
     // TODO: Performance?
+    bool ret = i != nfds;
     clearPollArray();
+    return ret;
 }
 
 void Connection::denyConnection(const int fd, const int errorCode) const _NOEXCEPT {
@@ -179,9 +173,8 @@ void Connection::denyConnection(const int fd, const int errorCode) const _NOEXCE
         std::cerr << "Could not send error " << errorCode << "!" << std::endl
                   << "Exception: " << ex.what()                  << std::endl;
     }
-    close(fd);
 }
-
+// TODO: Transfer the socket!
 void Connection::handleConnection(const unsigned long index) _NOEXCEPT {
     const int fd = _fds[index].fd;
 	HTTPReader * reader;
@@ -250,5 +243,4 @@ Connection::ReaderByFDFinder::ReaderByFDFinder(int fd) : fd(fd) {}
 
 bool Connection::ReaderByFDFinder::operator()(HTTPReader *  & reader) const {
     return reader->hasFD(fd);
-    //return reader->getSocket().get_fd() == fd;
 }

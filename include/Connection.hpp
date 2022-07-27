@@ -1,14 +1,10 @@
 #pragma once
-#include "Socket.hpp"
 #include "HTTPReader.hpp"
 #include <sys/socket.h>
-#include <sys/poll.h>
-#include <netinet/in.h>
-#include <unistd.h>
-#include <iostream>
-#include <fstream>
-#include <sstream>
 #include <list>
+#include <map>
+#include <netinet/in.h>
+#include <sys/poll.h>
 
 #define NUM_FDS 200
 
@@ -50,8 +46,8 @@ public:
     ~Connection();
 
     void establishConnection();
-    void addFD(int fd, bool read = true) _NOEXCEPT;
-    void removeFD(int)                   _NOEXCEPT;
+    bool addFD(int fd, bool read = true) _NOEXCEPT;
+    bool removeFD(int)                   _NOEXCEPT;
 
     static Connection & getInstance() _NOEXCEPT;
 };

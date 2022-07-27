@@ -108,7 +108,7 @@ void CGIResponsePost::run(Socket &socket) {
 	if (_request->_path == "/file_should_exist_after")
 		std::cout << "breakpoint" << std::endl;
 
-	if (_POST == false)
+	if (!_POST && !_accept_file)
 		throw HTTPException(405);
 	code = 201;
 	saveFile(_request->_payload);

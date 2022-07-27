@@ -67,12 +67,12 @@ bool CGICall::hasFD(int fd) {
 }
 
 bool CGICall::writePayload() {
-//    for (; payloadCounter < _request->get_payload().size(); ++payloadCounter) {
-        if (write(in[1], _request->get_payload().c_str() /*+ payloadCounter*/, _request->get_payload().size()) < 0) {
-            std::cerr << "CGICall: write with fd " << in[1] << " size " << /*payloadCounter*/_request->get_payload().size() << std::endl;
+    for (; payloadCounter < _request->get_payload().size(); ++payloadCounter) {
+        if (write(in[1], _request->get_payload().c_str() + payloadCounter, 1) < 0) {
+            std::cerr << "CGICall: write with fd " << in[1] << " size " << payloadCounter << std::endl;
             return false;
         }
-//    }
+    }
     std::cerr << "CGICall: write with fd " << in[1] << " size " << payloadCounter << std::endl;
     std::cerr << "Closing server -> cgi" << std::endl;
     close(in[1]);
@@ -83,7 +83,6 @@ bool CGICall::readPayload() {
     ssize_t r;
     char    b;
 
-	lseek(out[0], 0, SEEK_SET);
     while ((r = read(out[0], &b, 1)) > 0) {
         buffer += b;
     }
@@ -139,32 +138,20 @@ void CGICall::run(Socket &) {
     const std::string & requestedFile = computeRequestedFile();
     if (access(requestedFile.c_str(), F_OK) < 0) throw HTTPException(404);
     if (access(requestedFile.c_str(), X_OK) < 0) throw HTTPException(403);
-
-	FILE* file = tmpfile();
-	FILE* file_two = tmpfile();
-	if (!file || !file_two)
-		throw HTTPException(500);
-
-	in[1] = fileno(file);
-
-//    if (pipe(in) < 0) throw HTTPException(500);
-
-	out[0] = fileno(file_two);
-//	if (pipe(out) < 0) {
-//        close(in[0]);
-//        close(in[1]);
-//        throw HTTPException(500);
-//    }
-    running = true;
-//    fcntl(in[1], F_SETFL, O_NONBLOCK);
-    if (!writePayload()) {
-		throw HTTPException(500);
-//        Connection::getInstance().addFD(in[1], false);
+    if (pipe(in) < 0) throw HTTPException(500);
+	if (pipe(out) < 0) {
+        close(in[0]);
+        close(in[1]);
+        throw HTTPException(500);
     }
-	lseek(in[1], 0, SEEK_SET);
-//    fcntl(out[0], F_SETFL, O_NONBLOCK);
+    running = true;
+    fcntl(in[1], F_SETFL, O_NONBLOCK);
+    if (!writePayload()) {
+        Connection::getInstance().addFD(in[1], false);
+    }
+    fcntl(out[0], F_SETFL, O_NONBLOCK);
     Connection::getInstance().addFD(out[0]);
-    execute(in[1], out[0], requestedFile);
+    execute(in[0], out[1], requestedFile);
     pthread_create(&threadID, NULL, reinterpret_cast<void *(*)(void *)>(CGICall::waitOrThrow), this);
     //pthread_create(&threadID, NULL, reinterpret_cast<void *(*)(void *)>(CGICall::async), this);
 }
@@ -257,10 +244,7 @@ void CGICall::sendError(const int errorCode) _NOEXCEPT {
 void CGICall::execute(const int in, const int out, const std::string & requestedFile) {
     child = fork();
     if (child < 0) throw HTTPException(500);
-    if (child > 0) {
-		close(in);
-		return;
-	}
+    if (child > 0) return;
     dup2(in, STDIN_FILENO);
     dup2(out, STDOUT_FILENO);
     close(in);
@@ -322,7 +306,6 @@ void CGICall::waitOrThrow(CGICall * self) {
         std::cerr << "CGI killed" << std::endl;
     }
     std::cerr << "CGI finished" << std::endl;
-//    close(self->in[0]);
     close(self->out[1]);
     //if (ret == 0) throw HTTPException(408);
     //else if (status != 0) throw HTTPException(500);

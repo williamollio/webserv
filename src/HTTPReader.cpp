@@ -20,15 +20,10 @@ HTTPReader::HTTPReader(int fd): _socket(fd), response(NULL), request(NULL), erro
 HTTPReader::~HTTPReader() {
     if (response != NULL) delete response;
     if (request != NULL) delete request;
-    /*try {
-        _socket.close();
-    } catch (std::exception & exception) {
-        std::cerr << exception.what() << std::endl;
-    }*/
 }
 
 bool HTTPReader::runForFD(int fd) {
-    if (_socket.get_fd() == fd) {
+    if (_socket.get_fd() == fd && !request->isLoaded()) {
         request->loadPayload();
         if (request->isLoaded()) {
             run();
@@ -165,8 +160,7 @@ int	HTTPRequest::checktype(std::string& word) {
 
 
 HTTPRequest* HTTPReader::_parse() throw(std::exception) {
-	//char buff[2] = {'\0', '\0'};
-	std::string raw;//(buff);
+	std::string raw;
 
 	while (raw.find("\r\n\r\n", 0) == std::string::npos) {
         try {
@@ -176,9 +170,6 @@ HTTPRequest* HTTPReader::_parse() throw(std::exception) {
             throw HTTPException(504);
             // Maybe just poll instead...
         }
-		//if (!read(_socket.get_fd(), buff, 1))
-		//	throw HTTPException(504);
-		//raw += buff;
 	}
 	std::cout << raw << std::endl;
 	std::string	head = raw;

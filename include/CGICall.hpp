@@ -46,12 +46,14 @@ private:
     std::string     httpContentLength;
     std::string     httpExpect;
     std::string     buffer;
+    std::string     payload;
     Socket &        socket;
     pid_t           child;
     pthread_t       threadID;
     int             in[2];
     int             out[2];
     size_t          payloadCounter;
+    size_t          socketCounter;
     bool            running;
     pthread_mutex_t runningMutex;
 
@@ -59,16 +61,17 @@ private:
     void sendError(int errorCode) _NOEXCEPT;
     void processCGIOutput();
     bool writePayload();
+    bool writeSocket();
     bool readPayload();
 
     static std::string   vectorToString(const std::vector<std::string> &);
     static std::string   nextLine(int);
     static bool          isFolder(const std::string &);
-    static HTTPHeader    parseCGIResponse(int);
+    //static HTTPHeader    parseCGIResponse(int);
     static HTTPHeader    parseCGIResponse(std::stringstream &);
     static unsigned long skipWhitespaces(const std::string &, unsigned long);
     static void          waitOrThrow(CGICall *);
-    static void          async(CGICall *);
+    //static void          async(CGICall *);
 
     /**
      * The time in seconds after which child processes are killed if they did not finish.

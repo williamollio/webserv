@@ -249,6 +249,8 @@ void CGICall::execute(const int in, const int out, const std::string & requested
     dup2(out, STDOUT_FILENO);
     close(in);
     close(out);
+    close(this->in[1]);
+    close(this->out[0]);
     char ** arguments = new char * [2]();
     char ** environment = new char * [_request->hasContent() ? 23 : 21]();
     environment[0]  = strdup(method.c_str());

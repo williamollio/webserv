@@ -20,7 +20,7 @@ std::string CGIResponseGet::set_file(std::string path, Socket& socket)
 
 	if ((path == "/" || is_request_location(path)) && _dir_listing == true)
 	{
-        CGICallBuiltin cgicall(_request, "cgi/directory_listing.php");
+        CGICallBuiltin cgicall(_request, socket, "cgi/directory_listing.php");
         cgicall.run(socket);
         throw HTTPException(100);
 	}
@@ -52,7 +52,7 @@ void CGIResponseGet::run(Socket & socket) {
 	if (_GET == false)
 		throw HTTPException(405);
     try {
-        file = set_file(_request->_path, socket);
+        file = set_file(_request->getPath(), socket);
     } catch (HTTPException &) { return; }
 
     body = read_file(file);
@@ -60,7 +60,7 @@ void CGIResponseGet::run(Socket & socket) {
 	header.set_content_length(body.size());
     header.setStatusCode(200);
     header.setStatusMessage(get_message(200));
-	socket.send(header.tostring() + "\r\n\r\n" + body);
+	socket.write(header.tostring() + "\r\n\r\n" + body);
     std::cerr << "Header sent " << std::endl;
 }
 
@@ -75,7 +75,7 @@ CGIResponseGet::CGIResponseGet(HTTPRequest *request): CGIResponse(request)
 	_server_index = config.get_server_index_file();
 	_server_location_log = set_absolut_path(_server_root);
 
-	if (is_request_defined_location(request->_path, config.get_location_specifier())) {
+	if (is_request_defined_location(request->getPath(), config.get_location_specifier())) {
         _server_location_log = set_absolut_path(_loc_root);
     }
 

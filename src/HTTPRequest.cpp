@@ -10,8 +10,8 @@ HTTPRequest::TYPE HTTPRequest::getType() const {
     return _type;
 }
 
-bool	HTTPRequest::is_payload(size_t index) {
-	return 	_copy_raw.find("\r\n\r\n", 0) <= index;
+bool HTTPRequest::is_payload(size_t index) const {
+	return _copy_raw.find("\r\n\r\n", 0) <= index;
 }
 
 HTTPRequest::REQ_INFO HTTPRequest::http_token_comp(std::string &word) {
@@ -72,15 +72,15 @@ size_t	HTTPRequest::load_size(std::vector<std::string> &file, size_t index, size
 	return index + 2;
 }
 
-size_t	HTTPRequest::ff_newline(std::vector<std::string>& file, size_t index) {
+size_t	HTTPRequest::ff_newline(std::vector<std::string>& file, size_t index) const {
 	while (index < file.size() && file.at(index) != "\n" && !is_payload(index))
 		index++;
 	return index + 1;
 }
 
 HTTPRequest::HTTPRequest(HTTPRequest::TYPE type, std::vector<std::string> &file, std::string &raw, Socket &_socket)
-		: loaded(true), _type(type), _chunked_socket(_socket), _chunked_head_or_load(false), fast_fowarded(true), wasFullLine(false), _keep_alive(false),
-		  _content(false), _content_length(0) {
+    : _type(type), port(), loaded(true), peerAddress(), _chunked_head_or_load(false), wasFullLine(false), _keep_alive(false),
+        _content(false), _chunked(), _chunked_curr_line_expect_count(), _content_length(0), _chunked_socket(_socket) {
 	size_t	index = 1;
 	_copy_raw = raw;
 	_path = file[index++];
@@ -137,12 +137,11 @@ HTTPRequest::HTTPRequest(HTTPRequest::TYPE type, std::vector<std::string> &file,
 
 	isChunkedRequest(raw);
 	if (_content_length != 0 && _content_type.empty()) {
-
         throw HTTPException(400);
     }
 	else if (_content_length != 0 || _chunked) {
 		_content = true;
-		set_payload(raw, _socket);
+        loadPayload();
 	}
 	else
 		_content = false;
@@ -156,79 +155,11 @@ void HTTPRequest::setURI(const URI & uri) {
     HTTPRequest::uri = uri;
 }
 
-std::string HTTPRequest::unchunkedPayload(const std::string &data, size_t cursor)
-{
-	std::string payload;
-	std::string buffer;
-	std::string line;
-	payload = data.substr(0);
-	std::istringstream tmp(payload);
-
-	size_t i = 1;
-	size_t size = 0;
-	do
-	{
-		getline(tmp, line);
-//		if (i % 2 == 1)
-//			std::cout << line << std::endl;
-		if (i % 2 == 0)
-		{
-			line.pop_back();
-			buffer.append(line);
-			std::cout << "length: " << line.size() << std::endl;
-			size += line.size();
-			line.clear();
-		}
-		i++;
-	} while (!(line.front() == '0' && line.length() == 3) && !tmp.eof());
-	std::cout << "size: " << size << std::endl;
-	payload.clear();
-	return (buffer);
-}
-
 void HTTPRequest::isChunkedRequest(const std::string &data)
 {
 	if (data.find("Transfer-Encoding: chunked") != std::string::npos || data.find("Expect: 100-continue") != std::string::npos)
 		_chunked = true;
 }
-
-/*bool HTTPRequest::ff_nextline() {
-    char buffer;
-    bool boll = false;
-    while ((buffer = _chunked_socket.read()) > 0) {
-        if (buffer == '\r')
-            boll = true;
-        else if (boll && buffer == '\n')
-            return true;
-        else
-            boll = false;
-    }
-    if (buffer == 0) std::cerr << "HTTPRequest: EOF!" << std::endl;
-	/ *while (read(_chunked_socket.get_fd(), &buffer, 1) > 0) {
-		if (buffer == '\r')
-			boll = true;
-		else if (boll && buffer == '\n')
-			return true;
-		else
-			boll = false;
-	}* /
-    return false;
-}*/
-
-/*bool HTTPRequest::ff_nextline() {
-    bool boll = false;
-    char c;
-    while ((c = _chunked_socket.read()) > 0) {
-        if (c == '\r') {
-            boll = true;
-        } else if (boll && c == '\n') {
-            return true;
-        } else {
-            boll = false;
-        }
-    }
-    return false;
-}*/
 
 bool HTTPRequest::readLine() _NOEXCEPT {
     std::string tmp;
@@ -269,17 +200,6 @@ void HTTPRequest::loadPayload() {
 }
 
 void HTTPRequest::loadNormalPayload() {
-    /*char buf[2];
-    while (_payload.length() < _content_length) {
-        try {
-            if (_chunked_socket.read() < 0)
-                throw HTTPException(504);
-            _payload += buf;
-        } catch (IOException & ex) {
-            throw HTTPException(413);
-        }
-        //if (!read(_socket.get_fd(), buf, 1))
-    }*/
     while (_payload.size() < _content_length) {
         if (!readLine()) return;
         _payload += line;
@@ -315,178 +235,6 @@ void HTTPRequest::loadChunkedPayload() {
     }
 }
 
-/*void HTTPRequest::loadPayload() {
-	loaded = false;
-
-	//char buff[2] = {'\0', '\0'};
-    while (!loaded) {
-        if (!_chunked_head_or_load) {
-            if (!fast_fowarded) {
-                try {
-                    if (!ff_nextline()) {
-                        // Should not happen... or does it?
-                        loaded = true;
-                        std::cout << "finished2" << std::endl;
-                        while (raw_read.find("\r\n") != std::string::npos)
-                            raw_read.erase(raw_read.find("\r\n"), 2);
-                        _payload = raw_read;
-                        return;
-                    }
-                } catch (IOException & ex) {
-                    std::cerr << "HTTPRequest: Back to poll0, size: " << raw_read.size() << std::endl;
-                    return;
-                }
-            }
-            fast_fowarded = true;
-            while (raw_expect.find("\r\n") == std::string::npos) {
-                try {
-                    raw_expect += _chunked_socket.read();
-                    if (raw_expect.back() == 0) std::cerr << "HTTPRequest: EOF1!" << std::endl;
-                } catch (IOException &ex) {
-                    std::cerr << "HTTPRequest: Back to poll1, size: " << raw_read.size() << std::endl;
-                    return;
-                }
-                //if (read(_chunked_socket.get_fd(), buff, 1) < 0)
-                //	return;
-                //raw_expect += buff;
-            }
-            _chunked_head_or_load = true;
-            _chunked_curr_line_read_count = 0;
-            raw_expect.erase(raw_expect.find("\r\n"), 2);
-            std::stringstream ss;
-            ss << std::hex << raw_expect;
-            ss >> _chunked_curr_line_expect_count;
-            std::cerr << "HTTPRequest: " << _chunked_curr_line_expect_count << std::endl;
-            raw_expect.clear();
-            if (_chunked_curr_line_expect_count < 0) {
-                throw HTTPException(400);
-            } else if (_chunked_curr_line_expect_count == 0) {
-                loaded = true;
-                std::cout << "finished" << std::endl;
-                while (raw_read.find("\r\n") != std::string::npos)
-                    raw_read.erase(raw_read.find("\r\n"), 2);
-                _payload = raw_read;
-                return;
-            }
-        }
-        long long tmp = 0;
-        char *heap_buffer = new char[_chunked_curr_line_expect_count + 1]();
-        while (raw_read.find("\r\n") == std::string::npos &&
-               _chunked_curr_line_expect_count > _chunked_curr_line_read_count) {
-            tmp = _chunked_socket.read(heap_buffer, _chunked_curr_line_expect_count - _chunked_curr_line_read_count);
-            if (tmp == 0)
-                std::cerr << "HTTPRequest: EOF2!" << std::endl;
-            if (tmp <= 0)
-                break;
-            _chunked_curr_line_read_count += tmp;
-            raw_read += heap_buffer;
-        }
-        if (_chunked_curr_line_expect_count <= _chunked_curr_line_read_count)
-            _chunked_head_or_load = false;
-        delete[] heap_buffer;
-        / *if (raw_read.find("\r\n") == std::string::npos && !ff_nextline()) {
-            fast_fowarded = false;
-            std::cerr << "HTTPRequest: Back to poll2, size: " << raw_read.size() << std::endl;
-            return;
-        } else if (raw_read.find("\r\n") != std::string::npos)
-            raw_read.erase(raw_read.find("\r\n"), 2);* /
-    }
-    std::cerr << "HTTPRequest: Back top poll3, size: " << raw_read.size() << std::endl;
-	///DEPRECATED
-//	loaded = false;
-//	char buff[2] = {'\0', '\0'};
-//	std::string raw(buff);
-//	std::string payload_num;
-//	size_t		size = 0;
-//	long long	char_count = 0;
-//	long long	ret = 0;
-//	bool		failed = false;
-//	while (raw.find("\r\n\r\n", 0) == std::string::npos) {
-//		payload_num.clear();
-//		while (payload_num.find("\r\n\r\n", 0) == std::string::npos && payload_num.find("\r\n", size) == std::string::npos) {
-//			if (!read(_chunked_socket.get_fd(), buff, 1))
-//				throw HTTPException(504);
-//			payload_num += buff;
-//		}
-//		failed = false;
-//		std::stringstream ss;
-//		ss << std::hex << payload_num;
-//		ss >> char_count;
-//		if (payload_num.find("\r\n\r\n", 0) != std::string::npos || char_count <= 0){
-//			loaded = true;
-//			break;
-//		}
-//		{
-//			char * ex_buff = new char[char_count + 1]();
-//			std::cout << char_count << std::endl;
-//			ret = read(_chunked_socket.get_fd(), ex_buff, char_count);
-//			raw += ex_buff;
-//			if (ret < 0) {
-//				delete[] ex_buff;
-//				loaded = false;
-//				return;
-////				throw HTTPException(504);
-//			}
-//			if (raw.find("\r\n\r\n", 0) != std::string::npos) {
-//				loaded = true;
-//				break;
-//			}
-//			long long tmp = 0;
-//			while (char_count - ret > 0 && ret < char_count && raw.find("\r\n\r\n", 0) == std::string::npos) {
-//				tmp = read(_chunked_socket.get_fd(), ex_buff, char_count - ret);
-//				if (tmp < 0 && !failed) {
-//					failed = true;
-//					usleep(100);
-//					continue;
-//				} else if (tmp < 0 && failed) {
-//					loaded = false;
-//					return;
-//				}
-//				ret += tmp;
-//				raw += ex_buff;
-//			}
-//			std::cout << ret << std::endl;
-//			if (char_count - ret < 0)
-//				std::cout << "really??" << std::endl;
-//			delete[] ex_buff;
-//		}
-//	}
-//	std::cout << "rawsize: " << raw.size() << std::endl;
-//	{
-//		while (raw.find("\r\n") != std::string::npos) {
-//			raw.erase(raw.find("\r\n"), 2);
-//		}
-//	}
-//	_payload += raw;
-//	std::cout << "size: " << _payload.size() << std::endl;
-}*/
-
-void HTTPRequest::set_payload(const std::string& data, Socket& _socket) throw(std::exception) {
-	size_t	cursor = data.find("\r\n\r\n", 0);
-	if (cursor == std::string::npos) {
-        std::cerr << "error 4000 here" <<std::endl;
-		throw HTTPException(400);
-    }
-
-	/*if (!_chunked) {
-		char buf[2];
-		while (_payload.length() < _content_length) {
-            try {
-                if (_socket.read() < 0)
-                    throw HTTPException(504);
-                _payload += buf;
-            } catch (IOException & ex) {
-                throw HTTPException(413);
-            }
-			//if (!read(_socket.get_fd(), buf, 1))
-		}
-	} else {
-		_payload.clear();*/
-		//_chunked_socket = _socket;
-		loadPayload();
-	//}
-}
-
 const std::string & HTTPRequest::get_payload() const {
     return _payload;
 }
@@ -499,11 +247,11 @@ void HTTPRequest::setPeerAddress(unsigned int peerAddress) {
     HTTPRequest::peerAddress = peerAddress;
 }
 
-const std::string &HTTPRequest::getPeerName() const {
+const std::string & HTTPRequest::getPeerName() const {
     return peerName;
 }
 
-void HTTPRequest::setPeerName(const std::string &peerName) {
+void HTTPRequest::setPeerName(const std::string & peerName) {
     HTTPRequest::peerName = peerName;
 }
 
@@ -513,4 +261,48 @@ int HTTPRequest::getUsedPort() const {
 
 void HTTPRequest::setUsedPort(const int port) {
     HTTPRequest::port = port;
+}
+
+std::string & HTTPRequest::getPath() {
+    return _path;
+}
+
+bool HTTPRequest::isLoaded() const {
+    return loaded;
+}
+
+const std::string & HTTPRequest::getUserAgent() const {
+    return _user_agent;
+}
+
+const std::string & HTTPRequest::getHost() const {
+    return _host;
+}
+
+const HTTPRequest::vectorString & HTTPRequest::getLang() const {
+    return _lang;
+}
+
+const HTTPRequest::vectorString & HTTPRequest::getEncoding() const {
+    return _encoding;
+}
+
+bool HTTPRequest::hasContent() const {
+    return _content;
+}
+
+const HTTPRequest::vectorString & HTTPRequest::getContentType() const {
+    return _content_type;
+}
+
+const std::string & HTTPRequest::getExpect() const {
+    return _expect;
+}
+
+bool HTTPRequest::isKeepAlive() const {
+    return _keep_alive;
+}
+
+size_t HTTPRequest::getContentLength() const {
+    return _content_length;
 }

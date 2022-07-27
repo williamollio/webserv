@@ -48,7 +48,7 @@ CGICall::CGICall(HTTPRequest * request, Socket & socket)
     _server_root = config.get_server_root_folder();
     _server_location_log = set_absolut_path(_server_root);
 
-    if (is_request_defined_location(request->_path, config.get_location_specifier())) {
+    if (is_request_defined_location(request->getPath(), config.get_location_specifier())) {
         _server_location_log = set_absolut_path(_loc_root);
     }
 }
@@ -106,8 +106,7 @@ bool CGICall::runForFD(int fd) {
     }
 }
 
-void CGICall::run(Socket & _socket) {
-    //socket = _socket;
+void CGICall::run(Socket &) {
     switch (_request->getType()) {
         case HTTPRequest::GET:    method += "GET";    break;
         case HTTPRequest::POST:   method += "POST";   break;
@@ -122,19 +121,19 @@ void CGICall::run(Socket & _socket) {
     remoteHost += _request->getPeerName();
     serverName += Configuration::getInstance().get_server_names().at(0);
     serverPort += int_to_string(_request->getUsedPort());
-    if (_request->_content) {
-        contentLength = "CONTENT_LENGTH=" + int_to_string(static_cast<int>(_request->_content_length));
+    if (_request->hasContent()) {
+        contentLength = "CONTENT_LENGTH=" + int_to_string(static_cast<int>(_request->getContentLength()));
         contentType = "CONTENT_TYPE=";
-        contentType += vectorToString(_request->_content_type);
+        contentType += vectorToString(_request->getContentType());
     }
-    httpUserAgent += _request->_user_agent;
-    httpHost += _request->_host;
-    httpLang += vectorToString(_request->_lang);
-    httpEncoding += vectorToString(_request->_encoding);
-    httpAccept += vectorToString(_request->_content_type);
-    httpContentLength += int_to_string(static_cast<int>(_request->_content_length));
-    httpExpect += _request->_expect;
-    httpConnection += _request->_keep_alive ? "keep-alive" : "";
+    httpUserAgent += _request->getUserAgent();
+    httpHost += _request->getHost();
+    httpLang += vectorToString(_request->getLang());
+    httpEncoding += vectorToString(_request->getEncoding());
+    httpAccept += vectorToString(_request->getContentType());
+    httpContentLength += int_to_string(static_cast<int>(_request->getContentLength()));
+    httpExpect += _request->getExpect();
+    httpConnection += _request->isKeepAlive() ? "keep-alive" : "";
     scriptName += computeRequestedFile();
     const std::string & requestedFile = computeRequestedFile();
     if (access(requestedFile.c_str(), F_OK) < 0) throw HTTPException(404);
@@ -187,9 +186,9 @@ void CGICall::processCGIOutput() {
             }
         }
         header.set_content_length(static_cast<int>(payload.size()));
-        socket.send(header.tostring());
-        socket.send("\r\n\r\n");
-        socket.send(payload);
+        socket.write(header.tostring());
+        socket.write("\r\n\r\n");
+        socket.write(payload);
     } catch (HTTPException & ex) {
         sendError(ex.get_error_code());
     } catch (std::exception & ex) {
@@ -204,7 +203,7 @@ void CGICall::processCGIOutput() {
     pthread_mutex_unlock(&runningMutex);
 }
 
-void CGICall::async(CGICall * self) {
+/*void CGICall::async(CGICall * self) {
     try {
         //self->waitOrThrow();
         waitOrThrow(self);
@@ -239,7 +238,7 @@ void CGICall::async(CGICall * self) {
     pthread_mutex_lock(&self->runningMutex);
     self->running = false;
     pthread_mutex_unlock(&self->runningMutex);
-}
+}*/
 
 void CGICall::sendError(const int errorCode) _NOEXCEPT {
     try {
@@ -264,7 +263,7 @@ void CGICall::execute(const int in, const int out, const std::string & requested
     close(in);
     close(out);
     char ** arguments = new char * [2]();
-    char ** environment = new char * [_request->_content ? 23 : 21]();
+    char ** environment = new char * [_request->hasContent() ? 23 : 21]();
     environment[0]  = strdup(method.c_str());
     environment[1]  = strdup(protocol.c_str());
     environment[2]  = strdup(pathinfo.c_str());
@@ -285,7 +284,7 @@ void CGICall::execute(const int in, const int out, const std::string & requested
     environment[17] = strdup(httpUserAgent.c_str());
     environment[18] = strdup(requestUri.c_str());
     environment[19] = strdup(scriptName.c_str());
-    if (_request->_content) {
+    if (_request->hasContent()) {
         environment[20] = strdup(contentLength.c_str());
         environment[21] = strdup(contentType.c_str());
     }
@@ -327,7 +326,7 @@ void CGICall::waitOrThrow(CGICall * self) {
 }
 
 std::string CGICall::computeRequestedFile() {
-    std::string tmp = _request->_path;
+    std::string tmp = _request->getPath();
     construct_file_path(tmp);
     URI tmpUri(tmp);
     tmp = tmpUri.getFile();

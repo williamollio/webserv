@@ -12,101 +12,83 @@
 #include "Socket.hpp"
 #include "URI.hpp"
 
-//#ifndef BUFFER
-//# define BUFFER 30000
-//#endif /* BUFFER */
-
 class HTTPRequest {
-private:
-	typedef std::vector<std::string>	vectorString;
-
-    void loadChunkedPayload();
-    void loadNormalPayload();
-
 public:
     enum TYPE {
         GET, POST, DELETE, HEAD, ERROR
     };
-	enum REQ_INFO {
-		USER_AGENT, HOSTNAME, LANG_SUPP, ENCODING, CON_TYPE, CONTENT_TYPE, CON_LENGTH, EXPECT, DEFAULT
-	};
 
-	bool			loaded;
-	static int		checktype(std::string& word);
+    explicit HTTPRequest(HTTPRequest::TYPE type, std::vector<std::string> &file, std::string &raw, Socket &_socket);
 
-    TYPE                getType() const;
-    void                set_payload(const std::string& data, Socket& _socket) throw(std::exception);
-    const std::string & get_payload() const;
+    TYPE                             getType()          const;
+    int                              getUsedPort()      const;
+    bool                             isLoaded()         const;
+    bool                             hasContent()       const;
+    bool                             isKeepAlive()      const;
+    unsigned int                     getPeerAddress()   const;
+    size_t                           getContentLength() const;
+    const URI &                      getURI()           const;
+    const std::string &              get_payload()      const;
+    const std::string &              getPeerName()      const;
+    const std::string &              getUserAgent()     const;
+    const std::string &              getHost()          const;
+    const std::string &              getExpect()        const;
+    const std::vector<std::string> & getLang()          const;
+    const std::vector<std::string> & getEncoding()      const;
+    const std::vector<std::string> & getContentType()   const;
+    std::string &                    getPath();
+    void                             setURI(const URI & uri);
+    void                             setPeerAddress(unsigned int);
+    void                             setPeerName(const std::string &);
+    void                             setUsedPort(int);
+    void                             loadPayload();
+    static int                       checktype(std::string& word);
 
-    const URI &         getURI() const;
-    void                setURI(const URI &uri);
+private:
+    enum REQ_INFO {
+        USER_AGENT, HOSTNAME, LANG_SUPP, ENCODING, CON_TYPE, CONTENT_TYPE, CON_LENGTH, EXPECT, DEFAULT
+    };
+    typedef std::vector<std::string>	vectorString;
 
-    unsigned int        getPeerAddress() const;
-    void                setPeerAddress(unsigned int peerAddress);
+    const TYPE   _type;
+    int           port;
+    bool		  loaded;
+    unsigned int  peerAddress;
+    bool         _chunked_head_or_load;
+    bool          wasFullLine;
+    bool         _keep_alive;
+    bool         _content;
+    bool         _chunked;
+    long long    _chunked_curr_line_expect_count;
+    size_t       _content_length;
+    URI           uri;
+    Socket&      _chunked_socket;
+    std::string   raw_read;
+    std::string   peerName;
+    std::string   raw_expect;
+    std::string   line;
+    std::string	 _copy_raw;
+    std::string  _http_version;
+    std::string  _path;
+    std::string  _user_agent;
+    std::string  _host;
+    std::string  _payload;
+    std::string  _expect;
+    vectorString _content_type;
+    vectorString _lang;
+    vectorString _encoding;
 
-    const std::string &  getPeerName() const;
-    void                 setPeerName(const std::string & peerName);
-
-    int                  getUsedPort() const;
-    void                 setUsedPort(int);
-
-	std::string          unchunkedPayload(const std::string &data, size_t cursor);
-	void                 isChunkedRequest(const std::string &data);
-	void				 loadPayload();
-
-	explicit HTTPRequest(HTTPRequest::TYPE type, std::vector<std::string> &file, std::string &raw, Socket &_socket);
-	REQ_INFO http_token_comp(std::string& word);
-
-	size_t	load_string(std::vector<std::string>& file, size_t index, std::string& target);
-	size_t	load_vec_str(std::vector<std::string>& file, size_t index, vectorString& target);
-	size_t	load_connection(std::vector<std::string>& file, size_t index, bool& target);
-	size_t	load_size(std::vector<std::string>& file, size_t index, size_t& target);
-
-	bool	is_payload(size_t index);
-	size_t	ff_newline(std::vector<std::string>& file, size_t index);
-
-    bool readLine() _NOEXCEPT;
-
-    std::string  raw_read;
-protected:
-	//bool ff_nextline();
-
-public:
-    const TYPE  _type;
-    URI          uri;
-    unsigned int peerAddress;
-    std::string  peerName;
-    int          port;
-	Socket&      _chunked_socket;
-	bool         _chunked_head_or_load;
-	long long    _chunked_curr_line_expect_count;
-	std::string  raw_expect;
-	long long    _chunked_curr_line_read_count;
-    bool         fast_fowarded;
-
-    bool wasFullLine;
-    std::string line;
-
-public:	//TODO: make private with get and set
-	std::string		_copy_raw;
-    std::string		_http_version;
-    std::string		_path;
-    std::string		_user_agent;
-    std::string		_host;
-    vectorString	_lang;
-    vectorString	_encoding;
-    bool			_keep_alive;
-    bool			_content;
-    bool			_chunked;
-	size_t			_content_length;
-	vectorString	_content_type;
-	std::string		_payload;
-	std::string		_expect;
-
+    void            loadChunkedPayload();
+    void            loadNormalPayload();
+    void            isChunkedRequest(const std::string & data);
+    bool            readLine()                                                                                    _NOEXCEPT;
+    bool            is_payload(size_t index)                                                                      const;
+    size_t          ff_newline(std::vector<std::string>& file, size_t index)                                      const;
+    static size_t   load_string(std::vector<std::string>& file, size_t index, std::string& target);
+    static size_t   load_vec_str(std::vector<std::string>& file, size_t index, std::vector<std::string>& target);
+    static size_t   load_connection(std::vector<std::string>& file, size_t index, bool& target);
+    static size_t   load_size(std::vector<std::string>& file, size_t index, size_t& target);
+	static REQ_INFO http_token_comp(std::string& word);
 };
 
-
 #endif //WEBSERV_HTTPREQUEST_HPP
-
-//"GET / HTTP/1.1\r\nHost: localhost\r\nUpgrade-Insecure-Requests: 1\r\nAccept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8\r\nUser-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.3 Safari/605.1.15\r\nAccept-Language: en-us\r\nAccept-Encoding: gzip, deflate\r\nConnection: keep-alive\r\n\r\n"
-

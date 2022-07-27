@@ -30,10 +30,10 @@ HTTPReader::~HTTPReader() {
 bool HTTPReader::runForFD(int fd) {
     if (_socket.get_fd() == fd) {
         request->loadPayload();
-        if (request->loaded) {
+        if (request->isLoaded()) {
             run();
         }
-        return request->loaded;
+        return request->isLoaded();
     } else {
         return response->runForFD(fd);
     }
@@ -44,9 +44,9 @@ bool HTTPReader::run() {
         if (request == NULL) {
             request = _parse();
         }
-		if (request->loaded) {
+		if (request->isLoaded()) {
             std::cerr << "Loaded, size " << request->get_payload().size() << " bytes" << std::endl;
-            request->setURI(URI(request->_path));
+            request->setURI(URI(request->getPath()));
             request->setPeerAddress(peerAddress);
             request->setPeerName(peerName);
             request->setUsedPort(port);

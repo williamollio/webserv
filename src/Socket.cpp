@@ -123,6 +123,7 @@ void Socket::close() throw (IOException) {
     } else if (::close(_fd) < 0) {
         throw IOException("Could not close socket!");
     }
+    debug("Closing socket fd " << _fd);
     _state = CLOSED;
 }
 

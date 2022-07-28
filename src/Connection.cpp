@@ -63,7 +63,7 @@ void Connection::establishConnection() {
     signal(SIGTERM, stopper);
     signal(SIGKILL, stopper);
     nfds = server_fds.size();
-    while ((rc = poll(_fds, nfds, _timeout)) > 0 || !end_server) {
+    while ((rc = poll(_fds, nfds, _timeout)) > 0 && !end_server) {
         printPollArray();
         current_size = nfds;
         for (unsigned long i = 0; i < current_size; i++) {

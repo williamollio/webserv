@@ -283,7 +283,7 @@ void CGICall::execute(const int in, const int out, const std::string & requested
     dup2(out, STDOUT_FILENO);
     std::for_each(pipeFds.begin(), pipeFds.end(), ::close);
     char ** arguments = new char * [2]();
-    char ** environment = new char * [_request->hasContent() ? 23 : 21 + x_arguments.size()]();
+    char ** environment = new char * [(_request->hasContent() ? 23 : 21) + x_arguments.size()]();
 	int i = 0;
     environment[i++]  = strdup(method.c_str());
     environment[i++]  = strdup(protocol.c_str());
@@ -311,9 +311,16 @@ void CGICall::execute(const int in, const int out, const std::string & requested
     }
 	std::string tmp;
 	for (size_t ii = 0; ii < x_arguments.size(); ii++) {
-		tmp = x_arguments_name.at(ii);
+		tmp = "HTTP_" + x_arguments_name.at(ii);
+        for (std::string::iterator it = tmp.begin(); it != tmp.end(); ++it) {
+            if (*it == '-') {
+                *it = '_';
+            } else {
+                *it = static_cast<char>(toupper(*it));
+            }
+        }
 		tmp += "=";
-		tmp += x_arguments.at(ii);
+		tmp += x_arguments[ii];
 		environment[i++] = strdup(tmp.c_str());
 		tmp.clear();
 	}

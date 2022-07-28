@@ -322,3 +322,11 @@ bool HTTPRequest::isKeepAlive() const {
 size_t HTTPRequest::getContentLength() const {
     return _content_length;
 }
+
+const std::vector<std::string> & HTTPRequest::getXArgs() const {
+    return _x_arguments;
+}
+
+const std::vector<std::string> & HTTPRequest::getXArgsName() const {
+    return _x_arguments_name;
+}

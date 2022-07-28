@@ -190,7 +190,7 @@ HTTPRequest* HTTPReader::_parse() throw(std::exception) {
 }
 
 bool HTTPReader::isRunning() const {
-    return response == NULL || response->isRunning();
+    return response != NULL && response->isRunning();
 }
 
 unsigned int HTTPReader::getPeerAddress() const {

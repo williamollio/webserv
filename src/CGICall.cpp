@@ -72,12 +72,12 @@ bool CGICall::hasFD(int fd) {
 bool CGICall::writePayload() {
     for (; payloadCounter < _request->get_payload().size(); ++payloadCounter) {
         if (write(in[1], _request->get_payload().c_str() + payloadCounter, 1) < 0) {
-            std::cerr << "CGICall: write with fd " << in[1] << " size " << payloadCounter << std::endl;
+            debug("Write with fd " << in[1] << " size " << payloadCounter);
             return false;
         }
     }
-    std::cerr << "CGICall: write with fd " << in[1] << " size " << payloadCounter << std::endl;
-    std::cerr << "Closing server -> cgi" << std::endl;
+    debug("Write with fd " << in[1] << " size " << payloadCounter);
+    debug("Closing server -> cgi");
     close(in[1]);
     return true;
 }
@@ -89,12 +89,12 @@ bool CGICall::readPayload() {
     while ((r = read(out[0], &b, 1)) > 0) {
         buffer += b;
     }
-    std::cerr << "CGICall: read with fd " << out[0] << " size " << buffer.size() << ", r: " << r << std::endl;
+    debug("Read with fd " << out[0] << " size " << buffer.size() << ", r: " << r);
     if (r < 0) {
         return false;
     }
     close(out[0]);
-    std::cerr << "Processing CGI output (" << buffer.size() << " bytes)" << std::endl;
+    debug("Processing CGI output (" << buffer.size() << " bytes)");
     processCGIOutput();
     return true;
 }
@@ -104,8 +104,8 @@ bool CGICall::writeSocket() {
         for (; socketCounter < payload.size(); ++socketCounter) {
             socket.write(payload[socketCounter]);
         }
-        std::cerr << "CGICall: write with socket fd " << socket.get_fd() << " size " << socketCounter << std::endl;
-        std::cerr << "CGICall: closing socket fd " << socket.get_fd() << std::endl;
+        debug("Write with socket fd " << socket.get_fd() << " size " << socketCounter);
+        debug("Closing socket fd " << socket.get_fd());
         Connection::getInstance().removeFD(socket.get_fd());
         socket.close();
         pthread_mutex_lock(&runningMutex);
@@ -113,7 +113,7 @@ bool CGICall::writeSocket() {
         pthread_mutex_unlock(&runningMutex);
         return true;
     } catch (IOException & ex) {
-        std::cerr << "CGICall: write with socket fd " << socket.get_fd() << " size " << socketCounter << std::endl;
+        debug("Write with socket fd " << socket.get_fd() << " size " << socketCounter);
         return false;
     }
 }
@@ -220,7 +220,7 @@ void CGICall::processCGIOutput() {
         pthread_mutex_lock(&runningMutex);
         running = false;
         pthread_mutex_unlock(&runningMutex);
-        std::cerr << "CGICall: Closing socket (fd: " << socket.get_fd() << ")" << std::endl;
+        debug("Closing socket (fd: " << socket.get_fd() << ")");
         socket.close();
     }
 }
@@ -279,10 +279,6 @@ void CGICall::execute(const int in, const int out, const std::string & requested
     if (child > 0) return;
     dup2(in, STDIN_FILENO);
     dup2(out, STDOUT_FILENO);
-    //close(in);
-    //close(out);
-    //close(this->in[1]);
-    //close(this->out[0]);
     std::for_each(pipeFds.begin(), pipeFds.end(), ::close);
     char ** arguments = new char * [2]();
     char ** environment = new char * [_request->hasContent() ? 23 : 21]();
@@ -338,9 +334,9 @@ void CGICall::waitOrThrow(CGICall * self) {
     } while (ret == 0 && timeElapsed <= (TIMEOUT * 1000));
     if (ret == 0) {
         kill(self->child, SIGTERM);
-        std::cerr << "CGI killed" << std::endl;
+        debug("CGI killed");
     }
-    std::cerr << "CGI finished" << std::endl;
+    debug("CGI finished");
     close(self->out[1]);
     //if (ret == 0) throw HTTPException(408);
     //else if (status != 0) throw HTTPException(500);

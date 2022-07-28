@@ -64,27 +64,7 @@ void Connection::establishConnection() {
     signal(SIGKILL, stopper);
     nfds = server_fds.size();
     while ((rc = poll(_fds, nfds, _timeout)) > 0 || !end_server) {
-        std::cerr << std::endl << "CONN: Poll array" << std::endl;
-        for (unsigned long i = 0; i < nfds; ++i) {
-            std::cerr << "fd:      " << _fds[i].fd     << std::endl
-                      << "events:  " << _fds[i].events << std::endl
-                      << "revents: ";
-            switch (_fds[i].revents) {
-                case POLLERR: std::cerr << "POLLERR"; break;
-                case POLLHUP: std::cerr << "POLLHUP"; break;
-                case POLLIN: std::cerr << "POLLIN"; break;
-                case POLLNVAL: std::cerr << "POLLNVAL"; break;
-                case POLLOUT: std::cerr << "POLLOUT"; break;
-                case POLLPRI: std::cerr << "POLLPRI"; break;
-                case POLLRDBAND: std::cerr << "POLLRDBAND"; break;
-                case POLLRDNORM: std::cerr << "POLLRDNORM"; break;
-                case POLLWRBAND: std::cerr << "POLLWRBAND"; break;
-                default: std::cerr << _fds[i].revents;
-            }
-
-            std::cerr << std::endl << std::endl;
-        }
-        std::cerr << "CONN: ---------" << std::endl << std::endl;
+        printPollArray();
         current_size = nfds;
         for (unsigned long i = 0; i < current_size; i++) {
             if (_fds[i].revents == 0) {
@@ -97,7 +77,7 @@ void Connection::establishConnection() {
                     *it = NULL;
                 }
                 list.remove(NULL);
-                std::cerr << "CONN: Closing " << _fds[i].fd << std::endl;
+                debug("Closing " << _fds[i].fd);
                 close(_fds[i].fd);
                 removeFD(_fds[i].fd);
             } else if (_fds[i].revents == POLLNVAL) {
@@ -144,7 +124,7 @@ bool Connection::addFD(int fd, bool read) _NOEXCEPT {
     }
     _fds[nfds].fd = fd;
     _fds[nfds].events = read ? POLLIN : POLLOUT;
-    std::cerr << "CONN: Added " << fd << " (" << nfds << ")" << std::endl;
+    debug("Added " << fd << " (" << nfds << ")");
     nfds++;
     return true;
 }
@@ -154,7 +134,7 @@ bool Connection::removeFD(const int fd) _NOEXCEPT {
     for (i = 0; i < nfds && _fds[i].fd != fd; ++i);
     if (i != nfds) {
         connectionPairs.erase(_fds[i].fd);
-        std::cerr << "CONN: Removed " << _fds[i].fd << " (" << i << ")" << std::endl;
+        debug("Removed " << _fds[i].fd << " (" << i << ")");
         _fds[i].fd = -1;
     }
     // TODO: Performance?
@@ -183,7 +163,7 @@ void Connection::handleConnection(const unsigned long index) _NOEXCEPT {
 		std::list<HTTPReader *>::iterator my_reader = std::find_if(list.begin(), list.end(), rfd);
 		if (my_reader != list.end()) {
 			reader = *my_reader;
-            std::cerr << "CONN: Continuing " << fd << std::endl;
+            debug("Continuing " << fd);
             if (reader->runForFD(fd)) {
                 removeFD(fd);
             }
@@ -197,7 +177,7 @@ void Connection::handleConnection(const unsigned long index) _NOEXCEPT {
             delete[] host;
             reader->setUsedPort(server_fds[connectionPairs[fd]]);
             list.push_back(reader);
-            std::cerr << "CONN: Starting " << fd << std::endl;
+            debug("Starting " << fd);
             if (reader->run()) {
                 removeFD(fd);
             }
@@ -235,6 +215,34 @@ void Connection::clearPollArray() _NOEXCEPT {
         }
     }
     nfds = j;
+}
+
+void Connection::printPollArray() _NOEXCEPT {
+#ifdef DEBUG
+ #if DEBUG == 2
+    std::cout << std::endl << "CONN: Poll array" << std::endl;
+    for (unsigned long i = 0; i < nfds; ++i) {
+        std::cout << "fd:      " << _fds[i].fd     << std::endl
+                  << "events:  " << _fds[i].events << std::endl
+                  << "revents: ";
+        switch (_fds[i].revents) {
+            case POLLIN:     std::cout << "POLLIN";     break;
+            case POLLERR:    std::cout << "POLLERR";    break;
+            case POLLHUP:    std::cout << "POLLHUP";    break;
+            case POLLOUT:    std::cout << "POLLOUT";    break;
+            case POLLPRI:    std::cout << "POLLPRI";    break;
+            case POLLNVAL:   std::cout << "POLLNVAL";   break;
+            case POLLRDBAND: std::cout << "POLLRDBAND"; break;
+            case POLLRDNORM: std::cout << "POLLRDNORM"; break;
+            case POLLWRBAND: std::cout << "POLLWRBAND"; break;
+            default: std::cout << _fds[i].revents;
+        }
+
+        std::cout << std::endl << std::endl;
+    }
+    std::cout << "CONN: ---------" << std::endl << std::endl;
+ #endif
+#endif
 }
 
 // R E A D E R B Y F D F I N D E R   I M P L E M E N T A T I O N

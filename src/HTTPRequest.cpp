@@ -4,6 +4,7 @@
 
 #include "HTTPRequest.hpp"
 #include "HTTPException.hpp"
+#include "Tool.hpp"
 #include <cstdlib>
 
 HTTPRequest::TYPE HTTPRequest::getType() const {
@@ -191,7 +192,7 @@ bool HTTPRequest::readLine() _NOEXCEPT {
 }
 
 void HTTPRequest::loadPayload() {
-    std::cerr << "HTTPRequest: chunked payload: " << (_chunked ? "true" : "false") << std::endl;
+    debug("Chunked payload: " << (_chunked ? "true" : "false"));
     if (_chunked) {
         loadChunkedPayload();
     } else {
@@ -223,7 +224,7 @@ void HTTPRequest::loadChunkedPayload() {
                 throw HTTPException(400);
             } else if (_chunked_curr_line_expect_count == 0) {
                 loaded = true;
-                std::cout << "HTTPRequest: finished loading payload" << std::endl;
+                debug("Finished loading payload");
                 return; // For never coming back again...
             } else {
                 _payload.reserve(_payload.size() + _chunked_curr_line_expect_count);
@@ -231,7 +232,7 @@ void HTTPRequest::loadChunkedPayload() {
                 _chunked_head_or_load = false;
             }
         }
-        std::cerr << "HTTPRequest: Payload size: " << _payload.size() << std::endl;
+        debug("Payload size: " << _payload.size());
     }
 }
 

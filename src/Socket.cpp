@@ -1,5 +1,6 @@
 #include <iostream>
 #include "Socket.hpp"
+#include "Tool.hpp"
 
 Socket::~Socket() {
     if (!closed()) {
@@ -9,7 +10,7 @@ Socket::~Socket() {
             std::cerr << "Socket: " << exception.what() << std::endl;
         }
     }
-    std::cerr << "SOCKET: fd: " << _fd << ", total bytes read: " << total_read << ", total bytes written: " << total_written << std::endl;
+    debug("fd: " << _fd << ", total bytes read: " << total_read << ", total bytes written: " << total_written);
 }
 
 Socket::Socket(int fd) throw (IOException)
@@ -45,7 +46,7 @@ void Socket::read_buffer() throw(IOException) {
 
     _read_index = 0;
     ssize_t tmp = ::read(_fd, _buffer, BUFFER_SIZE);
-    std::cerr << "SOCKET: " << _fd << " read: " << tmp << std::endl;
+    debug(_fd << " read: " << tmp);
     if (tmp < 0) {
         _state = BAD;
         throw IOException("Could not read any data!");

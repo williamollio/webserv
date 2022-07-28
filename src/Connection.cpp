@@ -143,9 +143,15 @@ bool Connection::removeFD(const int fd) _NOEXCEPT {
     return ret;
 }
 
-void Connection::denyConnection(const int fd, const int errorCode) const _NOEXCEPT {
+void Connection::denyConnection(const int fd, HTTPReader * reader, const int errorCode) _NOEXCEPT {
     try {
         Socket socket(fd);
+        if (reader != NULL) {
+            socket.move(reader->getSocket(), false);
+            list.remove(reader);
+            delete reader;
+        }
+        removeFD(fd);
         CGIResponseError response;
         response.set_error_code(errorCode);
         response.run(socket);
@@ -154,10 +160,10 @@ void Connection::denyConnection(const int fd, const int errorCode) const _NOEXCE
                   << "Exception: " << ex.what()                  << std::endl;
     }
 }
-// TODO: Transfer the socket!
+
 void Connection::handleConnection(const unsigned long index) _NOEXCEPT {
     const int fd = _fds[index].fd;
-	HTTPReader * reader;
+	HTTPReader * reader = NULL;
     try {
 		ReaderByFDFinder rfd(fd);
 		std::list<HTTPReader *>::iterator my_reader = std::find_if(list.begin(), list.end(), rfd);
@@ -183,10 +189,10 @@ void Connection::handleConnection(const unsigned long index) _NOEXCEPT {
             }
 		}
     } catch (std::bad_alloc &) {
-        denyConnection(fd, 507);
+        denyConnection(fd, reader, 507);
     } catch (std::exception & ex) {
         std::cerr << ">>>>>>> " << ex.what() << " <<<<<<<" << std::endl;
-        denyConnection(fd, 500);
+        denyConnection(fd, reader, 500);
     }
 }
 

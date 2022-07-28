@@ -17,6 +17,7 @@ class HTTPReader {
 
         bool                run();
         bool                runForFD(int);
+        Socket &            getSocket();
         void                setPeerAddress(unsigned int);
         void                setPeerName(const std::string &);
         void                setUsedPort(int port);
@@ -24,7 +25,6 @@ class HTTPReader {
         bool                isRunning()                      const;
         unsigned int        getPeerAddress()                 const;
         const std::string & getPeerName()                    const;
-        const Socket &      getSocket()                      const;
 		HTTPRequest *       getRequest()                     const;
         int                 getUsedPort()                    const;
 

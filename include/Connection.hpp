@@ -23,12 +23,12 @@ private:
     std::list<HTTPReader *> list;
     struct pollfd           _fds[NUM_FDS];
 
-    void clearPollArray()                        _NOEXCEPT;
-    void cleanReaders()                          _NOEXCEPT;
-    void denyConnection(int fd, int = 429) const _NOEXCEPT;
-    void handleConnection(unsigned long index)   _NOEXCEPT;
-    bool isServingFD(int fd)                     _NOEXCEPT;
-    void printPollArray()                        _NOEXCEPT;
+    void clearPollArray()                                       _NOEXCEPT;
+    void cleanReaders()                                         _NOEXCEPT;
+    void denyConnection(int fd, HTTPReader * = NULL, int = 429) _NOEXCEPT;
+    void handleConnection(unsigned long index)                  _NOEXCEPT;
+    bool isServingFD(int fd)                                    _NOEXCEPT;
+    void printPollArray()                                       _NOEXCEPT;
 
     static Connection * currentInstance;
 

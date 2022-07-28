@@ -138,7 +138,7 @@ void CGICall::run(Socket &) {
         case HTTPRequest::DELETE: method += "DELETE"; break;
 		default: throw HTTPException(500);
     }
-    const std::string combined = uri.getPathInfo().empty() ? "Arsch" : uri.getPathInfo();
+    const std::string combined = uri.getPathInfo().empty() ? "/Arsch" : uri.getPathInfo();
     pathinfo += combined;
     requestUri += combined;
     queryString += uri.getQuery();
@@ -153,6 +153,7 @@ void CGICall::run(Socket &) {
     }
     httpUserAgent += _request->getUserAgent();
     httpHost += _request->getHost();
+    if (httpHost.back() == '\r') httpHost.pop_back();
     httpLang += vectorToString(_request->getLang());
     httpEncoding += vectorToString(_request->getEncoding());
     httpAccept += vectorToString(_request->getContentType());

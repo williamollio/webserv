@@ -20,6 +20,7 @@ Socket::Socket(int fd) throw (IOException)
 }
 
 ssize_t Socket::write(char data) throw(IOException) {
+    if (_state == CLOSED) throw IOException("Socket has been closed!");
     ssize_t ret;
     if ((ret = ::write(_fd, &data, 1)) < 0) {
         throw IOException("Could not write the data!");
@@ -29,6 +30,7 @@ ssize_t Socket::write(char data) throw(IOException) {
 }
 
 ssize_t Socket::write(const char * buffer, size_t size) throw(IOException) {
+    if (_state == CLOSED) throw IOException("Socket has been closed!");
     ssize_t ret;
     if ((ret = ::write(_fd, buffer, size)) < 0) {
         throw IOException("Could not write the data!");
@@ -38,12 +40,11 @@ ssize_t Socket::write(const char * buffer, size_t size) throw(IOException) {
 }
 
 ssize_t Socket::write(const std::string & data) throw(IOException) {
+    if (_state == CLOSED) throw IOException("Socket has been closed!");
     return write(data.c_str(), data.size());
 }
 
 void Socket::read_buffer() throw(IOException) {
-    if (_state == CLOSED) throw IOException("Socket has been closed!");
-
     _read_index = 0;
     ssize_t tmp = ::read(_fd, _buffer, BUFFER_SIZE);
     debug(_fd << " read: " << tmp);
@@ -60,6 +61,7 @@ void Socket::read_buffer() throw(IOException) {
 }
 
 char Socket::read() throw(IOException) {
+    if (_state == CLOSED) throw IOException("Socket has been closed!");
     if (_read_index == _buffer_fill) {
         read_buffer();
     }
@@ -77,6 +79,22 @@ ssize_t Socket::read(char * buffer, size_t size) _NOEXCEPT {
         ret = ret == 0 ? -1 : ret;
     }
     return ret;
+}
+
+void Socket::move(Socket & other, bool shouldClose) throw(IOException) {
+    if (shouldClose) {
+        close();
+    }
+    _fd = other._fd;
+    _read_index = other._read_index;
+    _buffer_fill = other._buffer_fill;
+    _state = other._state;
+    total_read = other.total_read;
+    total_written = other.total_written;
+    for (unsigned long i = 0; i < BUFFER_SIZE; ++i) {
+        _buffer[i] = other._buffer[i];
+    }
+    other._state = CLOSED;
 }
 
 bool Socket::bad() const _NOEXCEPT {

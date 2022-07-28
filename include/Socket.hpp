@@ -20,6 +20,10 @@ class Socket {
 
     void read_buffer() throw (IOException);
 
+    Socket();                           // = delete;
+    Socket(const Socket &);             // = delete;
+    Socket & operator=(const Socket &); // = delete;
+
 public:
     explicit Socket(int fd) throw (IOException);
     ~Socket();
@@ -29,6 +33,7 @@ public:
     ssize_t     write(const char *, size_t)       throw (IOException);
     ssize_t     write(char)                       throw (IOException);
     void        close()                           throw (IOException);
+    void        move(Socket &, bool = true)       throw (IOException);
     ssize_t     read(char *, size_t)              _NOEXCEPT;
     int         get_fd()                    const _NOEXCEPT;
     bool        bad()                       const _NOEXCEPT;

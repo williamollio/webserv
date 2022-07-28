@@ -64,6 +64,9 @@ private:
     bool writeSocket();
     bool readPayload();
 
+    static std::list<int> pipeFds;
+
+    static int           close(int);
     static std::string   vectorToString(const std::vector<std::string> &);
     static std::string   nextLine(int);
     static bool          isFolder(const std::string &);

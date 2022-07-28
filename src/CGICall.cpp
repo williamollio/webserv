@@ -12,6 +12,8 @@
 #include "Connection.hpp"
 #include <fcntl.h>
 
+std::list<int> CGICall::pipeFds = std::list<int>();
+
 CGICall::CGICall(HTTPRequest * request, Socket & socket)
         : CGIResponse(request),
           uri(request->getURI()),
@@ -166,6 +168,10 @@ void CGICall::run(Socket &) {
         close(in[1]);
         throw HTTPException(500);
     }
+    pipeFds.push_back(in[0]);
+    pipeFds.push_back(in[1]);
+    pipeFds.push_back(out[0]);
+    pipeFds.push_back(out[1]);
     running = true;
     fcntl(in[1], F_SETFL, O_NONBLOCK);
     if (!writePayload()) {
@@ -273,10 +279,11 @@ void CGICall::execute(const int in, const int out, const std::string & requested
     if (child > 0) return;
     dup2(in, STDIN_FILENO);
     dup2(out, STDOUT_FILENO);
-    close(in);
-    close(out);
-    close(this->in[1]);
-    close(this->out[0]);
+    //close(in);
+    //close(out);
+    //close(this->in[1]);
+    //close(this->out[0]);
+    std::for_each(pipeFds.begin(), pipeFds.end(), ::close);
     char ** arguments = new char * [2]();
     char ** environment = new char * [_request->hasContent() ? 23 : 21]();
     environment[0]  = strdup(method.c_str());
@@ -495,4 +502,9 @@ std::string CGICall::vectorToString(const std::vector<std::string> & vector) {
         }
     }
     return ret;
+}
+
+int CGICall::close(int fd) {
+    pipeFds.remove(fd);
+    return ::close(fd);
 }

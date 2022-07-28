@@ -112,7 +112,7 @@ bool CGICall::writeSocket() {
         running = false;
         pthread_mutex_unlock(&runningMutex);
         return true;
-    } catch (IOException & ex) {
+    } catch (IOException &) {
         debug("Write with socket fd " << socket.get_fd() << " size " << socketCounter);
         return false;
     }
@@ -352,7 +352,7 @@ std::string CGICall::computeRequestedFile() {
     ext = "." + ext;
     try {
         exe = exts.at(ext);
-    } catch (std::out_of_range & ex) {
+    } catch (std::out_of_range &) {
         if (isFolder(tmp)) {
             if (_dir_listing) {
                 exe = "directory_listing.php";

@@ -59,7 +59,7 @@ bool URI::startsWith(const std::string & prefix) const {
 
     for (std::string::const_iterator oit = original.begin(),
                                      pit = prefix.begin();
-    oit != original.end() && pit != prefix.end() && (oit - original.begin()) < (long)prefix.size(); ++pit, ++oit) {
+    oit != original.end() && pit != prefix.end() && (oit - original.begin()) < static_cast<long>(prefix.size()); ++pit, ++oit) {
         if (*pit != *oit) return false;
     }
     return true;
@@ -234,7 +234,7 @@ std::string URI::getPathInfo() const {
 URI & URI::operator=(const URI &other) {
     original = other.original;
     tokens = other.tokens;
-    stream.setf(EOF);
+    stream.setf(std::stringstream::eofbit);
     return *this;
 }
 

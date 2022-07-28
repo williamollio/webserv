@@ -34,7 +34,7 @@ Connection::Connection() : _timeout(INFTIM), nfds(), address(), _fds() {
         on = 1;
         setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
         fcntl(server_fd, F_SETFL, O_NONBLOCK);
-        if (bind(server_fd, (struct sockaddr *) &address, sizeof(address)) < 0) {
+        if (bind(server_fd, reinterpret_cast<struct sockaddr *>(&address), sizeof(address)) < 0) {
             throw IOException("Could not bind file descriptor to the address!");
         }
         if (listen(server_fd, 10) < 0) {
@@ -169,10 +169,10 @@ void Connection::handleConnection(const unsigned long index) _NOEXCEPT {
             }
 		} else {
 			reader = new HTTPReader(fd);
-            getpeername(fd, (struct sockaddr *) &address, (socklen_t *) &addrlen);
+            getpeername(fd, reinterpret_cast<struct sockaddr *>(&address), reinterpret_cast<socklen_t *>(&addrlen));
             reader->setPeerAddress(ntohl(address.sin_addr.s_addr));
             char * host = new char[50]();
-            getnameinfo((struct sockaddr *) &address, (socklen_t) addrlen, host, (socklen_t) 50, NULL, 0, 0);
+            getnameinfo(reinterpret_cast<struct sockaddr *>(&address), static_cast<socklen_t>(addrlen), host, static_cast<socklen_t>(50), NULL, 0, 0);
             reader->setPeerName(host);
             delete[] host;
             reader->setUsedPort(server_fds[connectionPairs[fd]]);
@@ -182,7 +182,7 @@ void Connection::handleConnection(const unsigned long index) _NOEXCEPT {
                 removeFD(fd);
             }
 		}
-    } catch (std::bad_alloc & ex) {
+    } catch (std::bad_alloc &) {
         denyConnection(fd, 507);
     } catch (std::exception & ex) {
         std::cerr << ">>>>>>> " << ex.what() << " <<<<<<<" << std::endl;

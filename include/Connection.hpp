@@ -18,7 +18,7 @@ private:
     int                     addrlen;
     int                     on;
     int                     _timeout;
-    unsigned long           nfds;
+    nfds_t                  nfds;
     struct sockaddr_in      address;
     std::list<HTTPReader *> list;
     struct pollfd           _fds[NUM_FDS];

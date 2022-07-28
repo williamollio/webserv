@@ -59,7 +59,7 @@ private:
     bool         _keep_alive;
     bool         _content;
     bool         _chunked;
-    long long    _chunked_curr_line_expect_count;
+    long         _chunked_curr_line_expect_count;
     size_t       _content_length;
     URI           uri;
     Socket&      _chunked_socket;

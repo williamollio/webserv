@@ -180,7 +180,7 @@ bool HTTPRequest::readLine() _NOEXCEPT {
         }
         wasFullLine = true;
         return true;
-    } catch (IOException & ex) {
+    } catch (IOException &) {
         if (wasFullLine) {
             line = tmp;
         } else {

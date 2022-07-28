@@ -73,7 +73,7 @@ ssize_t Socket::read(char * buffer, size_t size) _NOEXCEPT {
         for (size_t i = 0; i < size && (c = read()) > 0; ++i, ++ret) {
             buffer[i] = c;
         }
-    } catch (IOException & ex) {
+    } catch (IOException &) {
         ret = ret == 0 ? -1 : ret;
     }
     return ret;

@@ -40,7 +40,7 @@ bool HTTPReader::run() {
             request = _parse();
         }
 		if (request->isLoaded()) {
-            std::cerr << "Loaded, size " << request->get_payload().size() << " bytes" << std::endl;
+            debug("Loaded, size " << request->get_payload().size() << " bytes");
             request->setURI(URI(request->getPath()));
             request->setPeerAddress(peerAddress);
             request->setPeerName(peerName);
@@ -62,7 +62,7 @@ bool HTTPReader::run() {
         }
     }
 	catch (HTTPException & ex) {
-        std::cerr << ":" << ex.what() << std::endl;
+        debug(ex.what());
         CGIResponseError error;
 		error.set_error_code(ex.get_error_code());
         error.set_head_only(errorHead);
@@ -166,7 +166,6 @@ HTTPRequest* HTTPReader::_parse() throw(std::exception) {
         try {
             raw += _socket.read();
         } catch (IOException & ex) {
-            std::cerr << "PARSING: " << ex.what() << std::endl;
             throw HTTPException(504);
             // Maybe just poll instead...
         }

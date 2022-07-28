@@ -220,7 +220,7 @@ void Connection::clearPollArray() _NOEXCEPT {
 void Connection::printPollArray() _NOEXCEPT {
 #ifdef DEBUG
  #if DEBUG == 2
-    std::cout << std::endl << "CONN: Poll array" << std::endl;
+    std::cout << std::endl << __FILE__ << ":" << __LINE__ << " Poll array" << std::endl;
     for (unsigned long i = 0; i < nfds; ++i) {
         std::cout << "fd:      " << _fds[i].fd     << std::endl
                   << "events:  " << _fds[i].events << std::endl
@@ -240,7 +240,7 @@ void Connection::printPollArray() _NOEXCEPT {
 
         std::cout << std::endl << std::endl;
     }
-    std::cout << "CONN: ---------" << std::endl << std::endl;
+    std::cout << __FILE__ << ":" << __LINE__ << " ---------" << std::endl << std::endl;
  #endif
 #endif
 }

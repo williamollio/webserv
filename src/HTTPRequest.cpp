@@ -162,14 +162,14 @@ void HTTPRequest::isChunkedRequest(const std::string &data)
 		_chunked = true;
 }
 
-bool HTTPRequest::readLine() _NOEXCEPT {
+bool HTTPRequest::readLine() {
     std::string tmp;
     char c;
     try {
         while ((c = _chunked_socket.read()) > 0 && c != '\n') {
             tmp += c;
         }
-        if (c == 0) std::terminate(); // TODO: HUP
+        if (c == 0) throw std::exception(); // TODO: Handle HUP more gracefully
         if (tmp.back() == '\r') {
             tmp.erase(tmp.end() - 1);
         }

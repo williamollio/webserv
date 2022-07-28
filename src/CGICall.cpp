@@ -37,6 +37,7 @@ CGICall::CGICall(HTTPRequest * request, Socket & socket)
           httpConnection("HTTP_Connection="),
           httpContentLength("HTTP_Content-Length="),
           httpExpect("HTTP_Except="),
+		  x_arguments_name(request->getXArgsName()),
           socket(socket),
           child(-1),
           threadID(),
@@ -159,6 +160,7 @@ void CGICall::run(Socket &) {
     httpExpect += _request->getExpect();
     httpConnection += _request->isKeepAlive() ? "keep-alive" : "";
     scriptName += computeRequestedFile();
+	x_arguments = _request->getXArgs();
     const std::string & requestedFile = computeRequestedFile();
     if (access(requestedFile.c_str(), F_OK) < 0) throw HTTPException(404);
     if (access(requestedFile.c_str(), X_OK) < 0) throw HTTPException(403);
@@ -281,31 +283,40 @@ void CGICall::execute(const int in, const int out, const std::string & requested
     dup2(out, STDOUT_FILENO);
     std::for_each(pipeFds.begin(), pipeFds.end(), ::close);
     char ** arguments = new char * [2]();
-    char ** environment = new char * [_request->hasContent() ? 23 : 21]();
-    environment[0]  = strdup(method.c_str());
-    environment[1]  = strdup(protocol.c_str());
-    environment[2]  = strdup(pathinfo.c_str());
-    environment[3]  = strdup(gatewayInterface.c_str());
-    environment[4]  = strdup(queryString.c_str());
-    environment[5]  = strdup(serverName.c_str());
-    environment[6]  = strdup(serverPort.c_str());
-    environment[7]  = strdup(serverSoftware.c_str());
-    environment[8]  = strdup(remoteHost.c_str());
-    environment[9]  = strdup(remoteAddress.c_str());
-    environment[10] = strdup(httpConnection.c_str());
-    environment[11] = strdup(httpExpect.c_str());
-    environment[12] = strdup(httpContentLength.c_str());
-    environment[13] = strdup(httpAccept.c_str());
-    environment[14] = strdup(httpEncoding.c_str());
-    environment[15] = strdup(httpLang.c_str());
-    environment[16] = strdup(httpHost.c_str());
-    environment[17] = strdup(httpUserAgent.c_str());
-    environment[18] = strdup(requestUri.c_str());
-    environment[19] = strdup(scriptName.c_str());
+    char ** environment = new char * [_request->hasContent() ? 23 : 21 + x_arguments.size()]();
+	int i = 0;
+    environment[i++]  = strdup(method.c_str());
+    environment[i++]  = strdup(protocol.c_str());
+    environment[i++]  = strdup(pathinfo.c_str());
+    environment[i++]  = strdup(gatewayInterface.c_str());
+    environment[i++]  = strdup(queryString.c_str());
+    environment[i++]  = strdup(serverName.c_str());
+    environment[i++]  = strdup(serverPort.c_str());
+    environment[i++]  = strdup(serverSoftware.c_str());
+    environment[i++]  = strdup(remoteHost.c_str());
+    environment[i++]  = strdup(remoteAddress.c_str());
+    environment[i++] = strdup(httpConnection.c_str());
+    environment[i++] = strdup(httpExpect.c_str());
+    environment[i++] = strdup(httpContentLength.c_str());
+    environment[i++] = strdup(httpAccept.c_str());
+    environment[i++] = strdup(httpEncoding.c_str());
+    environment[i++] = strdup(httpLang.c_str());
+    environment[i++] = strdup(httpHost.c_str());
+    environment[i++] = strdup(httpUserAgent.c_str());
+    environment[i++] = strdup(requestUri.c_str());
+    environment[i++] = strdup(scriptName.c_str());
     if (_request->hasContent()) {
-        environment[20] = strdup(contentLength.c_str());
-        environment[21] = strdup(contentType.c_str());
+        environment[i++] = strdup(contentLength.c_str());
+        environment[i++] = strdup(contentType.c_str());
     }
+	std::string tmp;
+	for (size_t ii = 0; ii < x_arguments.size(); ii++) {
+		tmp = x_arguments_name.at(ii);
+		tmp += "=";
+		tmp += x_arguments.at(ii);
+		environment[i++] = strdup(tmp.c_str());
+		tmp.clear();
+	}
     arguments[0] = strdup(requestedFile.c_str());
     chdir(computeScriptDirectory().c_str());
     if (execve(requestedFile.c_str(), arguments, environment) < 0) {

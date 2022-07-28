@@ -36,6 +36,8 @@ public:
     const std::vector<std::string> & getLang()          const;
     const std::vector<std::string> & getEncoding()      const;
     const std::vector<std::string> & getContentType()   const;
+    const std::vector<std::string> & getXArgs()         const;
+    const std::vector<std::string> & getXArgsName()     const;
     std::string &                    getPath();
     void                             setURI(const URI & uri);
     void                             setPeerAddress(unsigned int);
@@ -46,7 +48,7 @@ public:
 
 private:
     enum REQ_INFO {
-        USER_AGENT, HOSTNAME, LANG_SUPP, ENCODING, CON_TYPE, CONTENT_TYPE, CON_LENGTH, EXPECT, DEFAULT
+        USER_AGENT, HOSTNAME, LANG_SUPP, ENCODING, CON_TYPE, CONTENT_TYPE, CON_LENGTH, EXPECT, X_ARG, DEFAULT
     };
     typedef std::vector<std::string>	vectorString;
 
@@ -74,6 +76,8 @@ private:
     std::string  _host;
     std::string  _payload;
     std::string  _expect;
+	vectorString _x_arguments;
+	vectorString _x_arguments_name;
     vectorString _content_type;
     vectorString _lang;
     vectorString _encoding;

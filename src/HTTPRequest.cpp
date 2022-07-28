@@ -16,6 +16,14 @@ bool HTTPRequest::is_payload(size_t index) const {
 }
 
 HTTPRequest::REQ_INFO HTTPRequest::http_token_comp(std::string &word) {
+	if (!word.compare(0, 2, "X-") || !word.compare(0, 2, "x-")) {
+//		for (size_t i = 2; word.size() > i; i++) {
+//			word.at(i) = toupper(word.at(i));
+//			if (word.at(i) == '-')
+//				word.at(i) = '_';
+//		}
+		return X_ARG;
+	}
 	if (word == "user-agent" || word == "User-Agent")
 		return USER_AGENT;
 	if (word == "host" || word == "Host")
@@ -91,6 +99,7 @@ HTTPRequest::HTTPRequest(HTTPRequest::TYPE type, std::vector<std::string> &file,
 	}
 	else
 		throw HTTPException(400);
+	std::string tmp_str;
 	while (file.size() > index + 2 && !is_payload(index)) {
 		switch(http_token_comp(file[index])) {
 			case USER_AGENT:
@@ -130,6 +139,12 @@ HTTPRequest::HTTPRequest(HTTPRequest::TYPE type, std::vector<std::string> &file,
 				break;
 			case EXPECT :
 				index = load_string(file, index, _expect);
+				break;
+			case X_ARG:
+				_x_arguments_name.push_back(file[index]);
+				index = load_string(file, index, tmp_str);
+				_x_arguments.push_back(tmp_str);
+				tmp_str.clear();
 				break;
 			default:
 				index = ff_newline(file, index);

@@ -40,11 +40,14 @@ public:
     const std::vector<std::string> & getXArgs()         const;
     const std::vector<std::string> & getXArgsName()     const;
     std::string &                    getPath();
+    Cookie&                          get_cookie();
+    Cookie                           parse_cookie();
     void                             setURI(const URI & uri);
     void                             setPeerAddress(unsigned int);
     void                             setPeerName(const std::string &);
     void                             setUsedPort(int);
     void                             loadPayload();
+    void                             set_cookie(Cookie &cookie);
     static int                       checktype(std::string& word);
 
 private:
@@ -89,12 +92,9 @@ private:
     void            loadChunkedPayload();
     void            loadNormalPayload();
     void            isChunkedRequest(const std::string & data);
-    void            set_cookie(Cookie &cookie);
     bool            readLine();
     bool            is_payload(size_t index)                                                                      const;
     size_t          ff_newline(std::vector<std::string>& file, size_t index)                                      const;
-    Cookie          parse_cookie();
-    Cookie&         get_cookie();
     static size_t   load_string(std::vector<std::string>& file, size_t index, std::string& target);
     static size_t   load_vec_str(std::vector<std::string>& file, size_t index, std::vector<std::string>& target);
     static size_t   load_connection(std::vector<std::string>& file, size_t index, bool& target);

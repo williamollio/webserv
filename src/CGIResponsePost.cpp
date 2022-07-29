@@ -11,8 +11,8 @@ std::string CGIResponsePost::setFilename(std::string &payload) {
 
 	size_t posbegin, posend;
 	posbegin = payload.find("filename=\"");
-	if (posbegin == std::string::npos && !_request->_path.empty())
-		return (_request->_path);
+	if (posbegin == std::string::npos && !_request->getPath().empty())
+		return (_request->getPath());
 	else if (posbegin == std::string::npos)
 		return setFilenameUnknown(".txt");
 	posbegin += 10;
@@ -70,7 +70,7 @@ void CGIResponsePost::createFile(std::string &payload) {
 		_filename.erase(0,1);
 	PRINT_CGIRESPONSEPOST("_filename: ", _filename);
 	std::ofstream ofs(_filename);
-	PRINT_CGIRESPONSEPOST("payload: ", payload);
+	//PRINT_CGIRESPONSEPOST("payload: ", payload);
 
 	ofs << payload << std::endl;
 	ofs.close();
@@ -105,18 +105,18 @@ void CGIResponsePost::run(Socket &socket) {
 
 	PRINT_CGIRESPONSEPOST("_POST", _POST);
 	PRINT_CGIRESPONSEPOST("_accept_file", _accept_file);
-	if (_request->_path == "/file_should_exist_after")
+	if (_request->getPath() == "/file_should_exist_after")
 		std::cout << "breakpoint" << std::endl;
 
-	if (_POST == false)
+	if (!_POST && !_accept_file)
 		throw HTTPException(405);
 	code = 201;
-	saveFile(_request->_payload);
+	saveFile(_request->get_payload());
 	header.setStatusCode(code);
 	header.setStatusMessage(get_message(code));
 	std::string body = int_to_string(code) + " " + header.getStatusMessage();
 	header.set_content_length(body.length());
-	socket.send(header.tostring() + "\r\n\r\n" + body);
+	socket.write(header.tostring() + "\r\n\r\n" + body);
 }
 
 CGIResponsePost::CGIResponsePost(HTTPRequest *request): CGIResponse(request)
@@ -130,9 +130,9 @@ CGIResponsePost::CGIResponsePost(HTTPRequest *request): CGIResponse(request)
 	_upload = _server_root + config.get_upload_location_cl();
 
 	_server_location_log = set_absolut_path(_server_root);
-	if (is_request_defined_location(request->_path, config.get_location_specifier())) {
-			if (_request != NULL)
-				PRINT_CGIRESPONSE("request_path", _request->_path);
+	if (is_request_defined_location(request->getPath(), config.get_location_specifier())) {
+        if (_request != NULL)
+            PRINT_CGIRESPONSE("request_path", _request->getPath());
 		PRINT_CGIRESPONSE("_server_location_log", _server_location_log);
 		PRINT_CGIRESPONSE("_loc_root", _loc_root);
     	_server_location_log = set_absolut_path(_loc_root);

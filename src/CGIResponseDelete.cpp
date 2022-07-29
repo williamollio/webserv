@@ -12,15 +12,15 @@ void CGIResponseDelete::send_response(Socket &socket)
 	header.setStatusCode(200);
 	header.setStatusMessage(get_message(200));
 	header.set_content_length(body.length());
-	socket.send(header.tostring() + "\r\n\r\n" + body);
+	socket.write(header.tostring() + "\r\n\r\n" + body);
 }
 
 void CGIResponseDelete::extract_path() {
-	size_t pos = _request->_path.rfind('/');
+	size_t pos = _request->getPath().rfind('/');
 	if (pos == std::string::npos)
 		throw HTTPException(500);
-	_sub_path = _request->_path.substr(1, pos);
-	_file = _request->_path.substr(pos+1, _request->_path.length());
+	_sub_path = _request->getPath().substr(1, pos);
+	_file = _request->getPath().substr(pos+1, _request->getPath().length());
 }
 
 void CGIResponseDelete::set_up_location() {
@@ -60,7 +60,7 @@ CGIResponseDelete::CGIResponseDelete(HTTPRequest *request):  CGIResponse(request
 	_server_root = config.get_server_root_folder();
 	_server_index = config.get_server_index_file();
 
-	if (is_request_defined_location(request->_path, config.get_location_specifier()))
+	if (is_request_defined_location(request->getPath(), config.get_location_specifier()))
 		_server_location_log = set_absolut_path(_loc_root);
 	else
 		_server_location_log = set_absolut_path(_server_root);

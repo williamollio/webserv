@@ -1,14 +1,10 @@
 #pragma once
-#include "Socket.hpp"
 #include "HTTPReader.hpp"
 #include <sys/socket.h>
-#include <sys/poll.h>
-#include <netinet/in.h>
-#include <unistd.h>
-#include <iostream>
-#include <fstream>
-#include <sstream>
 #include <list>
+#include <map>
+#include <netinet/in.h>
+#include <sys/poll.h>
 
 #define NUM_FDS 200
 
@@ -22,16 +18,19 @@ private:
     int                     addrlen;
     int                     on;
     int                     _timeout;
+    nfds_t                  nfds;
     struct sockaddr_in      address;
-    struct pollfd           _fds[NUM_FDS];
     std::list<HTTPReader *> list;
+    struct pollfd           _fds[NUM_FDS];
 
-    void          cleanReaders()                          _NOEXCEPT;
-    unsigned long clearPollArray(unsigned long nfds)      _NOEXCEPT;
-    void          denyConnection(int fd, int = 429) const _NOEXCEPT;
-    void          handleConnection(unsigned long index)   _NOEXCEPT;
-    bool          isServingFD(int fd)                     _NOEXCEPT;
-    void          removeFD(unsigned long index)           _NOEXCEPT;
+    void clearPollArray()                                       _NOEXCEPT;
+    void cleanReaders()                                         _NOEXCEPT;
+    void denyConnection(int fd, HTTPReader * = NULL, int = 429) _NOEXCEPT;
+    void handleConnection(unsigned long index)                  _NOEXCEPT;
+    bool isServingFD(int fd)                                    _NOEXCEPT;
+    void printPollArray()                                       _NOEXCEPT;
+
+    static Connection * currentInstance;
 
     class ReaderByFDFinder {
     public:
@@ -48,4 +47,8 @@ public:
     ~Connection();
 
     void establishConnection();
+    bool addFD(int fd, bool read = true) _NOEXCEPT;
+    bool removeFD(int)                   _NOEXCEPT;
+
+    static Connection & getInstance() _NOEXCEPT;
 };

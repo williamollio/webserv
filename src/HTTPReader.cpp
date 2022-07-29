@@ -17,17 +17,22 @@
 
 std::list<Cookie> HTTPReader::session_management;
 
-HTTPReader::HTTPReader(): _socket(), response(NULL), request(NULL) {}
-
-HTTPReader::HTTPReader(Socket & socket): _socket(socket), response(NULL), request(NULL) {}
+HTTPReader::HTTPReader(int fd): _socket(fd), response(NULL), request(NULL), errorHead(false) {}
 
 HTTPReader::~HTTPReader() {
     if (response != NULL) delete response;
     if (request != NULL) delete request;
-    try {
-        _socket.close_socket();
-    } catch (std::exception & exception) {
-        std::cerr << exception.what() << std::endl;
+}
+
+bool HTTPReader::runForFD(int fd) {
+    if (_socket.get_fd() == fd && !request->isLoaded()) {
+        request->loadPayload();
+        if (request->isLoaded()) {
+            run();
+        }
+        return request->isLoaded();
+    } else {
+        return response->runForFD(fd);
     }
 }
 
@@ -44,34 +49,43 @@ Cookie HTTPReader::get_cookie(Cookie cookie) {
 	return *it;
 }
 
-void HTTPReader::run() {
+bool HTTPReader::run() {
     try {
-        request = _parse();
-		Cookie cookie = get_cookie(request->parse_cookie());
-		request->set_cookie(cookie);
-        request->setURI(URI(request->_path));
-        request->setPeerAddress(peerAddress);
-        request->setPeerName(peerName);
-        request->setUsedPort(port);
-        if (request->getURI().isCGIIdentifier() && _isCGIMethod(request->getType())) {
-            response = new CGICall(request);
-        } else {
-            switch (request->getType()) {
-                case HTTPRequest::GET:    response = new CGIResponseGet(request);    break;
-                case HTTPRequest::POST:   response = new CGIResponsePost(request);   break;
-                case HTTPRequest::DELETE: response = new CGIResponseDelete(request); break;
-                default:
-                    throw HTTPException(400);
-            }
+        if (request == NULL) {
+            request = _parse();
         }
-        response->run(_socket);
+		if (request->isLoaded()) {
+            debug("Loaded, size " << request->get_payload().size() << " bytes");
+            Cookie cookie = get_cookie(request->parse_cookie());
+            request->set_cookie(cookie);
+            request->setURI(URI(request->getPath()));
+            request->setPeerAddress(peerAddress);
+            request->setPeerName(peerName);
+            request->setUsedPort(port);
+            if (request->getURI().isCGIIdentifier() && _isCGIMethod(request->getType())) {
+                response = new CGICall(request, _socket);
+            } else {
+                switch (request->getType()) {
+                    case HTTPRequest::GET:    response = new CGIResponseGet(request);    break;
+                    case HTTPRequest::POST:   response = new CGIResponsePost(request);   break;
+                    case HTTPRequest::DELETE: response = new CGIResponseDelete(request); break;
+                    default:
+                        throw HTTPException(400);
+                }
+            }
+            response->run(_socket);
+        } else {
+            return false;
+        }
     }
 	catch (HTTPException & ex) {
-        std::cerr << ":" << ex.what() << std::endl;
+        debug(ex.what());
         CGIResponseError error;
 		error.set_error_code(ex.get_error_code());
+        error.set_head_only(errorHead);
 		error.run(_socket);
     }
+    return true;
 }
 
 std::vector<std::string>	split_str_vector(const std::string& tosplit, const std::string& needle) {
@@ -155,28 +169,25 @@ int	HTTPRequest::checktype(std::string& word) {
 		return POST;
 	if (word == "DELETE")
 		return DELETE;
+    else if (word == "HEAD") {
+        return HEAD;
+    }
 	return ERROR;
 }
 
 
 HTTPRequest* HTTPReader::_parse() throw(std::exception) {
-//	char * buff = new char[BUFFER + 1]();
-//	if (!read(_socket.get_fd(), buff, BUFFER)) {
-//		throw HTTPException(504);
-//	}
-//    delete[] buff;
-//	size_t	cursor = raw.find("\r\n\r\n", 0);
-//	if (cursor == raw.npos)
-//		cursor = raw.length();
-
-	char buff[2] = {'\0', '\0'};
-	std::string raw(buff);
+	std::string raw;
 
 	while (raw.find("\r\n\r\n", 0) == std::string::npos) {
-		if (!read(_socket.get_fd(), buff, 1))
-			throw HTTPException(504);
-		raw += buff;
+        try {
+            raw += _socket.read();
+        } catch (IOException & ex) {
+            throw HTTPException(504);
+            // Maybe just poll instead...
+        }
 	}
+	std::cout << raw << std::endl;
 	std::string	head = raw;
 	std::vector<std::string> file = split_line(head);
 	switch(HTTPRequest::checktype(file[0])) {
@@ -186,7 +197,10 @@ HTTPRequest* HTTPReader::_parse() throw(std::exception) {
 			return new HTTPRequest(HTTPRequest::POST, file, raw, _socket);
 		case HTTPRequest::DELETE:
 			return new HTTPRequest(HTTPRequest::DELETE, file, raw, _socket);
+        case HTTPRequest::HEAD:
+            errorHead = true;
         default:
+			std::cerr << file[0] << std::endl;
 			throw HTTPException(405);
 	}
 
@@ -204,20 +218,16 @@ void HTTPReader::setPeerAddress(unsigned int peerAddress) {
     HTTPReader::peerAddress = peerAddress;
 }
 
-const std::string &HTTPReader::getPeerName() const {
+const std::string & HTTPReader::getPeerName() const {
     return peerName;
 }
 
-void HTTPReader::setPeerName(const std::string &peerName) {
+void HTTPReader::setPeerName(const std::string & peerName) {
     HTTPReader::peerName = peerName;
 }
 
-const Socket & HTTPReader::getSocket() const {
+Socket & HTTPReader::getSocket() {
     return _socket;
-}
-
-void HTTPReader::setSocket(const Socket & socket) {
-    _socket = socket;
 }
 
 int HTTPReader::getUsedPort() const {
@@ -240,4 +250,12 @@ bool HTTPReader::_isCGIMethod(HTTPRequest::TYPE type) {
         }
     }
     return false;
+}
+
+HTTPRequest * HTTPReader::getRequest() const {
+	return request;
+}
+
+bool HTTPReader::hasFD(int fd) const {
+    return _socket.get_fd() == fd || (response != NULL && response->hasFD(fd));
 }

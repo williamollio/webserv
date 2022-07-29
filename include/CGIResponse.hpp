@@ -25,6 +25,8 @@ public:
     virtual ~CGIResponse();
 
     virtual void	run(Socket& socket) = 0;
+    virtual bool    runForFD(int);
+    virtual bool    hasFD(int);
     virtual bool	isRunning();
 	std::string		set_absolut_path(std::string& folder);
 	std::string		read_file(std::string& file);

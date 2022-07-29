@@ -159,6 +159,9 @@ int CGIResponse::is_request_defined_location(std::string &request_path, std::vec
 			return (1);
 		}
 	}
+    if (request_path != "/") {
+        throw HTTPException(404);
+    }
 	if (is_request_folder(request_path) == true && request_path != "/")
 		throw HTTPException(401);
 	_directory_location = '/';
@@ -172,4 +175,12 @@ CGIResponse::~CGIResponse() {}
 
 bool CGIResponse::isRunning() {
     return (false);
+}
+
+bool CGIResponse::runForFD(int) {
+    return true;
+}
+
+bool CGIResponse::hasFD(int) {
+    return false;
 }

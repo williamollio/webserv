@@ -7,7 +7,6 @@
 
 
 #include "CGIResponse.hpp"
-#include "HTTPRequestPost.hpp"
 
 class CGIResponsePost : public CGIResponse {
 public:

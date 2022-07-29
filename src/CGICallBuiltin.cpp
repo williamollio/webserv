@@ -4,8 +4,8 @@
 
 #include "CGICallBuiltin.hpp"
 
-CGICallBuiltin::CGICallBuiltin(HTTPRequest * request, const std::string & executable)
-    : CGICall(request), executable(executable) {
+CGICallBuiltin::CGICallBuiltin(HTTPRequest * request, Socket & socket, const std::string & executable)
+    : CGICall(request, socket), executable(executable) {
 
 }
 

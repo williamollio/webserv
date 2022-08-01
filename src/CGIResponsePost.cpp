@@ -4,8 +4,6 @@
 
 #include "CGIResponsePost.hpp"
 
-//bool CGIResponsePost::isUploadAccepted() {return _accept_file;}
-
 std::string CGIResponsePost::setFilename(std::string &payload) {
 	std::string filename;
 
@@ -42,25 +40,23 @@ std::string CGIResponsePost::getDelimiter(std::string &tmp) {
 }
 
 void CGIResponsePost::trimPayload(std::string &payload) {
-
 	std::string delimiter;
 	std::string tmp(payload);
+	std::cout << "tmp \n" << tmp << std::endl;
+
 	payload.clear();
 	size_t posbegin, posend;
-
 	delimiter = getDelimiter(tmp);
-	posbegin = tmp.find("\r\n\r\n");
+	posbegin = tmp.find("\r\n\r\n"); // not anymore here
 	if (posbegin == std::string::npos)
 		throw HTTPException(400);
 	posbegin += 4;
-
-	posend = tmp.find(delimiter, posbegin);
+	posend = tmp.find(delimiter);
 	if (posend == std::string::npos) {
 		std::cerr << "no delim found" << std::endl;
 		throw HTTPException(400);
 	}
 	posend -= 4;
-
 	payload = tmp.substr(posbegin, posend - posbegin);
 }
 
@@ -70,7 +66,6 @@ void CGIResponsePost::createFile(std::string &payload) {
 		_filename.erase(0,1);
 	PRINT_CGIRESPONSEPOST("_filename: ", _filename);
 	std::ofstream ofs(_filename);
-	//PRINT_CGIRESPONSEPOST("payload: ", payload);
 
 	ofs << payload << std::endl;
 	ofs.close();
@@ -82,6 +77,9 @@ void CGIResponsePost::saveFile(std::string payload) {
 	const char *upload = _upload.c_str();
 	const char *server_location_log = _server_location_log.c_str();
 
+	std::cout << "_upload " << _upload << std::endl;
+	std::cout << "_server_location_log " << _server_location_log << std::endl;
+	PRINT_CGIRESPONSEPOST("get_current_path()", get_current_path());
 	dir = opendir(upload);
 	if (dir) {
 		if (chdir(upload) != 0)
@@ -102,13 +100,6 @@ void CGIResponsePost::run(Socket &socket) {
 
 	HTTPHeader	header;
 	int			code;
-
-	PRINT_CGIRESPONSEPOST("_request->_payload: ", _request->_payload);
-
-	PRINT_CGIRESPONSEPOST("_POST", _POST);
-	PRINT_CGIRESPONSEPOST("_accept_file", _accept_file);
-	if (_request->getPath() == "/file_should_exist_after")
-		std::cout << "breakpoint" << std::endl;
 
 	if (!_POST && !_accept_file)
 		throw HTTPException(405);
@@ -131,6 +122,7 @@ CGIResponsePost::CGIResponsePost(HTTPRequest *request): CGIResponse(request)
 	_server_index = config.get_server_index_file();
 	_upload = _server_root + config.get_upload_location_cl();
 
+	PRINT_CGIRESPONSEPOST("_upload: ", _upload);
 	_server_location_log = set_absolut_path(_server_root);
 	if (is_request_defined_location(request->getPath(), config.get_location_specifier())) {
         if (_request != NULL)
@@ -140,5 +132,4 @@ CGIResponsePost::CGIResponsePost(HTTPRequest *request): CGIResponse(request)
     	_server_location_log = set_absolut_path(_loc_root);
     }
 
-	PRINT_CGIRESPONSEPOST("_upload: ", _upload);
 }

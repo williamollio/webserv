@@ -41,7 +41,6 @@ private:
         bool          errorHead;
 		Cookie        cookie;
 		static std::list<Cookie> session_management;
-		size_t        _max_size_body;
 
         HTTPRequest * _parse() throw(std::exception);
         bool          _isCGIMethod(HTTPRequest::TYPE);

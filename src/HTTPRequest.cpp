@@ -4,6 +4,7 @@
 
 #include "HTTPRequest.hpp"
 #include "HTTPException.hpp"
+#include "Configuration.hpp"
 #include "Tool.hpp"
 #include <cstdlib>
 
@@ -243,6 +244,11 @@ void HTTPRequest::loadPayload() {
 }
 
 void HTTPRequest::loadNormalPayload() {
+	// size_t _max_size_body = Configuration::getInstance().get_server_max_upload_size();
+	// std::cout << _content_length << std::endl;
+	// std::cout << _max_size_body << std::endl;
+	// if (_content_length > _max_size_body && _max_size_body != 0)
+		// throw HTTPException(413);
     while (_payload.size() < _content_length) {
         if (!readLine()) return;
         _payload += line;

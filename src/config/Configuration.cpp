@@ -471,7 +471,7 @@ Configuration::server_word Configuration::server_token_cmp(const std::string &wo
 		return location_log;
 	else if (word == "Accept_Files" || word == "accept_files" || word ==  "accept_upload" || word == "accept_uploads" || word ==  "Accept_Upload" || word == "Accept_Uploads")
 		return file_acc;
-	else if (word == "upload" || word == "Upload" || word == "client-upload")
+	else if (word == "upload" || word == "Upload" || word == "client_upload")
 		return upload_location_cl;
 	else if (word == "client_max_body_size")
 		return upload_cmbs;
@@ -495,6 +495,8 @@ Configuration::loc_word		Configuration::loc_inf_token_cmp(const std::string& wor
 		return default_file;
 	else if (word == "directory_listing" || word == "listing" || word == "dir_listing")
 		return directory_listing;
+	else if (word == "upload_size" || word == "client_max_body_size" || word == "Upload_Size" || word == "client_body_size" || word == "Client_Body_Size")
+		return upload_size;
 	return l_errortype;
 }
 
@@ -614,6 +616,9 @@ size_t Configuration::parse_loc_info(std::fstream &file, vectorString &line, siz
 						break;
 					case local_root:
 						index = parse_str(file, line, index, data.root);
+						break;
+					case upload_size:
+						index = parse_sizet(file, line, index, data.upload_size);
 						break;
 					case skip:
 						index = skip_token(file, line, index);

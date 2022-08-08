@@ -101,6 +101,13 @@ void CGIResponsePost::run(Socket &socket) {
 	HTTPHeader	header;
 	int			code;
 
+	PRINT_CGIRESPONSEPOST("_request->_payload: ", _request->get_payload());
+
+	PRINT_CGIRESPONSEPOST("_POST", _POST);
+	PRINT_CGIRESPONSEPOST("_accept_file", _accept_file);
+	if (_request->getPath() == "/file_should_exist_after")
+		std::cout << "breakpoint" << std::endl;
+
 	if (!_POST && !_accept_file)
 		throw HTTPException(405);
 	code = 201;

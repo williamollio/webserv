@@ -17,6 +17,7 @@ public:
 		std::string	def_file;
 		std::string	root;	//if root empty, it should use the server_root
 		size_t		id;
+		size_t		upload_size;
 	} loc_inf;
 private:
 	typedef unsigned long				fsize_type;
@@ -26,7 +27,7 @@ private:
 
 	enum word {server, w_errortype};
 	enum server_word {name, port, root, index_file, upload_location_cl, location, location_error, location_log, file_acc, upload_cmbs, cgi_ext, cgi_loc, cgi_methods, cgi_bin, s_errortype};
-	enum loc_word {methods, directory_listing, local_root, default_file, skip, l_errortype};
+	enum loc_word {methods, upload_size, directory_listing, local_root, default_file, skip, l_errortype};
 	size_t			e_line;
 
 	enum word			conf_token_cmp(vectorString& line, size_t index);

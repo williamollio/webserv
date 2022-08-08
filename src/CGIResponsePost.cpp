@@ -85,13 +85,15 @@ void CGIResponsePost::createFile(std::string &payload) {
 }
 
 bool CGIResponsePost::isBodySizeForbidden(size_t payload_size) {
-	if (_upload_size != 0) {
+	if ((_upload_size == 0) || (_max_size_body == 0))
+		throw HTTPException(405);
+	else if (_upload_size != SIZE_MAX) {
 		if (payload_size > _upload_size)
 			return true;
 		else
 			return false;
 	}
-	else if (_max_size_body != 0) {
+	else if (_max_size_body != SIZE_MAX) {
 		if (payload_size > _max_size_body)
 			return true;
 		else
@@ -142,7 +144,7 @@ void CGIResponsePost::run(Socket &socket) {
 	socket.write(header.tostring() + "\r\n\r\n" + body);
 }
 
-CGIResponsePost::CGIResponsePost(HTTPRequest *request): CGIResponse(request), _max_size_body(0)
+CGIResponsePost::CGIResponsePost(HTTPRequest *request): CGIResponse(request), _max_size_body(SIZE_MAX)
 {
 	Configuration config = Configuration::getInstance();
 

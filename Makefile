@@ -28,7 +28,7 @@ OBJ		= $(MAIN_OBJ:.cpp=.o) $(CONF_OBJ:.cpp=.o)
 
 NAME	= webserv
 
-FLAGS	= -Wall -Wextra -g -fsanitize=address -std=c++98 #-Werror
+FLAGS	= -Wall -Wextra -g -fsanitize=address -std=c++98#-Werror
 
 INC		= -Iinclude
 
@@ -46,7 +46,7 @@ $(OBJ_DIR)%.o: $(SRC_DIR)%.cpp $(HDR)
 	c++ $(FLAGS) $(INC) -c $< -o $@
 
 run : $(NAME)
-	./$(NAME) server.conf
+	./$(NAME) tester_config.conf
 
 re : fclean all
 

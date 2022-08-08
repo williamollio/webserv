@@ -238,7 +238,6 @@ bool HTTPRequest::readLine(bool appendCR) {
 
 void HTTPRequest::loadPayload() {
     debug("Chunked payload: " << (_chunked ? "true" : "false"));
-	std::cout << "_content_length " << _content_length << std::endl;
     if (_chunked) {
         loadChunkedPayload();
     } else {

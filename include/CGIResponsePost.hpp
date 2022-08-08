@@ -27,6 +27,7 @@ private:
 	void createFile(std::string &payload);
 	bool isUploadAccepted();
 	bool isBodySizeForbidden(size_t payload_size);
+	void get_date(std::string &time);
 };
 
 

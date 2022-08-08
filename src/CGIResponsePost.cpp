@@ -3,6 +3,8 @@
 //
 
 #include "CGIResponsePost.hpp"
+#include <time.h>
+#include <sys/time.h>
 
 std::string CGIResponsePost::setFilename(std::string &payload) {
 	std::string filename;
@@ -18,12 +20,26 @@ std::string CGIResponsePost::setFilename(std::string &payload) {
 	return (filename);
 }
 
+void CGIResponsePost::get_date(std::string &time) {
+	struct timeval tv;
+	time_t t;
+	struct tm *info;
+
+	gettimeofday(&tv, NULL);
+	t = tv.tv_sec;
+	info = localtime(&t);
+	char *tmp = asctime (info);
+	time = tmp;
+}
+
 std::string CGIResponsePost::setFilenameUnknown(std::string extension)
 {
 	std::string filenameChunked;
 
+	std::string time;
+	get_date(time);
 
-	filenameChunked = "gnl"; // insert date of the day
+	filenameChunked = time;
 	filenameChunked += extension;
 
 	return (filenameChunked);

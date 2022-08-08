@@ -17,6 +17,7 @@ public:
 private:
 	std::string _filename;
 	std::string _upload;
+	size_t		_max_size_body;
 
 	void saveFile(std::string payload);
 	std::string setFilename(std::string &payload);
@@ -25,6 +26,7 @@ private:
 	std::string getDelimiter(std::string &tmp);
 	void createFile(std::string &payload);
 	bool isUploadAccepted();
+	bool isBodySizeForbidden(size_t payload_size);
 };
 
 

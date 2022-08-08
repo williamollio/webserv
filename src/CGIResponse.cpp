@@ -139,6 +139,7 @@ void CGIResponse::set_rules_location(std::string &request_path, std::vector<Conf
 	_dir_listing = (*it).dir_listing;
 	_server_index = (*it).def_file;
 	_directory_location = (*it).directory;
+	_upload_size = (*it).upload_size;
 	trim_directory_path(request_path);
 	return;
 }
@@ -153,9 +154,6 @@ int CGIResponse::is_request_defined_location(std::string &request_path, std::vec
 		if (uri.startsWith((*it).directory) && (tmp.empty() || tmp.front() == '/'))
 		{
 			set_rules_location(request_path, it);
-			// PRINT_CGIRESPONSE("_directory_location ", _directory_location);
-			// PRINT_CGIRESPONSE("(*it).directory ", (*it).directory);
-			// PRINT_CGIRESPONSE("_server_index ", _server_index);
 			return (1);
 		}
 	}
@@ -168,8 +166,7 @@ int CGIResponse::is_request_defined_location(std::string &request_path, std::vec
 	return (0);
 }
 
-CGIResponse::CGIResponse(HTTPRequest *request): _request(request), _GET(true), _POST(false), _DELETE(false), _dir_listing(false), _directory_location(""), _loc_root("") {
-}
+CGIResponse::CGIResponse(HTTPRequest *request): _request(request), _GET(true), _POST(false), _DELETE(false), _dir_listing(false), _directory_location(""), _loc_root(""), _upload_size(0) {}
 
 CGIResponse::~CGIResponse() {}
 

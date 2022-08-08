@@ -238,6 +238,7 @@ bool HTTPRequest::readLine(bool appendCR) {
 
 void HTTPRequest::loadPayload() {
     debug("Chunked payload: " << (_chunked ? "true" : "false"));
+	std::cout << "_content_length " << _content_length << std::endl;
     if (_chunked) {
         loadChunkedPayload();
     } else {
@@ -246,10 +247,6 @@ void HTTPRequest::loadPayload() {
 }
 
 void HTTPRequest::loadNormalPayload() {
-	size_t _max_size_body = Configuration::getInstance().get_server_max_upload_size();
-
-	if (_max_size_body != 0 && _content_length > _max_size_body)
-		throw HTTPException(413);
     while (_payload.size() < _content_length) {
         if (!readLine(true)) return;
         _payload += line;
@@ -257,7 +254,6 @@ void HTTPRequest::loadNormalPayload() {
 }
 
 void HTTPRequest::loadChunkedPayload() {
-	size_t _max_size_body = Configuration::getInstance().get_server_max_upload_size();
     loaded = false;
 
     while (!loaded) {
@@ -282,8 +278,6 @@ void HTTPRequest::loadChunkedPayload() {
                 _chunked_head_or_load = false;
             }
         }
-        if (_max_size_body != 0 && _payload.size() > _max_size_body)
-			throw HTTPException(413);
     }
 }
 

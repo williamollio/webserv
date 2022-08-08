@@ -56,6 +56,7 @@ protected:
 	std::string			_server_index;
 	std::string			_file_extension;
 	std::map<int, std::string>	_error_pages;
+	size_t				_upload_size;
 };
 
 

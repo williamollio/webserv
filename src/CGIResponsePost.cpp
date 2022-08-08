@@ -9,8 +9,6 @@ std::string CGIResponsePost::setFilename(std::string &payload) {
 
 	size_t posbegin, posend;
 	posbegin = payload.find("filename=\"");
-	// if (posbegin == std::string::npos && !_request->getPath().empty())
-	// 	return (_request->getPath());
 	if (posbegin == std::string::npos)
 		return setFilenameUnknown(".txt");
 	posbegin += 10;
@@ -23,6 +21,7 @@ std::string CGIResponsePost::setFilename(std::string &payload) {
 std::string CGIResponsePost::setFilenameUnknown(std::string extension)
 {
 	std::string filenameChunked;
+
 
 	filenameChunked = "gnl"; // insert date of the day
 	filenameChunked += extension;
@@ -63,16 +62,36 @@ void CGIResponsePost::createFile(std::string &payload) {
 	_filename = setFilename(payload);
 	if (_filename.front() == '/')
 		_filename.erase(0,1);
-	PRINT_CGIRESPONSEPOST("_filename: ", _filename);
 	std::ofstream ofs(_filename);
 
 	ofs << payload << std::endl;
 	ofs.close();
 }
 
+bool CGIResponsePost::isBodySizeForbidden(size_t payload_size) {
+	if (_upload_size != 0) {
+		if (payload_size > _upload_size)
+			return true;
+		else
+			return false;
+	}
+	else if (_max_size_body != 0) {
+		if (payload_size > _max_size_body)
+			return true;
+		else
+			return false;
+	}
+	else
+		return false;
+}
+
 void CGIResponsePost::saveFile(std::string payload) {
 	DIR* dir;
 	trim_slash_begin(_upload);
+
+	if (isBodySizeForbidden(payload.size()))
+		throw HTTPException(413);
+
 	const char *upload = _upload.c_str();
 	const char *server_location_log = _server_location_log.c_str();
 	dir = opendir(upload);
@@ -107,7 +126,7 @@ void CGIResponsePost::run(Socket &socket) {
 	socket.write(header.tostring() + "\r\n\r\n" + body);
 }
 
-CGIResponsePost::CGIResponsePost(HTTPRequest *request): CGIResponse(request)
+CGIResponsePost::CGIResponsePost(HTTPRequest *request): CGIResponse(request), _max_size_body(0)
 {
 	Configuration config = Configuration::getInstance();
 
@@ -116,8 +135,8 @@ CGIResponsePost::CGIResponsePost(HTTPRequest *request): CGIResponse(request)
 	_server_root = config.get_server_root_folder();
 	_server_index = config.get_server_index_file();
 	_upload = _server_root + config.get_upload_location_cl();
+	_max_size_body = config.get_server_max_upload_size();
 
-	PRINT_CGIRESPONSEPOST("_upload: ", _upload);
 	_server_location_log = set_absolut_path(_server_root);
 	if (is_request_defined_location(request->getPath(), config.get_location_specifier())) {
         if (_request != NULL)

@@ -80,6 +80,7 @@ bool HTTPReader::run() {
     }
 	catch (HTTPException & ex) {
         debug(ex.what());
+		std::cout << ex.what() << std::endl;
         CGIResponseError error;
 		error.set_error_code(ex.get_error_code());
         error.set_head_only(errorHead);

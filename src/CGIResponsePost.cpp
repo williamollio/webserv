@@ -9,9 +9,9 @@ std::string CGIResponsePost::setFilename(std::string &payload) {
 
 	size_t posbegin, posend;
 	posbegin = payload.find("filename=\"");
-	if (posbegin == std::string::npos && !_request->getPath().empty())
-		return (_request->getPath());
-	else if (posbegin == std::string::npos)
+	// if (posbegin == std::string::npos && !_request->getPath().empty())
+	// 	return (_request->getPath());
+	if (posbegin == std::string::npos)
 		return setFilenameUnknown(".txt");
 	posbegin += 10;
 	posend = payload.find("\"", posbegin + 1);
@@ -24,7 +24,7 @@ std::string CGIResponsePost::setFilenameUnknown(std::string extension)
 {
 	std::string filenameChunked;
 
-	filenameChunked = "test"; // insert date of the day
+	filenameChunked = "gnl"; // insert date of the day
 	filenameChunked += extension;
 
 	return (filenameChunked);
@@ -42,12 +42,11 @@ std::string CGIResponsePost::getDelimiter(std::string &tmp) {
 void CGIResponsePost::trimPayload(std::string &payload) {
 	std::string delimiter;
 	std::string tmp(payload);
-	std::cout << "tmp \n" << tmp << std::endl;
 
 	payload.clear();
 	size_t posbegin, posend;
 	delimiter = getDelimiter(tmp);
-	posbegin = tmp.find("\r\n\r\n"); // not anymore here
+	posbegin = tmp.find("\r\n\r\n");
 	if (posbegin == std::string::npos)
 		throw HTTPException(400);
 	posbegin += 4;
@@ -76,10 +75,6 @@ void CGIResponsePost::saveFile(std::string payload) {
 	trim_slash_begin(_upload);
 	const char *upload = _upload.c_str();
 	const char *server_location_log = _server_location_log.c_str();
-
-	std::cout << "_upload " << _upload << std::endl;
-	std::cout << "_server_location_log " << _server_location_log << std::endl;
-	PRINT_CGIRESPONSEPOST("get_current_path()", get_current_path());
 	dir = opendir(upload);
 	if (dir) {
 		if (chdir(upload) != 0)
@@ -100,13 +95,6 @@ void CGIResponsePost::run(Socket &socket) {
 
 	HTTPHeader	header;
 	int			code;
-
-	PRINT_CGIRESPONSEPOST("_request->_payload: ", _request->get_payload());
-
-	PRINT_CGIRESPONSEPOST("_POST", _POST);
-	PRINT_CGIRESPONSEPOST("_accept_file", _accept_file);
-	if (_request->getPath() == "/file_should_exist_after")
-		std::cout << "breakpoint" << std::endl;
 
 	if (!_POST && !_accept_file)
 		throw HTTPException(405);

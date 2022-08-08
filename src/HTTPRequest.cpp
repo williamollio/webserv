@@ -246,11 +246,10 @@ void HTTPRequest::loadPayload() {
 }
 
 void HTTPRequest::loadNormalPayload() {
-	// size_t _max_size_body = Configuration::getInstance().get_server_max_upload_size();
-	// std::cout << _content_length << std::endl;
-	// std::cout << _max_size_body << std::endl;
-	// if (_content_length > _max_size_body && _max_size_body != 0)
-		// throw HTTPException(413);
+	size_t _max_size_body = Configuration::getInstance().get_server_max_upload_size();
+
+	if (_max_size_body != 0 && _content_length > _max_size_body)
+		throw HTTPException(413);
     while (_payload.size() < _content_length) {
         if (!readLine(true)) return;
         _payload += line;
@@ -258,10 +257,10 @@ void HTTPRequest::loadNormalPayload() {
 }
 
 void HTTPRequest::loadChunkedPayload() {
+	size_t _max_size_body = Configuration::getInstance().get_server_max_upload_size();
     loaded = false;
 
     while (!loaded) {
-		// if (max size) return error;
         if (!readLine()) return; // Poll again...
         if (!_chunked_head_or_load) {
             // Chunk size
@@ -283,7 +282,8 @@ void HTTPRequest::loadChunkedPayload() {
                 _chunked_head_or_load = false;
             }
         }
-        debug("Payload size: " << _payload.size());
+        if (_max_size_body != 0 && _payload.size() > _max_size_body)
+			throw HTTPException(413);
     }
 }
 

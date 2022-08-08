@@ -44,8 +44,6 @@ std::string CGIResponse::set_absolut_path(std::string& folder)
 
 	new_path = get_current_path() + folder;
 	path_tmp = new_path.c_str();
-	std::cout << "get_current_path() " << get_current_path() << std::endl;
-	std::cout << "new_path " << new_path << std::endl;
 	if (access(path_tmp, R_OK) < 0)
 		throw HTTPException(404);
 	return (new_path);

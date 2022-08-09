@@ -85,15 +85,13 @@ void CGIResponsePost::createFile(std::string &payload) {
 }
 
 bool CGIResponsePost::isBodySizeForbidden(size_t payload_size) {
-	if ((_upload_size == 0) || (_max_size_body == 0))
-		throw HTTPException(405);
-	if (_upload_size != SIZE_MAX) {
+	if (_max_size_body_bool == true) {
 		if (payload_size > _upload_size)
 			return true;
 		else
 			return false;
 	}
-	else if (_max_size_body != SIZE_MAX) {
+	else if (_upload_size_bool == true) {
 		if (payload_size > _max_size_body)
 			return true;
 		else
@@ -148,6 +146,7 @@ CGIResponsePost::CGIResponsePost(HTTPRequest *request): CGIResponse(request), _m
 {
 	Configuration config = Configuration::getInstance();
 
+	_max_size_body_bool = config.get_server_max_upload_size_bool();
 	_error_pages  = config.get_server_error_page_location();
 	_accept_file = config.get_server_file_acceptance();
 	_server_root = config.get_server_root_folder();
@@ -156,12 +155,7 @@ CGIResponsePost::CGIResponsePost(HTTPRequest *request): CGIResponse(request), _m
 	_max_size_body = config.get_server_max_upload_size();
 
 	_server_location_log = set_absolut_path(_server_root);
-	if (is_request_defined_location(request->getPath(), config.get_location_specifier())) {
-        // if (_request != NULL)
-        //     PRINT_CGIRESPONSE("request_path", _request->getPath());
-		// PRINT_CGIRESPONSE("_server_location_log", _server_location_log);
-		// PRINT_CGIRESPONSE("_loc_root", _loc_root);
+	if (is_request_defined_location(request->getPath(), config.get_location_specifier()))
     	_server_location_log = set_absolut_path(_loc_root);
-    }
 
 }

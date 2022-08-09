@@ -18,6 +18,7 @@ private:
 	std::string _filename;
 	std::string _upload;
 	size_t		_max_size_body;
+	bool		_max_size_body_bool;
 
 	void saveFile(std::string payload);
 	std::string setFilename(std::string &payload);

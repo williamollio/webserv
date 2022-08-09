@@ -46,7 +46,7 @@ $(OBJ_DIR)%.o: $(SRC_DIR)%.cpp $(HDR)
 	c++ $(FLAGS) $(INC) -c $< -o $@
 
 run : $(NAME)
-	./$(NAME) server.conf
+	./$(NAME) tester_config.conf
 
 re : fclean all
 

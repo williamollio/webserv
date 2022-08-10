@@ -85,13 +85,13 @@ void CGIResponsePost::createFile(std::string &payload) {
 }
 
 bool CGIResponsePost::isBodySizeForbidden(size_t payload_size) {
-	if (_max_size_body_bool == true) {
+	if (_upload_size_bool == true) {
 		if (payload_size > _upload_size)
 			return true;
 		else
 			return false;
 	}
-	else if (_upload_size_bool == true) {
+	else if ( _max_size_body_bool == true) {
 		if (payload_size > _max_size_body)
 			return true;
 		else

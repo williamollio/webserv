@@ -1,7 +1,5 @@
 # Webserv
 
-<strong><ins>Starting day</ins></strong> : 7 June
-
 [Subject PDF](https://github.com/williamollio/webserv/blob/master/subject.pdf)
 
 # How does it work?
@@ -37,12 +35,3 @@ The server can be configured with a configuration-file. This file is either spec
 - mixing ``{}`` and ``:  ;`` will result in a parser error
 - whitespaces and newline are handled the same
 - missing any delimiter results in undefined behaviour
-
-# Steps
-
-1. Setting up the connection/sockets
-2. I/O Multiplexing
-3. HTTPReader (c.f. RFC 7230 - 7235)
-4. CGI
-5. HTTPSender (c.f. RFC 7230 - 7235)
-6. ConfigReader

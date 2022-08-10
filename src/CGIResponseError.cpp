@@ -45,7 +45,11 @@ void CGIResponseError::run(Socket &)
     //    socket.write(header.tostring());
     //    return;
     }
-    _payload = header.tostring() + "\r\n\r\n" + body;
+    if (!_head) {
+        _payload = header.tostring() + "\r\n\r\n" + body;
+    } else {
+        _payload = header.tostring() + "\r\n\r\n";
+    }
     if (!runForFD(0)) {
         //debug("Shouldn't happen :(");
         _running = true;

@@ -47,7 +47,7 @@ ssize_t Socket::write(const std::string & data) throw(IOException) {
 void Socket::read_buffer() throw(IOException) {
     _read_index = 0;
     ssize_t tmp = ::read(_fd, _buffer, BUFFER_SIZE);
-    debug(_fd << " read: " << tmp);
+    //debug(_fd << " read: " << tmp);
     if (tmp < 0) {
         _state = BAD;
         throw IOException("Could not read any data!");

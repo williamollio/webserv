@@ -55,6 +55,10 @@ Connection::~Connection() {
     std::for_each(list.begin(), list.end(), forceRemoveHTTPReader);
 }
 
+void wrapper() {
+    Connection::getInstance().printPollArray();
+}
+
 void Connection::establishConnection() {
     int rc;
     unsigned long current_size;
@@ -62,9 +66,10 @@ void Connection::establishConnection() {
     signal(SIGINT, stopper);
     signal(SIGTERM, stopper);
     signal(SIGKILL, stopper);
+    signal(SIGUSR1, reinterpret_cast<void (*)(int)>(wrapper));
     nfds = server_fds.size();
     while ((rc = poll(_fds, nfds, _timeout)) > 0 && !end_server) {
-        printPollArray();
+        //printPollArray();
         current_size = nfds;
         for (unsigned long i = 0; i < current_size; i++) {
             if (_fds[i].revents == 0) {
@@ -224,8 +229,8 @@ void Connection::clearPollArray() _NOEXCEPT {
 }
 
 void Connection::printPollArray() _NOEXCEPT {
-#ifdef DEBUG
- #if DEBUG == 2
+/*#ifdef DEBUG
+ #if DEBUG == 2*/
     std::cout << std::endl << __FILE__ << ":" << __LINE__ << " Poll array" << std::endl;
     for (unsigned long i = 0; i < nfds; ++i) {
         std::cout << "fd:      " << _fds[i].fd     << std::endl
@@ -247,8 +252,8 @@ void Connection::printPollArray() _NOEXCEPT {
         std::cout << std::endl << std::endl;
     }
     std::cout << __FILE__ << ":" << __LINE__ << " ---------" << std::endl << std::endl;
- #endif
-#endif
+ //#endif
+//#endif*/
 }
 
 // R E A D E R B Y F D F I N D E R   I M P L E M E N T A T I O N

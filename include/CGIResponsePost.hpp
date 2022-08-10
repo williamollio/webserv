@@ -10,15 +10,18 @@
 
 class CGIResponsePost : public CGIResponse {
 public:
-    explicit CGIResponsePost(HTTPRequest *);
+    explicit CGIResponsePost(HTTPRequest *, Socket &);
 
     void run(Socket &socket);
 
 private:
 	std::string _filename;
 	std::string _upload;
+    std::string _payload;
+    size_t      _payloadCounter;
 	size_t		_max_size_body;
 	bool		_max_size_body_bool;
+    bool        _running;
 
 	void saveFile(std::string payload);
 	std::string setFilename(std::string &payload);
@@ -29,6 +32,10 @@ private:
 	bool isUploadAccepted();
 	bool isBodySizeForbidden(size_t payload_size);
 	void get_date(std::string &time);
+
+public:
+    bool runForFD(int i);
+    bool isRunning();
 };
 
 

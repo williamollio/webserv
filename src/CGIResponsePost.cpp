@@ -3,6 +3,7 @@
 //
 
 #include "CGIResponsePost.hpp"
+#include "Connection.hpp"
 #include <time.h>
 #include <sys/time.h>
 
@@ -139,10 +140,36 @@ void CGIResponsePost::run(Socket &socket) {
 	header.setStatusMessage(get_message(code));
 	std::string body = int_to_string(code) + " " + header.getStatusMessage();
 	header.set_content_length(body.length());
-	socket.write(header.tostring() + "\r\n\r\n" + body);
+    _payload = header.tostring() + "\r\n\r\n" + body;
+    if (!runForFD(0)) {
+        _running = true;
+        Connection::getInstance().addFD(socket.get_fd(), false);
+    }
+	//socket.write(header.tostring() + "\r\n\r\n" + body);
 }
 
-CGIResponsePost::CGIResponsePost(HTTPRequest *request): CGIResponse(request), _max_size_body(SIZE_MAX)
+bool CGIResponsePost::runForFD(int) {
+    try {
+        for (; _payloadCounter < _payload.size(); ++_payloadCounter) {
+            _socket.write(_payload[_payloadCounter]);
+        }
+        debug("Write with socket fd " << _socket.get_fd() << " size " << _payloadCounter << " real " << _payload.size());
+        debug("Closing socket fd " << _socket.get_fd());
+        Connection::getInstance().removeFD(_socket.get_fd());
+        _socket.close();
+        _running = false;
+        return true;
+    } catch (IOException &) {
+        debug("Write with socket fd " << _socket.get_fd() << " size " << _payloadCounter);
+        return false;
+    }
+}
+
+bool CGIResponsePost::isRunning() {
+    return _running;
+}
+
+CGIResponsePost::CGIResponsePost(HTTPRequest *request, Socket & socket): CGIResponse(request, socket), _payloadCounter(0), _max_size_body(SIZE_MAX), _running(false)
 {
 	Configuration config = Configuration::getInstance();
 

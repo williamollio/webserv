@@ -152,7 +152,7 @@ void Connection::denyConnection(const int fd, HTTPReader * reader, const int err
             delete reader;
         }
         removeFD(fd);
-        CGIResponseError response;
+        CGIResponseError response(socket);
         response.set_error_code(errorCode);
         response.run(socket);
     } catch (std::exception & ex) {

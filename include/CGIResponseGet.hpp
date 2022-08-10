@@ -9,12 +9,19 @@
 
 class CGIResponseGet : public CGIResponse {
 public:
-    explicit CGIResponseGet(HTTPRequest*);
+    explicit CGIResponseGet(HTTPRequest*, Socket &);
 
     void		run(Socket& socket);
 	std::string set_file(std::string path, Socket& socket);
 	std::string construct_content_type();
 	bool		is_request_location(std::string path);
+    bool        runForFD(int i);
+    bool        isRunning();
+
+private:
+    std::string payload;
+    unsigned long socketCounter;
+    bool running;
 };
 
 

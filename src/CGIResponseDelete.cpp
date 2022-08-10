@@ -3,6 +3,7 @@
 //
 
 #include "CGIResponseDelete.hpp"
+#include "Connection.hpp"
 
 void CGIResponseDelete::send_response(Socket &socket)
 {
@@ -12,7 +13,12 @@ void CGIResponseDelete::send_response(Socket &socket)
 	header.setStatusCode(200);
 	header.setStatusMessage(get_message(200));
 	header.set_content_length(body.length());
-	socket.write(header.tostring() + "\r\n\r\n" + body);
+    _payload = header.tostring() + "\r\n\r\n" + body;
+    if (!runForFD(0)) {
+        _running = true;
+        Connection::getInstance().addFD(socket.get_fd(), false);
+    }
+	//socket.write(header.tostring() + "\r\n\r\n" + body);
 }
 
 void CGIResponseDelete::extract_path() {
@@ -51,7 +57,28 @@ void CGIResponseDelete::run(Socket &socket) {
 		throw HTTPException(403);
 }
 
-CGIResponseDelete::CGIResponseDelete(HTTPRequest *request):  CGIResponse(request)
+bool CGIResponseDelete::runForFD(int) {
+    try {
+        for (; _payloadCounter < _payload.size(); ++_payloadCounter) {
+            _socket.write(_payload[_payloadCounter]);
+        }
+        debug("Write with socket fd " << _socket.get_fd() << " size " << _payloadCounter << " real " << _payload.size());
+        debug("Closing socket fd " << _socket.get_fd());
+        Connection::getInstance().removeFD(_socket.get_fd());
+        _socket.close();
+        _running = false;
+        return true;
+    } catch (IOException &) {
+        debug("Write with socket fd " << _socket.get_fd() << " size " << _payloadCounter);
+        return false;
+    }
+}
+
+bool CGIResponseDelete::isRunning() {
+    return _running;
+}
+
+CGIResponseDelete::CGIResponseDelete(HTTPRequest *request, Socket & socket):  CGIResponse(request, socket), _payloadCounter(0), _running(false)
 {
 	Configuration config = Configuration::getInstance();
 

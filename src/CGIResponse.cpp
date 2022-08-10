@@ -167,7 +167,7 @@ int CGIResponse::is_request_defined_location(std::string &request_path, std::vec
 	return (0);
 }
 
-CGIResponse::CGIResponse(HTTPRequest *request): _request(request), _GET(true), _POST(false), _DELETE(false), _dir_listing(false), _directory_location(""), _loc_root(""), _upload_size(SIZE_MAX), _upload_size_bool(false) {}
+CGIResponse::CGIResponse(HTTPRequest *request, Socket & socket): _request(request), _GET(true), _POST(false), _DELETE(false), _dir_listing(false), _directory_location(""), _loc_root(""), _upload_size(SIZE_MAX), _upload_size_bool(false), _socket(socket) {}
 
 CGIResponse::~CGIResponse() {}
 

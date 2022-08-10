@@ -15,7 +15,7 @@
 std::list<int> CGICall::pipeFds = std::list<int>();
 
 CGICall::CGICall(HTTPRequest * request, Socket & socket)
-        : CGIResponse(request),
+        : CGIResponse(request, socket),
           uri(request->getURI()),
           method("REQUEST_METHOD="),
           protocol("SERVER_PROTOCOL=HTTP/1.1"),
@@ -105,7 +105,7 @@ bool CGICall::writeSocket() {
         for (; socketCounter < payload.size(); ++socketCounter) {
             socket.write(payload[socketCounter]);
         }
-        debug("Write with socket fd " << socket.get_fd() << " size " << socketCounter);
+        debug("Write with socket fd " << socket.get_fd() << " size " << socketCounter << " real " << payload.size());
         debug("Closing socket fd " << socket.get_fd());
         Connection::getInstance().removeFD(socket.get_fd());
         socket.close();
@@ -204,8 +204,7 @@ void CGICall::processCGIOutput() {
             payload = buffer.substr(s.tellg());
         }
         header.set_content_length(static_cast<int>(payload.size()));
-        socket.write(header.tostring());
-        socket.write("\r\n\r\n");
+        payload = header.tostring() + "\r\n\r\n" + payload;
         if (!writeSocket()) {
             Connection::getInstance().addFD(socket.get_fd(), false);
             cleanUp = false;
@@ -267,7 +266,7 @@ void CGICall::processCGIOutput() {
 
 void CGICall::sendError(const int errorCode) _NOEXCEPT {
     try {
-        CGIResponseError error;
+        CGIResponseError error(socket);
         error.set_error_code(errorCode);
         error.run(socket);
     } catch (std::exception & exception) {

@@ -11,11 +11,11 @@ Configuration & Configuration::getInstance() {
     return instance;
 }
 
-Configuration::Configuration() : e_line(0), _cmbs(0), _accept_file(false) {
+Configuration::Configuration() : e_line(0), _cmbs(0), _accept_file(false), _cmbs_bool(false) {
 	///TODO: initialize standard values
 }
 
-Configuration::Configuration(std::string& location) : e_line(0), _cmbs(0), _accept_file(false) {
+Configuration::Configuration(std::string& location) : e_line(0), _cmbs(0), _accept_file(false), _cmbs_bool(false) {
 		load_config_file(location);
 }
 
@@ -405,6 +405,7 @@ size_t	Configuration::parse_server(std::fstream& file, vectorString& s_line, siz
                         break;
                     case upload_cmbs:
                         index = parse_sizet(file, s_line, index, _cmbs);
+						_cmbs_bool = true;
                         break;
                     case root:
                         index = parse_str(file, s_line, index, _server_root);
@@ -550,6 +551,7 @@ static void	init_data(Configuration::loc_inf& data, size_t id, const std::string
 	data.POST = false;
 	data.id = id;
 	data.directory = loc;
+	data.upload_size_bool = false;
 }
 
 size_t	Configuration::skip_token(std::fstream& file, vectorString& line, size_t index) {
@@ -619,6 +621,7 @@ size_t Configuration::parse_loc_info(std::fstream &file, vectorString &line, siz
 						break;
 					case upload_size:
 						index = parse_sizet(file, line, index, data.upload_size);
+						data.upload_size_bool = true;
 						break;
 					case skip:
 						index = skip_token(file, line, index);
@@ -718,6 +721,10 @@ const std::string & Configuration::get_cgi_root() const {
 
 size_t Configuration::get_server_max_upload_size() const {
 	return _cmbs;
+}
+
+bool Configuration::get_server_max_upload_size_bool() const {
+	return _cmbs_bool;
 }
 
 const std::string Configuration::get_server_root_folder() const {

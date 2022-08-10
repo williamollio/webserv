@@ -92,7 +92,7 @@ private:
     void            loadChunkedPayload();
     void            loadNormalPayload();
     void            isChunkedRequest(const std::string & data);
-    bool            readLine();
+    bool            readLine(bool = false);
     bool            is_payload(size_t index)                                                                      const;
     size_t          ff_newline(std::vector<std::string>& file, size_t index)                                      const;
     static size_t   load_string(std::vector<std::string>& file, size_t index, std::string& target);

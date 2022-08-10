@@ -18,6 +18,7 @@ public:
 		std::string	root;	//if root empty, it should use the server_root
 		size_t		id;
 		size_t		upload_size;
+		bool		upload_size_bool;
 	} loc_inf;
 private:
 	typedef unsigned long				fsize_type;
@@ -50,6 +51,7 @@ private:
 	std::string				_server_location_log;
 	size_t					_cmbs;
 	bool					_accept_file;					///standard OFF
+	bool					_cmbs_bool;
 
 	size_t	parse_server(std::fstream& file, vectorString& s_line, size_t index);
 	void	check_portnum();
@@ -96,6 +98,7 @@ public:
 	const std::string		get_server_index_file()       const;
 	const std::string		get_upload_location_cl()      const;
 	const std::vector<loc_inf>& get_location_specifier()  const;
+	bool				get_server_max_upload_size_bool() const;
 
     static Configuration & getInstance();
 

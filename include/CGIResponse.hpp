@@ -19,9 +19,10 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
+class CGIResponseError;
 class CGIResponse {
 public:
-    explicit CGIResponse(HTTPRequest *);
+    explicit CGIResponse(HTTPRequest *, Socket &);
     virtual ~CGIResponse();
 
     virtual void	run(Socket& socket) = 0;
@@ -56,6 +57,9 @@ protected:
 	std::string			_server_index;
 	std::string			_file_extension;
 	std::map<int, std::string>	_error_pages;
+	size_t				_upload_size;
+	bool				_upload_size_bool;
+    Socket &            _socket;
 };
 
 

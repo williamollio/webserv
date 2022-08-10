@@ -28,7 +28,6 @@ private:
     void denyConnection(int fd, HTTPReader * = NULL, int = 429) _NOEXCEPT;
     void handleConnection(unsigned long index)                  _NOEXCEPT;
     bool isServingFD(int fd)                                    _NOEXCEPT;
-    void printPollArray()                                       _NOEXCEPT;
 
     static Connection * currentInstance;
 
@@ -43,6 +42,7 @@ private:
     };
 
 public:
+    void printPollArray()                                       _NOEXCEPT;
     Connection();
     ~Connection();
 

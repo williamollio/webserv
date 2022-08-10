@@ -66,9 +66,9 @@ bool HTTPReader::run() {
                 response = new CGICall(request, _socket);
             } else {
                 switch (request->getType()) {
-                    case HTTPRequest::GET:    response = new CGIResponseGet(request);    break;
-                    case HTTPRequest::POST:   response = new CGIResponsePost(request);   break;
-                    case HTTPRequest::DELETE: response = new CGIResponseDelete(request); break;
+                    case HTTPRequest::GET:    response = new CGIResponseGet(request, _socket);    break;
+                    case HTTPRequest::POST:   response = new CGIResponsePost(request, _socket);   break;
+                    case HTTPRequest::DELETE: response = new CGIResponseDelete(request, _socket); break;
                     default:
                         throw HTTPException(400);
                 }
@@ -80,10 +80,13 @@ bool HTTPReader::run() {
     }
 	catch (HTTPException & ex) {
         debug(ex.what());
-        CGIResponseError error;
-		error.set_error_code(ex.get_error_code());
-        error.set_head_only(errorHead);
-		error.run(_socket);
+		std::cout << ex.what() << std::endl;
+        if (response != NULL) delete response;
+        CGIResponseError * error = new CGIResponseError(_socket);
+        response = error;
+		error->set_error_code(ex.get_error_code());
+        error->set_head_only(errorHead);
+		error->run(_socket);
     }
     return true;
 }
@@ -187,7 +190,6 @@ HTTPRequest* HTTPReader::_parse() throw(std::exception) {
             // Maybe just poll instead...
         }
 	}
-	std::cout << raw << std::endl;
 	std::string	head = raw;
 	std::vector<std::string> file = split_line(head);
 	switch(HTTPRequest::checktype(file[0])) {

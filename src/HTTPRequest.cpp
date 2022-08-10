@@ -4,6 +4,7 @@
 
 #include "HTTPRequest.hpp"
 #include "HTTPException.hpp"
+#include "Configuration.hpp"
 #include "Tool.hpp"
 #include <cstdlib>
 
@@ -204,7 +205,7 @@ void HTTPRequest::isChunkedRequest(const std::string &data)
 		_chunked = true;
 }
 
-bool HTTPRequest::readLine() {
+bool HTTPRequest::readLine(bool appendCR) {
     std::string tmp;
     char c;
     try {
@@ -212,7 +213,9 @@ bool HTTPRequest::readLine() {
             tmp += c;
         }
         if (c == 0) throw std::exception(); // TODO: Handle HUP more gracefully
-        if (tmp.back() == '\r') {
+        if (appendCR) {
+            tmp += '\n';
+        } else if (tmp.back() == '\r') {
             tmp.erase(tmp.end() - 1);
         }
         if (wasFullLine) {
@@ -244,7 +247,7 @@ void HTTPRequest::loadPayload() {
 
 void HTTPRequest::loadNormalPayload() {
     while (_payload.size() < _content_length) {
-        if (!readLine()) return;
+        if (!readLine(true)) return;
         _payload += line;
     }
 }
@@ -274,7 +277,6 @@ void HTTPRequest::loadChunkedPayload() {
                 _chunked_head_or_load = false;
             }
         }
-        debug("Payload size: " << _payload.size());
     }
 }
 

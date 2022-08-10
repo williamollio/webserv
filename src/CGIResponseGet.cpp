@@ -5,6 +5,7 @@
 #include "CGIResponseGet.hpp"
 #include "HTTPHeader.hpp"
 #include "CGICallBuiltin.hpp"
+#include "Connection.hpp"
 #include <fstream>
 #include <algorithm>
 
@@ -61,11 +62,15 @@ void CGIResponseGet::run(Socket & socket) {
     header.setStatusCode(200);
     header.setStatusMessage(get_message(200));
 	header.setCookie(_request->get_cookie());
-	socket.write(header.tostring() + "\r\n\r\n" + body);
-    std::cerr << "Header sent " << std::endl;
+    payload = header.tostring() + "\r\n\r\n" + body;
+    if (!runForFD(0)) {
+        running = true;
+        Connection::getInstance().addFD(socket.get_fd(), false);
+    }
+	//socket.write(header.tostring() + "\r\n\r\n" + body);
 }
 
-CGIResponseGet::CGIResponseGet(HTTPRequest *request): CGIResponse(request)
+CGIResponseGet::CGIResponseGet(HTTPRequest *request, Socket & socket): CGIResponse(request, socket), socketCounter(0), running(false)
 {
 
     Configuration config = Configuration::getInstance();
@@ -81,4 +86,25 @@ CGIResponseGet::CGIResponseGet(HTTPRequest *request): CGIResponse(request)
     }
 
 
+}
+
+bool CGIResponseGet::runForFD(int) {
+    try {
+        for (; socketCounter < payload.size(); ++socketCounter) {
+            _socket.write(payload[socketCounter]);
+        }
+        debug("Write with socket fd " << _socket.get_fd() << " size " << socketCounter << " real " << payload.size());
+        debug("Closing socket fd " << _socket.get_fd());
+        Connection::getInstance().removeFD(_socket.get_fd());
+        _socket.close();
+        running = false;
+        return true;
+    } catch (IOException &) {
+        debug("Write with socket fd " << _socket.get_fd() << " size " << socketCounter);
+        return false;
+    }
+}
+
+bool CGIResponseGet::isRunning() {
+    return running;
 }

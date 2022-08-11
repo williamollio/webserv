@@ -202,6 +202,7 @@ void Connection::handleConnection(const unsigned long index) _NOEXCEPT {
 }
 
 static void maybeDeleteReader(HTTPReader* & reader) {
+	//if (reader->getSocket().closed()) {
     if (!reader->isRunning()) {
         delete reader;
         reader = NULL;

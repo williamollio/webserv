@@ -847,3 +847,5 @@ std::ostream& operator<<(std::ostream& os, const Configuration& conf) {
 
 	return os;
 }
+
+Configuration::location_info::location_info(): GET(false), POST(false), DELETE(false), dir_listing(false), id (0), upload_size(0), upload_size_bool(false) {}

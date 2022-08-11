@@ -19,6 +19,7 @@ public:
 		size_t		id;
 		size_t		upload_size;
 		bool		upload_size_bool;
+        location_info();
 	} loc_inf;
 private:
 	typedef unsigned long				fsize_type;

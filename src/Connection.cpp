@@ -10,8 +10,11 @@
 
 static void stopper(int);
 
-Connection::Connection() {
-    struct sockaddr_in address = {};
+Connection::Connection()
+    : _timeout(-1), _nfds(0), _fds() {
+    bzero(_fds, sizeof(_fds));
+    struct sockaddr_in address;
+    bzero(&address, sizeof(address));
     const std::vector<int> & ports = Configuration::getInstance().get_server_ports();
     for (unsigned long i = 0; i < ports.size(); ++i) {
         address.sin_family = AF_INET;
@@ -62,6 +65,26 @@ bool Connection::_is_serving_fd(int fd) {
 void Connection::establishConnection() {
     int rc;
 
+    _nfds = _server_fds.size();
     while (!end_server && (rc = poll(_fds, _nfds, _timeout)) > 0) {
+        nfds_t currentSize = _nfds;
+        for (nfds_t i = 0; i < currentSize; ++i) {
+            if (_fds[i].revents == 0) {
+                // Ignore...
+            } else if (_is_serving_fd(_fds[i].fd)) {
+                accept(i);
+            } else {
+                handle(i);
+            }
+        }
+        _clear_poll_array();
     }
+}
+
+void Connection::accept(nfds_t i) {
+    // TODO: Accept incoming connections.
+}
+
+void Connection::handle(nfds_t i) {
+    // TODO: Handle the file descriptor.
 }

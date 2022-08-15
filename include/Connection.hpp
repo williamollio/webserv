@@ -51,13 +51,14 @@ class Connection {
     void printPollArray()                                       _NOEXCEPT;
 	void denyConnection(const int fd, HTTPReader * reader = NULL , const int errorCode = 429) _NOEXCEPT;
 
+    bool remove_fd(int fd);
+
 public:
      Connection();
     ~Connection();
 
     void establishConnection();
     bool add_fd(int fd, Runnable * reader, bool read = true);
-    bool remove_fd(int fd);
 
     static Connection & getInstance();
 };

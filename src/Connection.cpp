@@ -135,17 +135,10 @@ void Connection::denyConnection(const int fd, HTTPReader * reader, const int err
 
 void Connection::handle(nfds_t i) {
     int fd = _fds[i].fd;
-	std::map<int, Runnable *>::iterator it;
 	try {
-		it = _fd_mapping.find(fd);
-		std::cout << "it " << (it == _fd_mapping.end()) << std::endl;
-		if (it->second->runForFD(fd)) {
-			for (i = 0; i < _nfds && _fds[i].fd != fd; ++i);
-			if (i != _nfds) {
-				_fds[i].fd = -1;
-			}
-			_fd_mapping.erase(it);
-		}
+        if (_fd_mapping.find(fd)->second->runForFD(fd)) {
+            remove_fd(fd);
+        }
 	}
 	catch (std::bad_alloc &) {
         denyConnection(fd, NULL, 507);

@@ -231,8 +231,7 @@ HTTPRequest* HTTPReader::_parse() throw(std::exception) {
 	char c;
 	while (raw.find("\r\n\r\n", 0) == std::string::npos) {
         try {
-			c = _socket.read();
-            raw += c;
+			raw  += _socket.read();
         } catch (IOException & ex) {
             throw HTTPException(504);
         }

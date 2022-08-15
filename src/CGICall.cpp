@@ -107,7 +107,6 @@ bool CGICall::writeSocket() {
         }
         debug("Write with socket fd " << socket.get_fd() << " size " << socketCounter << " real " << payload.size());
         debug("Closing socket fd " << socket.get_fd());
-        Connection::getInstance().remove_fd(socket.get_fd());
         socket.close();
         pthread_mutex_lock(&runningMutex);
         running = false;
@@ -218,7 +217,7 @@ void CGICall::processCGIOutput() {
                   << "INFO: " << ex.what()          << std::endl;
     }
     if (cleanUp) {
-        Connection::getInstance().remove_fd(socket.get_fd());
+        //Connection::getInstance().remove_fd(socket.get_fd());
         pthread_mutex_lock(&runningMutex);
         running = false;
         pthread_mutex_unlock(&runningMutex);

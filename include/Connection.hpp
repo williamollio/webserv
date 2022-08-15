@@ -49,6 +49,7 @@ class Connection {
     void handle(nfds_t i);
 
     void printPollArray()                                       _NOEXCEPT;
+	void denyConnection(const int fd, HTTPReader * reader = NULL , const int errorCode = 429) _NOEXCEPT;
 
 public:
      Connection();

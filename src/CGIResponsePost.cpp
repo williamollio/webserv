@@ -155,7 +155,6 @@ bool CGIResponsePost::runForFD(int) {
         }
         debug("Write with socket fd " << _socket.get_fd() << " size " << _payloadCounter << " real " << _payload.size());
         debug("Closing socket fd " << _socket.get_fd());
-        Connection::getInstance().remove_fd(_socket.get_fd());
         _socket.close();
         _running = false;
         return true;

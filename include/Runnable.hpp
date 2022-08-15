@@ -8,6 +8,7 @@
 class Runnable {
 public:
     virtual bool runForFD(int fd) = 0;
+	virtual ~Runnable() {};
 };
 
 #endif //WEBSERV_RUNNABLE_HPP

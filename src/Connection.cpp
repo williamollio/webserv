@@ -7,6 +7,7 @@
 #include "Connection.hpp"
 #include "Configuration.hpp"
 #include "IOException.hpp"
+#include "CGIResponseError.hpp"
 
 static void stopper(int);
 
@@ -94,7 +95,7 @@ void Connection::accept(nfds_t i) {
     while ((socketDescriptor = ::accept(_fds[i].fd, NULL, NULL)) >= 0) {
         HTTPReader * current = new HTTPReader(socketDescriptor);
         if (!add_fd(socketDescriptor, current)) {
-            //denyConnection(socketDescriptor);
+            denyConnection(socketDescriptor);
             debug("Cannot handle connection!");
             continue;
         }
@@ -113,10 +114,45 @@ void Connection::accept(nfds_t i) {
     }
 }
 
+
+void Connection::denyConnection(const int fd, HTTPReader * reader, const int errorCode) _NOEXCEPT {
+    try {
+        Socket socket(fd);
+        if (reader != NULL) {
+            socket.move(reader->getSocket(), false);
+            _readers.remove(reader);
+            delete reader;
+        }
+        remove_fd(fd);
+        CGIResponseError response(socket);
+        response.set_error_code(errorCode);
+        response.run();
+    } catch (std::exception & ex) {
+        std::cerr << "Could not send error " << errorCode << "!" << std::endl
+                  << "Exception: " << ex.what()                  << std::endl;
+    }
+}
+
 void Connection::handle(nfds_t i) {
     int fd = _fds[i].fd;
-    if (_fd_mapping.find(fd)->second->runForFD(fd)) {
-        remove_fd(fd);
+	std::map<int, Runnable *>::iterator it;
+	try {
+		it = _fd_mapping.find(fd);
+		std::cout << "it " << (it == _fd_mapping.end()) << std::endl;
+		if (it->second->runForFD(fd)) {
+			for (i = 0; i < _nfds && _fds[i].fd != fd; ++i);
+			if (i != _nfds) {
+				_fds[i].fd = -1;
+			}
+			_fd_mapping.erase(it);
+		}
+	}
+	catch (std::bad_alloc &) {
+        denyConnection(fd, NULL, 507);
+    }
+	catch (std::exception & ex) {
+        std::cerr << ">>>>>>> " << ex.what() << " <<<<<<<" << std::endl;
+        denyConnection(fd, NULL, 500);
     }
 }
 
@@ -127,7 +163,7 @@ bool Connection::add_fd(int fd, Runnable * reader, bool read) {
     _fd_mapping[fd] = reader;
     _fds[_nfds].fd = fd;
     _fds[_nfds].events = read ? POLLIN : POLLOUT;
-    debug("Added " << fd << " (" << _nfds << ")");
+    debug("Added " << fd << " (" << _nfds << ")" << reinterpret_cast<unsigned long>(reader));
     _nfds++;
     return true;
 }
@@ -159,6 +195,7 @@ void Connection::printPollArray() _NOEXCEPT {
     for (unsigned long i = 0; i < _nfds; ++i) {
         std::cout << "fd:      " << _fds[i].fd     << std::endl
                   << "events:  " << _fds[i].events << std::endl
+                  << "fd_mapping[fd]:  " << reinterpret_cast<unsigned long>(_fd_mapping[_fds[i].fd]) << std::endl
                   << "revents: ";
         switch (_fds[i].revents) {
             case POLLIN:     std::cout << "POLLIN";     break;

@@ -12,7 +12,7 @@ public:
     explicit CGICall(HTTPRequest *, Socket &);
     virtual ~CGICall();
 
-    void run(Socket & socket);
+    void run();
     bool runForFD(int);
     bool isRunning();
     bool hasFD(int);

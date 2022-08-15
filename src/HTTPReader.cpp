@@ -25,6 +25,40 @@ HTTPReader::~HTTPReader() {
 }
 
 bool HTTPReader::runForFD(int fd) {
+    if (_socket.get_fd() == fd) {
+        if (request == NULL) {
+            request = _parse();
+        } else {
+            request->loadPayload();
+        }
+        if (request->isLoaded()) {
+            debug("Loaded, size " << request->get_payload().size() << " bytes");
+            Cookie cookie = get_cookie(request->parse_cookie());
+            request->set_cookie(cookie);
+            request->setURI(URI(request->getPath()));
+            request->setPeerAddress(peerAddress);
+            request->setPeerName(peerName);
+            request->setUsedPort(port);
+            if (request->getURI().isCGIIdentifier() && _isCGIMethod(request->getType())) {
+                response = new CGICall(request, _socket);
+            } else {
+                switch (request->getType()) {
+                    case HTTPRequest::GET:    response = new CGIResponseGet(request, _socket);    break;
+                    case HTTPRequest::POST:   response = new CGIResponsePost(request, _socket);   break;
+                    case HTTPRequest::DELETE: response = new CGIResponseDelete(request, _socket); break;
+                    default:
+                        throw HTTPException(400);
+                }
+            }
+            response->run();
+            return true;
+        }
+        return false;
+    }
+    return true;
+}
+
+/*bool HTTPReader::runForFD(int fd) {
     if (_socket.get_fd() == fd && !request->isLoaded()) {
         request->loadPayload();
         if (request->isLoaded()) {
@@ -34,7 +68,7 @@ bool HTTPReader::runForFD(int fd) {
     } else {
         return response->runForFD(fd);
     }
-}
+}*/
 
 Cookie HTTPReader::get_cookie(Cookie cookie) {
 	std::list<Cookie>::iterator it;
@@ -49,7 +83,7 @@ Cookie HTTPReader::get_cookie(Cookie cookie) {
 	return *it;
 }
 
-bool HTTPReader::run() {
+/*bool HTTPReader::run() {
     try {
         if (request == NULL) {
             request = _parse();
@@ -89,7 +123,7 @@ bool HTTPReader::run() {
 		error->run(_socket);
     }
     return true;
-}
+}*/
 
 std::vector<std::string>	split_str_vector(const std::string& tosplit, const std::string& needle) {
 	size_t						cursor	= 0;

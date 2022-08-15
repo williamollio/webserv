@@ -127,7 +127,7 @@ void CGIResponsePost::saveFile(std::string payload) {
 	}
 }
 
-void CGIResponsePost::run(Socket &socket) {
+void CGIResponsePost::run() {
 
 	HTTPHeader	header;
 	int			code;
@@ -143,7 +143,7 @@ void CGIResponsePost::run(Socket &socket) {
     _payload = header.tostring() + "\r\n\r\n" + body;
     if (!runForFD(0)) {
         _running = true;
-        Connection::getInstance().addFD(socket.get_fd(), false);
+        Connection::getInstance().add_fd(_socket.get_fd(), this, false);
     }
 	//socket.write(header.tostring() + "\r\n\r\n" + body);
 }
@@ -155,7 +155,7 @@ bool CGIResponsePost::runForFD(int) {
         }
         debug("Write with socket fd " << _socket.get_fd() << " size " << _payloadCounter << " real " << _payload.size());
         debug("Closing socket fd " << _socket.get_fd());
-        Connection::getInstance().removeFD(_socket.get_fd());
+        Connection::getInstance().remove_fd(_socket.get_fd());
         _socket.close();
         _running = false;
         return true;

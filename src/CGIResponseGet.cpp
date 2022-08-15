@@ -22,7 +22,7 @@ std::string CGIResponseGet::set_file(std::string path, Socket& socket)
 	if ((path == "/" || is_request_location(path)) && _dir_listing == true)
 	{
         CGICallBuiltin cgicall(_request, socket, "cgi/directory_listing.php");
-        cgicall.run(socket);
+        cgicall.run();
         throw HTTPException(100);
 	}
 	else if ((path == "/" || is_request_location(path)) && _dir_listing == false)
@@ -45,7 +45,7 @@ std::string CGIResponseGet::construct_content_type()
 	return (tmp);
 }
 
-void CGIResponseGet::run(Socket & socket) {
+void CGIResponseGet::run() {
 	HTTPHeader header;
 	std::string body;
 	std::string file;
@@ -53,7 +53,7 @@ void CGIResponseGet::run(Socket & socket) {
 	if (_GET == false)
 		throw HTTPException(405);
     try {
-        file = set_file(_request->getPath(), socket);
+        file = set_file(_request->getPath(), _socket);
     } catch (HTTPException &) { return; }
 
     body = read_file(file);
@@ -65,7 +65,7 @@ void CGIResponseGet::run(Socket & socket) {
     payload = header.tostring() + "\r\n\r\n" + body;
     if (!runForFD(0)) {
         running = true;
-        Connection::getInstance().addFD(socket.get_fd(), false);
+        Connection::getInstance().add_fd(_socket.get_fd(), this, false);
     }
 	//socket.write(header.tostring() + "\r\n\r\n" + body);
 }
@@ -95,7 +95,7 @@ bool CGIResponseGet::runForFD(int) {
         }
         debug("Write with socket fd " << _socket.get_fd() << " size " << socketCounter << " real " << payload.size());
         debug("Closing socket fd " << _socket.get_fd());
-        Connection::getInstance().removeFD(_socket.get_fd());
+        Connection::getInstance().remove_fd(_socket.get_fd());
         _socket.close();
         running = false;
         return true;

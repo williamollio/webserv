@@ -28,7 +28,7 @@ void CGICallBuiltin::waitForExecution() {
     while (isRunning());
 }
 
-void CGICallBuiltin::run(Socket & socket) {
-    CGICall::run(socket);
+void CGICallBuiltin::run() {
+    CGICall::run();
     waitForExecution();
 }

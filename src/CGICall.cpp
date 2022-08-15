@@ -107,7 +107,7 @@ bool CGICall::writeSocket() {
         }
         debug("Write with socket fd " << socket.get_fd() << " size " << socketCounter << " real " << payload.size());
         debug("Closing socket fd " << socket.get_fd());
-        Connection::getInstance().removeFD(socket.get_fd());
+        Connection::getInstance().remove_fd(socket.get_fd());
         socket.close();
         pthread_mutex_lock(&runningMutex);
         running = false;
@@ -131,7 +131,7 @@ bool CGICall::runForFD(int fd) {
     }
 }
 
-void CGICall::run(Socket &) {
+void CGICall::run() {
     switch (_request->getType()) {
         case HTTPRequest::GET:    method += "GET";    break;
         case HTTPRequest::POST:   method += "POST";   break;
@@ -178,10 +178,10 @@ void CGICall::run(Socket &) {
     running = true;
     fcntl(in[1], F_SETFL, O_NONBLOCK);
     if (!writePayload()) {
-        Connection::getInstance().addFD(in[1], false);
+        Connection::getInstance().add_fd(in[1], this, false);
     }
     fcntl(out[0], F_SETFL, O_NONBLOCK);
-    Connection::getInstance().addFD(out[0]);
+    Connection::getInstance().add_fd(out[0], this);
     execute(in[0], out[1], requestedFile);
     pthread_create(&threadID, NULL, reinterpret_cast<void *(*)(void *)>(CGICall::waitOrThrow), this);
     //pthread_create(&threadID, NULL, reinterpret_cast<void *(*)(void *)>(CGICall::async), this);
@@ -206,7 +206,7 @@ void CGICall::processCGIOutput() {
         header.set_content_length(static_cast<int>(payload.size()));
         payload = header.tostring() + "\r\n\r\n" + payload;
         if (!writeSocket()) {
-            Connection::getInstance().addFD(socket.get_fd(), false);
+            Connection::getInstance().add_fd(socket.get_fd(), this, false);
             cleanUp = false;
         } else {
             cleanUp = false;
@@ -218,7 +218,7 @@ void CGICall::processCGIOutput() {
                   << "INFO: " << ex.what()          << std::endl;
     }
     if (cleanUp) {
-        Connection::getInstance().removeFD(socket.get_fd());
+        Connection::getInstance().remove_fd(socket.get_fd());
         pthread_mutex_lock(&runningMutex);
         running = false;
         pthread_mutex_unlock(&runningMutex);
@@ -268,7 +268,7 @@ void CGICall::sendError(const int errorCode) _NOEXCEPT {
     try {
         CGIResponseError error(socket);
         error.set_error_code(errorCode);
-        error.run(socket);
+        error.run();
     } catch (std::exception & exception) {
         std::clog << "INFO: Socket has been closed" << std::endl
                   << "INFO: " << exception.what()   << std::endl;

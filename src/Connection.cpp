@@ -1,8 +1,8 @@
 #include <fcntl.h>
 #include <netinet/in.h>
-#include <sys/poll.h>
 #include <sys/socket.h>
 #include <csignal>
+#include <netdb.h>
 
 #include "Connection.hpp"
 #include "Configuration.hpp"
@@ -13,7 +13,7 @@ static void stopper(int);
 Connection::Connection()
     : _timeout(-1), _nfds(0), _fds() {
     bzero(_fds, sizeof(_fds));
-    struct sockaddr_in address;
+    struct sockaddr_in address = {};
     bzero(&address, sizeof(address));
     const std::vector<int> & ports = Configuration::getInstance().get_server_ports();
     for (unsigned long i = 0; i < ports.size(); ++i) {
@@ -34,13 +34,19 @@ Connection::Connection()
         if (listen(server_fd, 10) < 0) {
             throw IOException("Cannot listen on the socket descriptor!");
         }
+        _fds[i].fd = server_fd;
+        _fds[i].events = POLLIN;
+        _server_fds[server_fd] = ports[i];
     }
     signal(SIGINT, stopper);
     signal(SIGTERM, stopper);
     signal(SIGKILL, stopper);
+    currentInstance = this;
 }
 
 Connection::~Connection() {}
+
+Connection * Connection::currentInstance = NULL;
 
 volatile bool end_server = false;
 
@@ -67,6 +73,7 @@ void Connection::establishConnection() {
 
     _nfds = _server_fds.size();
     while (!end_server && (rc = poll(_fds, _nfds, _timeout)) > 0) {
+        printPollArray();
         nfds_t currentSize = _nfds;
         for (nfds_t i = 0; i < currentSize; ++i) {
             if (_fds[i].revents == 0) {
@@ -82,9 +89,93 @@ void Connection::establishConnection() {
 }
 
 void Connection::accept(nfds_t i) {
-    // TODO: Accept incoming connections.
+    int socketDescriptor;
+
+    while ((socketDescriptor = ::accept(_fds[i].fd, NULL, NULL)) >= 0) {
+        HTTPReader * current = new HTTPReader(socketDescriptor);
+        if (!add_fd(socketDescriptor, current)) {
+            //denyConnection(socketDescriptor);
+            debug("Cannot handle connection!");
+            continue;
+        }
+        _connection_pairs[socketDescriptor] = _fds[i].fd;
+        struct sockaddr_in address = {};
+        bzero(&address, sizeof(address));
+        socklen_t addrlen;
+        getpeername(_fds[i].fd, reinterpret_cast<struct sockaddr *>(&address), &addrlen);
+        current->setPeerAddress(ntohl(address.sin_addr.s_addr));
+        char * host = new char[50]();
+        getnameinfo(reinterpret_cast<struct sockaddr *>(&address), addrlen, host, static_cast<socklen_t>(50), NULL, 0, 0);
+        current->setPeerName(host);
+        delete[] host;
+        current->setUsedPort(_server_fds[_connection_pairs[_fds[i].fd]]);
+        _readers.push_back(current);
+    }
 }
 
 void Connection::handle(nfds_t i) {
-    // TODO: Handle the file descriptor.
+    int fd = _fds[i].fd;
+    if (_fd_mapping.find(fd)->second->runForFD(fd)) {
+        remove_fd(fd);
+    }
+}
+
+bool Connection::add_fd(int fd, Runnable * reader, bool read) {
+    if (_nfds == NUM_FDS) {
+        return false;
+    }
+    _fd_mapping[fd] = reader;
+    _fds[_nfds].fd = fd;
+    _fds[_nfds].events = read ? POLLIN : POLLOUT;
+    debug("Added " << fd << " (" << _nfds << ")");
+    _nfds++;
+    return true;
+}
+
+bool Connection::remove_fd(int fd) {
+    nfds_t i;
+
+    for (i = 0; i < _nfds && _fds[i].fd != fd; ++i);
+    if (i != _nfds) {
+        _connection_pairs.erase(fd);
+        debug("Removed " << fd << " (" << i << ")");
+        _fds[i].fd = -1;
+        std::map<int, Runnable *>::const_iterator it = _fd_mapping.find(fd);
+        if (it != _fd_mapping.end()) {
+            _fd_mapping.erase(it);
+        }
+    }
+    return i != _nfds;
+}
+
+Connection & Connection::getInstance() {
+    return *currentInstance;
+}
+
+void Connection::printPollArray() _NOEXCEPT {
+#ifdef DEBUG
+ #if DEBUG == 2
+    std::cout << std::endl << __FILE__ << ":" << __LINE__ << " Poll array" << std::endl;
+    for (unsigned long i = 0; i < _nfds; ++i) {
+        std::cout << "fd:      " << _fds[i].fd     << std::endl
+                  << "events:  " << _fds[i].events << std::endl
+                  << "revents: ";
+        switch (_fds[i].revents) {
+            case POLLIN:     std::cout << "POLLIN";     break;
+            case POLLERR:    std::cout << "POLLERR";    break;
+            case POLLHUP:    std::cout << "POLLHUP";    break;
+            case POLLOUT:    std::cout << "POLLOUT";    break;
+            case POLLPRI:    std::cout << "POLLPRI";    break;
+            case POLLNVAL:   std::cout << "POLLNVAL";   break;
+            case POLLRDBAND: std::cout << "POLLRDBAND"; break;
+            case POLLRDNORM: std::cout << "POLLRDNORM"; break;
+            case POLLWRBAND: std::cout << "POLLWRBAND"; break;
+            default: std::cout << _fds[i].revents;
+        }
+
+        std::cout << std::endl << std::endl;
+    }
+    std::cout << __FILE__ << ":" << __LINE__ << " ---------" << std::endl << std::endl;
+    #endif
+#endif
 }

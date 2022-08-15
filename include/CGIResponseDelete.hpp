@@ -11,8 +11,8 @@ class CGIResponseDelete : public CGIResponse {
 public:
 	explicit CGIResponseDelete(HTTPRequest *, Socket &);
 
-	void run(Socket &socket);
-	void send_response(Socket &socket);
+	void run();
+	void send_response();
 	void extract_path();
 	void set_up_location();
 

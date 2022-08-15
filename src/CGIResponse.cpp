@@ -175,10 +175,6 @@ bool CGIResponse::isRunning() {
     return (false);
 }
 
-bool CGIResponse::runForFD(int) {
-    return true;
-}
-
 bool CGIResponse::hasFD(int) {
     return false;
 }

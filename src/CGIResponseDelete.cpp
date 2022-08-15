@@ -5,7 +5,7 @@
 #include "CGIResponseDelete.hpp"
 #include "Connection.hpp"
 
-void CGIResponseDelete::send_response(Socket &socket)
+void CGIResponseDelete::send_response()
 {
 	HTTPHeader header;
 	std::string body("{\"success\":\"true\"}");
@@ -16,7 +16,7 @@ void CGIResponseDelete::send_response(Socket &socket)
     _payload = header.tostring() + "\r\n\r\n" + body;
     if (!runForFD(0)) {
         _running = true;
-        Connection::getInstance().addFD(socket.get_fd(), false);
+        Connection::getInstance().add_fd(_socket.get_fd(), this, false);
     }
 	//socket.write(header.tostring() + "\r\n\r\n" + body);
 }
@@ -40,7 +40,7 @@ void CGIResponseDelete::set_up_location() {
 	_location_file = location_folder.c_str();
 }
 
-void CGIResponseDelete::run(Socket &socket) {
+void CGIResponseDelete::run() {
 
 	if (_DELETE == false)
 		throw HTTPException(405);
@@ -52,7 +52,7 @@ void CGIResponseDelete::run(Socket &socket) {
 	if (access(_location_file, F_OK) < 0)
 		throw HTTPException(404);
 	if (remove(_location_file) == 0)
-		send_response(socket);
+		send_response();
 	else
 		throw HTTPException(403);
 }
@@ -64,7 +64,7 @@ bool CGIResponseDelete::runForFD(int) {
         }
         debug("Write with socket fd " << _socket.get_fd() << " size " << _payloadCounter << " real " << _payload.size());
         debug("Closing socket fd " << _socket.get_fd());
-        Connection::getInstance().removeFD(_socket.get_fd());
+        Connection::getInstance().remove_fd(_socket.get_fd());
         _socket.close();
         _running = false;
         return true;

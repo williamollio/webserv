@@ -21,7 +21,7 @@ void CGIResponseError::setBody(int error_code, std::string &body)
 		body = read_file(_default_error_file);
 }
 
-void CGIResponseError::run(Socket &)
+void CGIResponseError::run()
 {
 	HTTPHeader header;
 	std::string body;
@@ -53,7 +53,7 @@ void CGIResponseError::run(Socket &)
     if (!runForFD(0)) {
         //debug("Shouldn't happen :(");
         _running = true;
-        Connection::getInstance().addFD(_socket.get_fd(), false);
+        Connection::getInstance().add_fd(_socket.get_fd(), this, false);
     }
     //_socket.write(header.tostring() + "\r\n\r\n" + body);
 
@@ -66,7 +66,7 @@ bool CGIResponseError::runForFD(int) {
         }
         debug("Write with socket fd " << _socket.get_fd() << " size " << _payloadCounter << " real " << _payload.size());
         debug("Closing socket fd " << _socket.get_fd());
-        Connection::getInstance().removeFD(_socket.get_fd());
+        Connection::getInstance().remove_fd(_socket.get_fd());
         _socket.close();
         _running = false;
         return true;

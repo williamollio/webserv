@@ -10,9 +10,10 @@
 #include "HTTPRequest.hpp"
 #include "CGIResponse.hpp"
 #include "Cookie.hpp"
+#include "Runnable.hpp"
 #include <list>
 
-class HTTPReader {
+class HTTPReader: public Runnable {
     public:
         explicit HTTPReader(int);
         ~HTTPReader();

@@ -3,7 +3,7 @@
 HEADER_FILES	= Connection.hpp Socket.hpp HTTPReader.hpp IOException.hpp HTTPRequest.hpp CGIResponse.hpp 		\
 				  CGIResponseGet.hpp CGIResponsePost.hpp CGIResponseDelete.hpp HTTPHeader.hpp HTTPException.hpp \
 				  Configuration.hpp URI.hpp URISyntaxException.hpp Tool.hpp CGICall.hpp CGICallBuiltin.hpp 		\
-				  CGIResponseError.hpp Cookie.hpp
+				  CGIResponseError.hpp Cookie.hpp Runnable.hpp
 HDR				= $(addprefix include/, $(HEADER_FILES))
 
 ##		SOURCES

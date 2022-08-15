@@ -12,7 +12,7 @@ class CGIResponsePost : public CGIResponse {
 public:
     explicit CGIResponsePost(HTTPRequest *, Socket &);
 
-    void run(Socket &socket);
+    void run();
 
 private:
 	std::string _filename;

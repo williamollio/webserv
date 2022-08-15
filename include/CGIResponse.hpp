@@ -11,6 +11,7 @@
 #include "HTTPHeader.hpp"
 #include "Tool.hpp"
 #include "Configuration.hpp"
+#include "Runnable.hpp"
 #include <dirent.h>
 #include <errno.h>
 #include <fstream>
@@ -20,13 +21,12 @@
 #include <sys/types.h>
 
 class CGIResponseError;
-class CGIResponse {
+class CGIResponse: public Runnable {
 public:
     explicit CGIResponse(HTTPRequest *, Socket &);
     virtual ~CGIResponse();
 
-    virtual void	run(Socket& socket) = 0;
-    virtual bool    runForFD(int);
+    virtual void	run() = 0;
     virtual bool    hasFD(int);
     virtual bool	isRunning();
 	std::string		set_absolut_path(std::string& folder);

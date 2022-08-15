@@ -11,7 +11,7 @@ class CGIResponseError : public CGIResponse {
 		void set_error_code(int error_code);
         void set_head_only(bool);
 		void setBody(int error_code, std::string &body);
-		void run(Socket & socket);
+		void run();
 
     bool runForFD(int i);
     bool isRunning();

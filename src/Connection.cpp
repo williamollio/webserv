@@ -45,7 +45,12 @@ Connection::Connection()
     currentInstance = this;
 }
 
-Connection::~Connection() {}
+Connection::~Connection() {
+    for (std::list<HTTPReader *>::const_iterator it = _readers.begin(); it != _readers.end(); ++it) {
+        delete *it;
+    }
+    currentInstance = NULL;
+}
 
 Connection * Connection::currentInstance = NULL;
 

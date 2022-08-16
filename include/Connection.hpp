@@ -5,15 +5,17 @@
 #include <sys/poll.h>
 #include "HTTPReader.hpp"
 
-#define NUM_FDS 3
+#define NUM_FDS 200
 
 /// The connection end point of the server. Handles all the connections.
 class Connection {
     /// First: Port --- Second: Server fd.
     std::map<int, int>        _server_fds;
+    /// A mapping which maps a file descriptor to its responsible object.
     std::map<int, Runnable *> _fd_mapping;
     /// First: client fd --- Second: server fd
     std::map<int, int>         _connection_pairs;
+    /// The list with all allocated HTTPReader instances for the garbage collector.
     std::list<HTTPReader *>    _readers;
     /// The timeout in milliseconds.
     int                        _timeout;

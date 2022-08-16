@@ -17,14 +17,12 @@ public:
 	void set_up_location();
 
     bool runForFD(int i);
-    bool isRunning();
 
 private:
 	std::string _sub_path;
 	std::string _file;
     std::string _payload;
     unsigned long _payloadCounter;
-    bool        _running;
 	const char *_location_folder;
 	const char *_location_file;
 };

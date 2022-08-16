@@ -142,7 +142,6 @@ void CGIResponsePost::run() {
 	header.set_content_length(body.length());
     _payload = header.tostring() + "\r\n\r\n" + body;
     if (!runForFD(0)) {
-        _running = true;
         Connection::getInstance().add_fd(_socket.get_fd(), this, false);
     }
 	//socket.write(header.tostring() + "\r\n\r\n" + body);
@@ -158,7 +157,6 @@ bool CGIResponsePost::runForFD(int) {
         debug("Write with socket fd " << _socket.get_fd() << " size " << _payloadCounter << " real " << _payload.size());
         debug("Closing socket fd " << _socket.get_fd());
         _socket.close();
-        _running = false;
         return true;
     } catch (IOException &) {
         debug("Write with socket fd " << _socket.get_fd() << " size " << _payloadCounter);
@@ -166,11 +164,7 @@ bool CGIResponsePost::runForFD(int) {
     }
 }
 
-bool CGIResponsePost::isRunning() {
-    return _running;
-}
-
-CGIResponsePost::CGIResponsePost(HTTPRequest *request, Socket & socket, Runnable & parent): CGIResponse(request, socket, parent), _payloadCounter(0), _max_size_body(SIZE_MAX), _running(false)
+CGIResponsePost::CGIResponsePost(HTTPRequest *request, Socket & socket, Runnable & parent): CGIResponse(request, socket, parent), _payloadCounter(0), _max_size_body(SIZE_MAX)
 {
 	Configuration config = Configuration::getInstance();
 

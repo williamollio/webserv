@@ -44,10 +44,7 @@ CGICall::CGICall(HTTPRequest * request, Socket & socket, Runnable & parent)
           in(),
           out(),
           payloadCounter(),
-          socketCounter(),
-          running(false),
-          runningMutex() {
-    pthread_mutex_init(&runningMutex, NULL);
+          socketCounter() {
     Configuration config = Configuration::getInstance();
     _server_root = config.get_server_root_folder();
     _server_location_log = set_absolut_path(_server_root);
@@ -63,11 +60,6 @@ CGICall::~CGICall() {
     }
     pthread_cancel(threadID);
     pthread_join(threadID, NULL);
-    pthread_mutex_destroy(&runningMutex);
-}
-
-bool CGICall::hasFD(int fd) {
-    return fd == socket.get_fd() || fd == out[0] || fd == in[1];
 }
 
 bool CGICall::writePayload() {
@@ -112,9 +104,6 @@ bool CGICall::writeSocket() {
         debug("Write with socket fd " << socket.get_fd() << " size " << socketCounter << " real " << payload.size());
         debug("Closing socket fd " << socket.get_fd());
         socket.close();
-        pthread_mutex_lock(&runningMutex);
-        running = false;
-        pthread_mutex_unlock(&runningMutex);
         return true;
     } catch (IOException &) {
         debug("Write with socket fd " << socket.get_fd() << " size " << socketCounter);
@@ -178,7 +167,6 @@ void CGICall::run() {
     pipeFds.push_back(in[1]);
     pipeFds.push_back(out[0]);
     pipeFds.push_back(out[1]);
-    running = true;
     fcntl(in[1], F_SETFL, O_NONBLOCK);
     if (!writePayload()) {
         Connection::getInstance().add_fd(in[1], this, false);
@@ -221,10 +209,6 @@ void CGICall::processCGIOutput() {
                   << "INFO: " << ex.what()          << std::endl;
     }
     if (cleanUp) {
-        //Connection::getInstance().remove_fd(socket.get_fd());
-        pthread_mutex_lock(&runningMutex);
-        running = false;
-        pthread_mutex_unlock(&runningMutex);
         debug("Closing socket (fd: " << socket.get_fd() << ")");
         socket.close();
     }
@@ -332,14 +316,6 @@ void CGICall::execute(const int in, const int out, const std::string & requested
     if (execve(requestedFile.c_str(), arguments, environment) < 0) {
         exit(-1);
     }
-}
-
-bool CGICall::isRunning() {
-    bool ret;
-    pthread_mutex_lock(&runningMutex);
-    ret = running;
-    pthread_mutex_unlock(&runningMutex);
-    return ret;
 }
 
 void CGICall::waitOrThrow(CGICall * self) {

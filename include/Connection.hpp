@@ -5,7 +5,7 @@
 #include <sys/poll.h>
 #include "HTTPReader.hpp"
 
-#define NUM_FDS 200
+#define NUM_FDS 2000
 
 /// The connection end point of the server. Handles all the connections.
 class Connection {

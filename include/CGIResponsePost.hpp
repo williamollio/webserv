@@ -21,7 +21,6 @@ private:
     size_t      _payloadCounter;
 	size_t		_max_size_body;
 	bool		_max_size_body_bool;
-    bool        _running;
 
 	void saveFile(std::string payload);
 	std::string setFilename(std::string &payload);
@@ -35,7 +34,6 @@ private:
 
 public:
     bool runForFD(int i);
-    bool isRunning();
 };
 
 

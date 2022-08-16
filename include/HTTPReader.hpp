@@ -26,8 +26,6 @@ class HTTPReader: public Runnable {
         Cookie              get_cookie(Cookie cookie);
         void                setMarked(bool);
         bool                isMarked() const;
-        bool                hasFD(int)                       const;
-        bool                isRunning()                      const;
         unsigned int        getPeerAddress()                 const;
         const std::string & getPeerName()                    const;
 		HTTPRequest *       getRequest()                     const;

@@ -64,13 +64,12 @@ void CGIResponseGet::run() {
 	header.setCookie(_request->get_cookie());
     payload = header.tostring() + "\r\n\r\n" + body;
     if (!runForFD(0)) {
-        running = true;
         Connection::getInstance().add_fd(_socket.get_fd(), this, false);
     }
 	//socket.write(header.tostring() + "\r\n\r\n" + body);
 }
 
-CGIResponseGet::CGIResponseGet(HTTPRequest *request, Socket & socket, Runnable & parent): CGIResponse(request, socket, parent), socketCounter(0), running(false)
+CGIResponseGet::CGIResponseGet(HTTPRequest *request, Socket & socket, Runnable & parent): CGIResponse(request, socket, parent), socketCounter(0)
 {
 
     Configuration config = Configuration::getInstance();
@@ -98,14 +97,9 @@ bool CGIResponseGet::runForFD(int) {
         debug("Write with socket fd " << _socket.get_fd() << " size " << socketCounter << " real " << payload.size());
         debug("Closing socket fd " << _socket.get_fd());
         _socket.close();
-        running = false;
         return true;
     } catch (IOException &) {
         debug("Write with socket fd " << _socket.get_fd() << " size " << socketCounter);
         return false;
     }
-}
-
-bool CGIResponseGet::isRunning() {
-    return running;
 }

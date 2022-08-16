@@ -13,10 +13,10 @@
 #include "Configuration.hpp"
 #include "Runnable.hpp"
 #include <dirent.h>
-#include <errno.h>
+#include <cerrno>
 #include <fstream>
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 #include <sys/stat.h>
 #include <sys/types.h>
 
@@ -27,8 +27,6 @@ public:
     virtual ~CGIResponse();
 
     virtual void	run() = 0;
-    virtual bool    hasFD(int);
-    virtual bool	isRunning();
     virtual void    setMarked(bool);
 	std::string		set_absolut_path(std::string& folder);
 	std::string		read_file(std::string& file);

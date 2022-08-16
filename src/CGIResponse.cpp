@@ -171,14 +171,6 @@ CGIResponse::CGIResponse(HTTPRequest *request, Socket & socket, Runnable & paren
 
 CGIResponse::~CGIResponse() {}
 
-bool CGIResponse::isRunning() {
-    return (false);
-}
-
-bool CGIResponse::hasFD(int) {
-    return false;
-}
-
 void CGIResponse::setMarked(bool marked) {
     _parent.setMarked(marked);
 }

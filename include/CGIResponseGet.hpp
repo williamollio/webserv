@@ -16,12 +16,10 @@ public:
 	std::string construct_content_type();
 	bool		is_request_location(std::string path);
     bool        runForFD(int i);
-    bool        isRunning();
 
 private:
     std::string payload;
     unsigned long socketCounter;
-    bool running;
 };
 
 

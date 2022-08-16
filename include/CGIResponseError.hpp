@@ -14,12 +14,10 @@ class CGIResponseError : public CGIResponse {
 		void run();
 
     bool runForFD(int i);
-    bool isRunning();
 
 private:
 		int  _error_code;
         bool _head;
-        bool _running;
         std::string _payload;
         unsigned long _payloadCounter;
 };

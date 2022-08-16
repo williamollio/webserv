@@ -14,8 +14,6 @@ public:
 
     void run();
     bool runForFD(int);
-    bool isRunning();
-    bool hasFD(int);
 
 protected:
     virtual std::string computeRequestedFile();
@@ -56,8 +54,6 @@ private:
     int                          out[2];
     size_t                       payloadCounter;
     size_t                       socketCounter;
-    bool                         running;
-    pthread_mutex_t              runningMutex;
 
     void execute(int, int, const std::string &);
     void sendError(int errorCode) _NOEXCEPT;

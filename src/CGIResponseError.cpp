@@ -52,7 +52,6 @@ void CGIResponseError::run()
     }
     if (!runForFD(0)) {
         //debug("Shouldn't happen :(");
-        _running = true;
         Connection::getInstance().add_fd(_socket.get_fd(), this, false);
     }
     //_socket.write(header.tostring() + "\r\n\r\n" + body);
@@ -69,7 +68,6 @@ bool CGIResponseError::runForFD(int) {
         debug("Write with socket fd " << _socket.get_fd() << " size " << _payloadCounter << " real " << _payload.size());
         debug("Closing socket fd " << _socket.get_fd());
         _socket.close();
-        _running = false;
         return true;
     } catch (IOException &) {
         debug("Write with socket fd " << _socket.get_fd() << " size " << _payloadCounter);
@@ -77,11 +75,7 @@ bool CGIResponseError::runForFD(int) {
     }
 }
 
-bool CGIResponseError::isRunning() {
-    return _running;
-}
-
-CGIResponseError::CGIResponseError(Socket & socket, Runnable & parent) : CGIResponse(NULL, socket, parent), _running(false), _payloadCounter(0)
+CGIResponseError::CGIResponseError(Socket & socket, Runnable & parent) : CGIResponse(NULL, socket, parent), _payloadCounter(0)
 {
 	Configuration config = Configuration::getInstance();
 

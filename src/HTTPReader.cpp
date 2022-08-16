@@ -251,10 +251,6 @@ HTTPRequest* HTTPReader::_parse() throw(std::exception) {
 
 }
 
-bool HTTPReader::isRunning() const {
-    return response == NULL || response->isRunning();
-}
-
 unsigned int HTTPReader::getPeerAddress() const {
     return peerAddress;
 }
@@ -299,10 +295,6 @@ bool HTTPReader::_isCGIMethod(HTTPRequest::TYPE type) {
 
 HTTPRequest * HTTPReader::getRequest() const {
 	return request;
-}
-
-bool HTTPReader::hasFD(int fd) const {
-    return _socket.get_fd() == fd || (response != NULL && response->hasFD(fd));
 }
 
 void HTTPReader::setMarked(bool marked) {

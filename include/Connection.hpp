@@ -5,7 +5,7 @@
 #include <sys/poll.h>
 #include "HTTPReader.hpp"
 
-#define NUM_FDS 200
+#define NUM_FDS 3
 
 /// The connection end point of the server. Handles all the connections.
 class Connection {
@@ -21,6 +21,7 @@ class Connection {
     nfds_t                     _nfds;
     /// The polling array.
     struct pollfd              _fds[NUM_FDS];
+    /// The currently active connection.
     static Connection *        currentInstance;
     unsigned long              connections;
 
@@ -53,7 +54,16 @@ class Connection {
      * Prints the contents of the polling error if DEBUG is 2.
      */
     void printPollArray() _NOEXCEPT;
-	void denyConnection(int fd, HTTPReader * reader = NULL , int errorCode = 429) _NOEXCEPT;
+
+    /**
+     * Denies an active connection. The connection on the given file descriptor is closed, the
+     * file descriptor is afterwards removed from the polling array. An error message using the
+     * given error code is sent before terminating the connection.
+     *
+     * @param fd The file descriptor to be removed.
+     * @param errorCode The error code explaining the reason of the termination.
+     */
+	void denyConnection(int fd, int errorCode = 429) _NOEXCEPT;
 
     /**
      * Garbage collects the HTTPReader instances using a variant of the mark and sweep algorithm.

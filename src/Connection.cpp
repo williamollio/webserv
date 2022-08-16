@@ -111,7 +111,6 @@ void Connection::accept(nfds_t i) {
         HTTPReader * current = new HTTPReader(socketDescriptor);
         if (!add_fd(socketDescriptor, current)) {
             denyConnection(socketDescriptor);
-            debug("Cannot handle connection!");
             continue;
         }
         _connection_pairs[socketDescriptor] = _fds[i].fd;
@@ -130,19 +129,17 @@ void Connection::accept(nfds_t i) {
 }
 
 
-void Connection::denyConnection(const int fd, HTTPReader * reader, const int errorCode) _NOEXCEPT {
+void Connection::denyConnection(const int fd, const int errorCode) _NOEXCEPT {
     try {
         Socket socket(fd);
-        if (reader != NULL) {
-            socket.move(reader->getSocket(), false);
-            _readers.remove(reader);
-            delete reader;
-        }
+        HTTPHeader h;
+        h.setStatusCode(errorCode);
+        h.setStatusMessage(get_message(errorCode));
+        h.set_content_type("text/plain");
+        std::string body = "Fatal error! Try again later!";
+        h.set_content_length(static_cast<int>(body.size()));
+        socket.write(h.tostring() + "\r\n\r\n" + body);
         remove_fd(fd);
-        //CGIResponseError response(socket);
-        //response.set_error_code(errorCode);
-        //response.run();
-        debug("Help!");
     } catch (std::exception & ex) {
         std::cerr << "Could not send error " << errorCode << "!" << std::endl
                   << "Exception: " << ex.what()                  << std::endl;
@@ -157,21 +154,21 @@ void Connection::handle(nfds_t i) {
         }
 	}
 	catch (std::bad_alloc &) {
-        denyConnection(fd, NULL, 507);
+        denyConnection(fd, 507);
     }
 	catch (std::exception & ex) {
         std::cerr << ">>>>>>> " << ex.what() << " <<<<<<<" << std::endl;
-        denyConnection(fd, NULL, 500);
+        denyConnection(fd, 500);
     }
 }
 
 bool Connection::add_fd(int fd, Runnable * reader, bool read) {
-    if (_nfds == NUM_FDS) {
+    nfds_t i;
+    for (i = 0; i < _nfds && _fds[i].fd != fd; ++i);
+    if (i >= NUM_FDS) {
         return false;
     }
     _fd_mapping[fd] = reader;
-    nfds_t i;
-    for (i = 0; i < _nfds && _fds[i].fd != fd; ++i);
     _fds[i].fd = fd;
     _fds[i].events = read ? POLLIN : POLLOUT;
     debug("Added " << fd << " (" << i << ")" << reinterpret_cast<unsigned long>(reader));

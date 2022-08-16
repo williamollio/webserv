@@ -12,8 +12,9 @@ class Socket {
     int    _fd;
     size_t _read_index;
     size_t _buffer_fill;
+    bool   _poll_again;
     char   _buffer[BUFFER_SIZE];
-    State   _state;
+    State  _state;
 
     size_t total_read;
     size_t total_written;

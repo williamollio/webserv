@@ -14,7 +14,7 @@ Socket::~Socket() {
 }
 
 Socket::Socket(int fd) throw (IOException)
-    : _fd(fd), _read_index(0), _buffer_fill(), _buffer(), _state(READY), total_read(0), total_written(0) {
+    : _fd(fd), _read_index(0), _buffer_fill(), _poll_again(false), _buffer(), _state(READY), total_read(0), total_written(0) {
 	if (fd < 0)
 		throw IOException("Invalid socket descriptor!");
 }
@@ -45,8 +45,13 @@ ssize_t Socket::write(const std::string & data) throw(IOException) {
 }
 
 void Socket::read_buffer() throw(IOException) {
+    if (_poll_again) {
+        _poll_again = !_poll_again;
+        throw IOException("Poll again!");
+    }
     _read_index = 0;
     ssize_t tmp = ::read(_fd, _buffer, BUFFER_SIZE);
+    _poll_again = !_poll_again;
     if (tmp < 0) {
         _state = BAD;
         _buffer_fill = 0;

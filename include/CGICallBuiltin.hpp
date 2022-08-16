@@ -15,7 +15,7 @@ protected:
     std::string computeRequestedFile();
 
 public:
-    explicit CGICallBuiltin(HTTPRequest *, Socket &, const std::string & executable = "");
+    explicit CGICallBuiltin(HTTPRequest *, Socket &, Runnable &, const std::string & executable = "");
 
     const std::string & getExecutable() const;
     void                setExecutable(const std::string &);

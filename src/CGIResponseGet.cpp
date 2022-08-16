@@ -21,7 +21,7 @@ std::string CGIResponseGet::set_file(std::string path, Socket& socket)
 
 	if ((path == "/" || is_request_location(path)) && _dir_listing == true)
 	{
-        CGICallBuiltin cgicall(_request, socket, "cgi/directory_listing.php");
+        CGICallBuiltin cgicall(_request, socket, *this, "cgi/directory_listing.php");
         cgicall.run();
         throw HTTPException(100);
 	}
@@ -70,7 +70,7 @@ void CGIResponseGet::run() {
 	//socket.write(header.tostring() + "\r\n\r\n" + body);
 }
 
-CGIResponseGet::CGIResponseGet(HTTPRequest *request, Socket & socket): CGIResponse(request, socket), socketCounter(0), running(false)
+CGIResponseGet::CGIResponseGet(HTTPRequest *request, Socket & socket, Runnable & parent): CGIResponse(request, socket, parent), socketCounter(0), running(false)
 {
 
     Configuration config = Configuration::getInstance();

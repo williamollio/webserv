@@ -12,7 +12,7 @@
 static void stopper(int);
 
 Connection::Connection()
-    : _timeout(-1), _nfds(0), _fds() {
+    : _timeout(-1), _nfds(0), _fds(), connections(0) {
     bzero(_fds, sizeof(_fds));
     struct sockaddr_in address = {};
     bzero(&address, sizeof(address));
@@ -73,8 +73,9 @@ void Connection::establishConnection() {
     int rc;
 
     _nfds = _server_fds.size();
+    bool clean = false;
     while (!end_server && (rc = poll(_fds, _nfds, _timeout)) > 0) {
-        printPollArray();
+        debug("total Connection count: " << connections);
         nfds_t currentSize = _nfds;
         for (nfds_t i = 0; i < currentSize; ++i) {
             if (_fds[i].revents == 0) {
@@ -86,10 +87,17 @@ void Connection::establishConnection() {
             }
         }
         _clear_poll_array();
+        if (clean) {
+            _clean_readers();
+            clean = false;
+        } else {
+            clean = true;
+        }
     }
 }
 
 void Connection::accept(nfds_t i) {
+    ++connections;
     int socketDescriptor;
 
     while ((socketDescriptor = ::accept(_fds[i].fd, NULL, NULL)) >= 0) {
@@ -124,9 +132,10 @@ void Connection::denyConnection(const int fd, HTTPReader * reader, const int err
             delete reader;
         }
         remove_fd(fd);
-        CGIResponseError response(socket);
-        response.set_error_code(errorCode);
-        response.run();
+        //CGIResponseError response(socket);
+        //response.set_error_code(errorCode);
+        //response.run();
+        debug("Help!");
     } catch (std::exception & ex) {
         std::cerr << "Could not send error " << errorCode << "!" << std::endl
                   << "Exception: " << ex.what()                  << std::endl;
@@ -212,4 +221,22 @@ void Connection::printPollArray() _NOEXCEPT {
     std::cout << __FILE__ << ":" << __LINE__ << " ---------" << std::endl << std::endl;
     #endif
 #endif
+}
+
+void Connection::_clean_readers() {
+    for (std::list<HTTPReader *>::iterator it = _readers.begin(); it != _readers.end(); ++it) {
+        (*it)->setMarked(false);
+    }
+    for (std::map<int, Runnable *>::iterator it = _fd_mapping.begin(); it != _fd_mapping.end(); ++it) {
+        if (it->second != NULL) {
+            it->second->setMarked(true);
+        }
+    }
+    for (std::list<HTTPReader *>::iterator it = _readers.begin(); it != _readers.end(); ++it) {
+        if (!(*it)->isMarked()) {
+            delete *it;
+            *it = NULL;
+        }
+    }
+    _readers.remove(NULL);
 }

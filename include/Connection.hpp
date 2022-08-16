@@ -22,6 +22,7 @@ class Connection {
     /// The polling array.
     struct pollfd      _fds[NUM_FDS];
     static Connection * currentInstance;
+    unsigned long connections;
 
     /// Compresses the polling array. Upon return, all removable contents are removed.
     void _clear_poll_array();
@@ -50,6 +51,8 @@ class Connection {
 
     void printPollArray()                                       _NOEXCEPT;
 	void denyConnection(const int fd, HTTPReader * reader = NULL , const int errorCode = 429) _NOEXCEPT;
+
+    void _clean_readers();
 
     bool remove_fd(int fd);
 

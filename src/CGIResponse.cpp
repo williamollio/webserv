@@ -167,7 +167,7 @@ int CGIResponse::is_request_defined_location(std::string &request_path, std::vec
 	return (0);
 }
 
-CGIResponse::CGIResponse(HTTPRequest *request, Socket & socket): _request(request), _GET(true), _POST(false), _DELETE(false), _dir_listing(false), _directory_location(""), _loc_root(""), _upload_size(SIZE_MAX), _upload_size_bool(false), _socket(socket) {}
+CGIResponse::CGIResponse(HTTPRequest *request, Socket & socket, Runnable & parent): _request(request), _GET(true), _POST(false), _DELETE(false), _dir_listing(false), _directory_location(""), _loc_root(""), _upload_size(SIZE_MAX), _upload_size_bool(false), _parent(parent), _socket(socket) {}
 
 CGIResponse::~CGIResponse() {}
 
@@ -177,4 +177,8 @@ bool CGIResponse::isRunning() {
 
 bool CGIResponse::hasFD(int) {
     return false;
+}
+
+void CGIResponse::setMarked(bool marked) {
+    _parent.setMarked(marked);
 }

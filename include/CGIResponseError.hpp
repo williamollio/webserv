@@ -6,7 +6,7 @@
 
 class CGIResponseError : public CGIResponse {
 	public:
-		explicit CGIResponseError(Socket &);
+		explicit CGIResponseError(Socket &, Runnable &);
 
 		void set_error_code(int error_code);
         void set_head_only(bool);

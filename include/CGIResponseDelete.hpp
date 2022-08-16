@@ -9,7 +9,7 @@
 
 class CGIResponseDelete : public CGIResponse {
 public:
-	explicit CGIResponseDelete(HTTPRequest *, Socket &);
+	explicit CGIResponseDelete(HTTPRequest *, Socket &, Runnable &);
 
 	void run();
 	void send_response();

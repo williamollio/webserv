@@ -79,7 +79,7 @@ bool CGIResponseError::isRunning() {
     return _running;
 }
 
-CGIResponseError::CGIResponseError(Socket & socket) : CGIResponse(NULL, socket), _running(false), _payloadCounter(0)
+CGIResponseError::CGIResponseError(Socket & socket, Runnable & parent) : CGIResponse(NULL, socket, parent), _running(false), _payloadCounter(0)
 {
 	Configuration config = Configuration::getInstance();
 

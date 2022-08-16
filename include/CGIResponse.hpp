@@ -23,12 +23,13 @@
 class CGIResponseError;
 class CGIResponse: public Runnable {
 public:
-    explicit CGIResponse(HTTPRequest *, Socket &);
+    explicit CGIResponse(HTTPRequest *, Socket &, Runnable &);
     virtual ~CGIResponse();
 
     virtual void	run() = 0;
     virtual bool    hasFD(int);
     virtual bool	isRunning();
+    virtual void    setMarked(bool);
 	std::string		set_absolut_path(std::string& folder);
 	std::string		read_file(std::string& file);
 	std::string		get_current_path();
@@ -59,6 +60,7 @@ protected:
 	std::map<int, std::string>	_error_pages;
 	size_t				_upload_size;
 	bool				_upload_size_bool;
+    Runnable &          _parent;
     Socket &            _socket;
 };
 

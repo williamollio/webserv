@@ -10,7 +10,7 @@
 
 class CGIResponsePost : public CGIResponse {
 public:
-    explicit CGIResponsePost(HTTPRequest *, Socket &);
+    explicit CGIResponsePost(HTTPRequest *, Socket &, Runnable &);
 
     void run();
 

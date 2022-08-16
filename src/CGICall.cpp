@@ -14,8 +14,8 @@
 
 std::list<int> CGICall::pipeFds = std::list<int>();
 
-CGICall::CGICall(HTTPRequest * request, Socket & socket)
-        : CGIResponse(request, socket),
+CGICall::CGICall(HTTPRequest * request, Socket & socket, Runnable & parent)
+        : CGIResponse(request, socket, parent),
           uri(request->getURI()),
           method("REQUEST_METHOD="),
           protocol("SERVER_PROTOCOL=HTTP/1.1"),
@@ -265,7 +265,7 @@ void CGICall::processCGIOutput() {
 
 void CGICall::sendError(const int errorCode) _NOEXCEPT {
     try {
-        CGIResponseError error(socket);
+        CGIResponseError error(socket, *this);
         error.set_error_code(errorCode);
         error.run();
     } catch (std::exception & exception) {

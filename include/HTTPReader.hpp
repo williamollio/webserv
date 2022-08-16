@@ -24,6 +24,8 @@ class HTTPReader: public Runnable {
         void                setPeerName(const std::string &);
         void                setUsedPort(int port);
         Cookie              get_cookie(Cookie cookie);
+        void                setMarked(bool);
+        bool                isMarked() const;
         bool                hasFD(int)                       const;
         bool                isRunning()                      const;
         unsigned int        getPeerAddress()                 const;
@@ -39,6 +41,7 @@ private:
         std::string   peerName;
         int           port;
         bool          errorHead;
+        bool          mark;
 		Cookie        cookie;
         std::string   head;
 		static std::list<Cookie> session_management;

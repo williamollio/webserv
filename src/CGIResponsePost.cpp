@@ -168,7 +168,7 @@ bool CGIResponsePost::isRunning() {
     return _running;
 }
 
-CGIResponsePost::CGIResponsePost(HTTPRequest *request, Socket & socket): CGIResponse(request, socket), _payloadCounter(0), _max_size_body(SIZE_MAX), _running(false)
+CGIResponsePost::CGIResponsePost(HTTPRequest *request, Socket & socket, Runnable & parent): CGIResponse(request, socket, parent), _payloadCounter(0), _max_size_body(SIZE_MAX), _running(false)
 {
 	Configuration config = Configuration::getInstance();
 

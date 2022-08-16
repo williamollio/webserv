@@ -77,7 +77,7 @@ bool CGIResponseDelete::isRunning() {
     return _running;
 }
 
-CGIResponseDelete::CGIResponseDelete(HTTPRequest *request, Socket & socket):  CGIResponse(request, socket), _payloadCounter(0), _running(false)
+CGIResponseDelete::CGIResponseDelete(HTTPRequest *request, Socket & socket, Runnable & parent):  CGIResponse(request, socket, parent), _payloadCounter(0), _running(false)
 {
 	Configuration config = Configuration::getInstance();
 

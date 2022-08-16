@@ -9,7 +9,7 @@
 
 class CGIResponseGet : public CGIResponse {
 public:
-    explicit CGIResponseGet(HTTPRequest*, Socket &);
+    explicit CGIResponseGet(HTTPRequest*, Socket &, Runnable &);
 
     void		run();
 	std::string set_file(std::string path, Socket& socket);

@@ -41,12 +41,12 @@ bool HTTPReader::runForFD(int fd) {
 				request->setPeerName(peerName);
 				request->setUsedPort(port);
 				if (request->getURI().isCGIIdentifier() && _isCGIMethod(request->getType())) {
-					response = new CGICall(request, _socket);
+					response = new CGICall(request, _socket, *this);
 				} else {
 					switch (request->getType()) {
-						case HTTPRequest::GET:    response = new CGIResponseGet(request, _socket);    break;
-						case HTTPRequest::POST:   response = new CGIResponsePost(request, _socket);   break;
-						case HTTPRequest::DELETE: response = new CGIResponseDelete(request, _socket); break;
+						case HTTPRequest::GET:    response = new CGIResponseGet(request, _socket, *this);    break;
+						case HTTPRequest::POST:   response = new CGIResponsePost(request, _socket, *this);   break;
+						case HTTPRequest::DELETE: response = new CGIResponseDelete(request, _socket, *this); break;
 						default:
 							throw HTTPException(400);
 					}
@@ -61,7 +61,7 @@ bool HTTPReader::runForFD(int fd) {
 			debug(ex.what());
 			std::cout << ex.what() << std::endl;
 			if (response != NULL) delete response;
-			CGIResponseError * error = new CGIResponseError(_socket);
+			CGIResponseError * error = new CGIResponseError(_socket, *this);
 			response = error;
 			error->set_error_code(ex.get_error_code());
 			error->set_head_only(errorHead);
@@ -303,4 +303,12 @@ HTTPRequest * HTTPReader::getRequest() const {
 
 bool HTTPReader::hasFD(int fd) const {
     return _socket.get_fd() == fd || (response != NULL && response->hasFD(fd));
+}
+
+void HTTPReader::setMarked(bool marked) {
+    mark = marked;
+}
+
+bool HTTPReader::isMarked() const {
+    return mark;
 }

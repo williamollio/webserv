@@ -154,10 +154,14 @@ bool Connection::add_fd(int fd, Runnable * reader, bool read) {
         return false;
     }
     _fd_mapping[fd] = reader;
-    _fds[_nfds].fd = fd;
-    _fds[_nfds].events = read ? POLLIN : POLLOUT;
-    debug("Added " << fd << " (" << _nfds << ")" << reinterpret_cast<unsigned long>(reader));
-    _nfds++;
+    nfds_t i;
+    for (i = 0; i < _nfds && _fds[i].fd != fd; ++i);
+    _fds[i].fd = fd;
+    _fds[i].events = read ? POLLIN : POLLOUT;
+    debug("Added " << fd << " (" << i << ")" << reinterpret_cast<unsigned long>(reader));
+    if (i == _nfds) {
+        ++_nfds;
+    }
     return true;
 }
 

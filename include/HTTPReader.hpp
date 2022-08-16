@@ -18,7 +18,6 @@ class HTTPReader: public Runnable {
         explicit HTTPReader(int);
         ~HTTPReader();
 
-        bool                run();
         bool                runForFD(int);
         Socket &            getSocket();
         void                setPeerAddress(unsigned int);
@@ -41,6 +40,7 @@ private:
         int           port;
         bool          errorHead;
 		Cookie        cookie;
+        std::string   head;
 		static std::list<Cookie> session_management;
 
         HTTPRequest * _parse() throw(std::exception);

@@ -32,7 +32,7 @@ bool HTTPReader::runForFD(int fd) {
 			} else {
 				request->loadPayload();
 			}
-			if (request->isLoaded()) {
+			if (request != NULL && request->isLoaded()) {
 				debug("Loaded, size " << request->get_payload().size() << " bytes");
 				Cookie cookie = get_cookie(request->parse_cookie());
 				request->set_cookie(cookie);
@@ -227,24 +227,21 @@ int	HTTPRequest::checktype(std::string& word) {
 
 
 HTTPRequest* HTTPReader::_parse() throw(std::exception) {
-	std::string raw;
-	char c;
-	while (raw.find("\r\n\r\n", 0) == std::string::npos) {
-        try {
-			raw  += _socket.read();
-        } catch (IOException & ex) {
-            throw HTTPException(504);
+    try {
+        while (head.find("\r\n\r\n") == std::string::npos) {
+            head += _socket.read();
         }
-	}
-	std::string	head = raw;
+    } catch (IOException &) {
+        return NULL;
+    }
 	std::vector<std::string> file = split_line(head);
 	switch(HTTPRequest::checktype(file[0])) {
 		case HTTPRequest::GET:
-			return new HTTPRequest(HTTPRequest::GET, file, raw, _socket);
+			return new HTTPRequest(HTTPRequest::GET, file, head, _socket);
 		case HTTPRequest::POST:
-			return new HTTPRequest(HTTPRequest::POST, file, raw, _socket);
+			return new HTTPRequest(HTTPRequest::POST, file, head, _socket);
 		case HTTPRequest::DELETE:
-			return new HTTPRequest(HTTPRequest::DELETE, file, raw, _socket);
+			return new HTTPRequest(HTTPRequest::DELETE, file, head, _socket);
         case HTTPRequest::HEAD:
             errorHead = true;
         default:

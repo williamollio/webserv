@@ -114,6 +114,7 @@ void Connection::accept(nfds_t i) {
 
     while ((socketDescriptor = ::accept(_fds[i].fd, NULL, NULL)) >= 0) {
         HTTPReader * current = new HTTPReader(socketDescriptor);
+        _readers.push_back(current);
         if (!add_fd(socketDescriptor, current)) {
             denyConnection(socketDescriptor);
             continue;
@@ -129,7 +130,6 @@ void Connection::accept(nfds_t i) {
         current->setPeerName(host);
         delete[] host;
         current->setUsedPort(_server_fds[_connection_pairs[_fds[i].fd]]);
-        _readers.push_back(current);
     }
 }
 

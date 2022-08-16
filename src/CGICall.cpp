@@ -71,11 +71,13 @@ bool CGICall::hasFD(int fd) {
 }
 
 bool CGICall::writePayload() {
-    for (; payloadCounter < _request->get_payload().size(); ++payloadCounter) {
-        if (write(in[1], _request->get_payload().c_str() + payloadCounter, 1) < 0) {
-            debug("Write with fd " << in[1] << " size " << payloadCounter);
-            return false;
-        }
+    ssize_t ret = write(in[1], _request->get_payload().c_str() + payloadCounter, _request->get_payload().size() - payloadCounter < 65536 ? _request->get_payload().size() - payloadCounter : 65536);
+    if (ret < 0) {
+        throw IOException("Fatal error!");
+    }
+    payloadCounter += ret;
+    if (payloadCounter < _request->get_payload().size()) {
+        return false;
     }
     debug("Write with fd " << in[1] << " size " << payloadCounter);
     debug("Closing server -> cgi");
@@ -102,8 +104,10 @@ bool CGICall::readPayload() {
 
 bool CGICall::writeSocket() {
     try {
-        for (; socketCounter < payload.size(); ++socketCounter) {
-            socket.write(payload[socketCounter]);
+        ssize_t ret = socket.write(payload.c_str() + socketCounter, payload.size() - socketCounter < 65536 ? payload.size() - socketCounter : 65536);
+        socketCounter += ret;
+        if (socketCounter < payload.size()) {
+            return false;
         }
         debug("Write with socket fd " << socket.get_fd() << " size " << socketCounter << " real " << payload.size());
         debug("Closing socket fd " << socket.get_fd());

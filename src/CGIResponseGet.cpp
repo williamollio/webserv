@@ -90,8 +90,10 @@ CGIResponseGet::CGIResponseGet(HTTPRequest *request, Socket & socket, Runnable &
 
 bool CGIResponseGet::runForFD(int) {
     try {
-        for (; socketCounter < payload.size(); ++socketCounter) {
-            _socket.write(payload[socketCounter]);
+        ssize_t ret = _socket.write(payload.c_str() + socketCounter, payload.size() - socketCounter < 65536 ? payload.size() - socketCounter : 65536);
+        socketCounter += ret;
+        if (socketCounter < payload.size()) {
+            return false;
         }
         debug("Write with socket fd " << _socket.get_fd() << " size " << socketCounter << " real " << payload.size());
         debug("Closing socket fd " << _socket.get_fd());

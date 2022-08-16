@@ -150,8 +150,10 @@ void CGIResponsePost::run() {
 
 bool CGIResponsePost::runForFD(int) {
     try {
-        for (; _payloadCounter < _payload.size(); ++_payloadCounter) {
-            _socket.write(_payload[_payloadCounter]);
+        ssize_t ret = _socket.write(_payload.c_str() + _payloadCounter, _payload.size() - _payloadCounter < 65536 ? _payload.size() - _payloadCounter : 65536);
+        _payloadCounter += ret;
+        if (_payloadCounter < _payload.size()) {
+            return false;
         }
         debug("Write with socket fd " << _socket.get_fd() << " size " << _payloadCounter << " real " << _payload.size());
         debug("Closing socket fd " << _socket.get_fd());

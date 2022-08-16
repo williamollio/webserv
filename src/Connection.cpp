@@ -94,6 +94,13 @@ void Connection::establishConnection() {
             clean = true;
         }
     }
+    if (end_server) {
+        std::cout << "Interrupted, exiting..." << std::endl;
+    } else if (rc == 0) {
+        std::cout << "Poll timed out, exiting..." << std::endl;
+    } else {
+        std::cerr << "Polling error! Exiting..." << std::endl;
+    }
 }
 
 void Connection::accept(nfds_t i) {
@@ -219,7 +226,7 @@ void Connection::printPollArray() _NOEXCEPT {
         std::cout << std::endl << std::endl;
     }
     std::cout << __FILE__ << ":" << __LINE__ << " ---------" << std::endl << std::endl;
-    #endif
+ #endif
 #endif
 }
 

@@ -306,3 +306,7 @@ void HTTPReader::setMarked(bool marked) {
 bool HTTPReader::isMarked() const {
     return mark;
 }
+
+void HTTPReader::setOurName(const std::string & name) {
+    ourName = name;
+}

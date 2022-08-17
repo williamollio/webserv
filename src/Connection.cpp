@@ -129,7 +129,15 @@ void Connection::accept(nfds_t i) {
         getnameinfo(reinterpret_cast<struct sockaddr *>(&address), addrlen, host, static_cast<socklen_t>(50), NULL, 0, 0);
         current->setPeerName(host);
         delete[] host;
-        current->setUsedPort(_server_fds[_connection_pairs[_fds[i].fd]]);
+        const int our_fd = _server_fds[_connection_pairs[_fds[i].fd]];
+        bzero(&address, sizeof(address));
+        getpeername(our_fd, reinterpret_cast<struct sockaddr *>(&address), &addrlen);
+        host = new char[50]();
+        getnameinfo(reinterpret_cast<struct sockaddr *>(&address), addrlen, host, static_cast<socklen_t>(50), NULL, 0, 0);
+        current->setOurName(host);
+        debug(host);
+        delete[] host;
+        current->setUsedPort(our_fd);
     }
 }
 

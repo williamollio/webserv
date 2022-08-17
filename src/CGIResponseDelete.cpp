@@ -14,10 +14,7 @@ void CGIResponseDelete::send_response()
 	header.setStatusMessage(get_message(200));
 	header.set_content_length(body.length());
     _payload = header.tostring() + "\r\n\r\n" + body;
-    if (!runForFD(0)) {
-        Connection::getInstance().add_fd(_socket.get_fd(), this, false);
-    }
-	//socket.write(header.tostring() + "\r\n\r\n" + body);
+    Connection::getInstance().add_fd(_socket.get_fd(), this, false);
 }
 
 void CGIResponseDelete::extract_path() {

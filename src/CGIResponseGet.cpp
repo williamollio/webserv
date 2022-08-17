@@ -63,14 +63,10 @@ void CGIResponseGet::run() {
     header.setStatusMessage(get_message(200));
 	header.setCookie(_request->get_cookie());
     payload = header.tostring() + "\r\n\r\n" + body;
-    if (!runForFD(0)) {
-        Connection::getInstance().add_fd(_socket.get_fd(), this, false);
-    }
-	//socket.write(header.tostring() + "\r\n\r\n" + body);
+    Connection::getInstance().add_fd(_socket.get_fd(), this, false);
 }
 
-CGIResponseGet::CGIResponseGet(HTTPRequest *request, Socket & socket, Runnable & parent): CGIResponse(request, socket, parent), socketCounter(0),
-                                                                                          cgicall(NULL)
+CGIResponseGet::CGIResponseGet(HTTPRequest *request, Socket & socket, Runnable & parent): CGIResponse(request, socket, parent), socketCounter(0), cgicall(NULL)
 {
 
     Configuration config = Configuration::getInstance();

@@ -29,33 +29,14 @@ void CGIResponseError::run()
 	header.setStatusCode(_error_code);
 	header.setStatusMessage(get_message(_error_code));
 
-    /*if (!_head) {
-        setBody(_error_code, body);
-        header.set_content_length(static_cast<int>(body.length()));
-        socket.write(header.tostring() + "\r\n\r\n" + body);
-    } else {
-        socket.write(header.tostring() + "\r\n\r\n");
-    }*/
-    if (_error_code != 405) {
-        setBody(_error_code, body);
-        header.set_content_length(body.length());
-    } else {
-        header.set_content_length(5);
-        body = "0\r\n\r\n";
-    //    socket.write(header.tostring());
-    //    return;
-    }
+    setBody(_error_code, body);
+    header.set_content_length(body.length());
     if (!_head) {
         _payload = header.tostring() + "\r\n\r\n" + body;
     } else {
         _payload = header.tostring() + "\r\n\r\n";
     }
-    if (!runForFD(0)) {
-        //debug("Shouldn't happen :(");
-        Connection::getInstance().add_fd(_socket.get_fd(), this, false);
-    }
-    //_socket.write(header.tostring() + "\r\n\r\n" + body);
-
+    Connection::getInstance().add_fd(_socket.get_fd(), this, false);
 }
 
 bool CGIResponseError::runForFD(int) {

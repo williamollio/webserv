@@ -169,9 +169,7 @@ void CGICall::run() {
     pipeFds.push_back(out[0]);
     pipeFds.push_back(out[1]);
     fcntl(in[1], F_SETFL, O_NONBLOCK);
-    if (!writePayload()) {
-        Connection::getInstance().add_fd(in[1], this, false);
-    }
+    Connection::getInstance().add_fd(in[1], this, false);
     fcntl(out[0], F_SETFL, O_NONBLOCK);
     Connection::getInstance().add_fd(out[0], this);
     execute(in[0], out[1], requestedFile);

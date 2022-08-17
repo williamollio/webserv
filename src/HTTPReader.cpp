@@ -25,50 +25,45 @@ HTTPReader::~HTTPReader() {
 }
 
 bool HTTPReader::runForFD(int fd) {
-    if (_socket.get_fd() == fd) {
-		try {
-			if (request == NULL) {
-				request = _parse();
-			} else {
-				request->loadPayload();
-			}
-			if (request != NULL && request->isLoaded()) {
-				debug("Loaded, size " << request->get_payload().size() << " bytes");
-				Cookie cookie = get_cookie(request->parse_cookie());
-				request->set_cookie(cookie);
-				request->setURI(URI(request->getPath()));
-				request->setPeerAddress(peerAddress);
-				request->setPeerName(peerName);
-				request->setUsedPort(port);
-				if (request->getURI().isCGIIdentifier() && _isCGIMethod(request->getType())) {
-					response = new CGICall(request, _socket, *this);
-				} else {
-					switch (request->getType()) {
-						case HTTPRequest::GET:    response = new CGIResponseGet(request, _socket, *this);    break;
-						case HTTPRequest::POST:   response = new CGIResponsePost(request, _socket, *this);   break;
-						case HTTPRequest::DELETE: response = new CGIResponseDelete(request, _socket, *this); break;
-						default:
-							throw HTTPException(400);
-					}
-				}
-				response->run();
-				return true;
-			}
-			else
-				return false;
+    try {
+        if (request == NULL) {
+            request = _parse();
+        } else {
+            request->loadPayload();
         }
-		catch (HTTPException & ex) {
-			debug(ex.what());
-			std::cout << ex.what() << std::endl;
-			if (response != NULL) delete response;
-			CGIResponseError * error = new CGIResponseError(_socket, *this);
-			response = error;
-			error->set_error_code(ex.get_error_code());
-			error->set_head_only(errorHead);
-			error->run();
-		}
+        if (request != NULL && request->isLoaded()) {
+            debug("Loaded, size " << request->get_payload().size() << " bytes");
+            Cookie cookie = get_cookie(request->parse_cookie());
+            request->set_cookie(cookie);
+            request->setURI(URI(request->getPath()));
+            request->setPeerAddress(peerAddress);
+            request->setPeerName(peerName);
+            request->setUsedPort(port);
+            if (request->getURI().isCGIIdentifier() && _isCGIMethod(request->getType())) {
+                response = new CGICall(request, _socket, *this);
+            } else {
+                switch (request->getType()) {
+                    case HTTPRequest::GET:    response = new CGIResponseGet(request, _socket, *this);    break;
+                    case HTTPRequest::POST:   response = new CGIResponsePost(request, _socket, *this);   break;
+                    case HTTPRequest::DELETE: response = new CGIResponseDelete(request, _socket, *this); break;
+                    default:
+                        throw HTTPException(400);
+                }
+            }
+            response->run();
+        }
     }
-    return true;
+    catch (HTTPException & ex) {
+        debug(ex.what());
+        std::cout << ex.what() << std::endl;
+        if (response != NULL) delete response;
+        CGIResponseError * error = new CGIResponseError(_socket, *this);
+        response = error;
+        error->set_error_code(ex.get_error_code());
+        error->set_head_only(errorHead);
+        error->run();
+    }
+    return false;
 }
 
 /*bool HTTPReader::runForFD(int fd) {

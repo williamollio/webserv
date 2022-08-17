@@ -141,10 +141,7 @@ void CGIResponsePost::run() {
 	std::string body = int_to_string(code) + " " + header.getStatusMessage();
 	header.set_content_length(body.length());
     _payload = header.tostring() + "\r\n\r\n" + body;
-    if (!runForFD(0)) {
-        Connection::getInstance().add_fd(_socket.get_fd(), this, false);
-    }
-	//socket.write(header.tostring() + "\r\n\r\n" + body);
+    Connection::getInstance().add_fd(_socket.get_fd(), this, false);
 }
 
 bool CGIResponsePost::runForFD(int) {

@@ -618,6 +618,7 @@ size_t Configuration::parse_loc_info(std::fstream &file, vectorString &line, siz
 						break;
 					case redirect:
 						index = parse_str(file, line, index, data.redirect);
+                        break;
 					case skip:
 						index = skip_token(file, line, index);
 						break;

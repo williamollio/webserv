@@ -60,6 +60,7 @@ bool HTTPReader::runForFD(int fd, bool hup) {
         }
     }
     catch (HTTPException & ex) {
+        ret = false;
         debug(ex.what());
         std::cout << ex.what() << std::endl;
         if (response != NULL) delete response;

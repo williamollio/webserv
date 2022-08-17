@@ -208,12 +208,8 @@ void CGICall::processCGIOutput() {
         }
         header.set_content_length(static_cast<int>(payload.size()));
         payload = header.tostring() + "\r\n\r\n" + payload;
-        //if (!writeSocket()) {
-            Connection::getInstance().add_fd(socket.get_fd(), this, false);
-            cleanUp = false;
-        //} else {
-        //    cleanUp = false;
-        //}
+        Connection::getInstance().add_fd(socket.get_fd(), this, false);
+        cleanUp = false;
     } catch (HTTPException & ex) {
         sendError(ex.get_error_code());
     } catch (std::exception & ex) {
@@ -271,6 +267,8 @@ void CGICall::sendError(const int errorCode) {
     } catch (IOException & exception) {
         std::clog << "INFO: Socket has been closed" << std::endl
                   << "INFO: " << exception.what()   << std::endl;
+    } catch (HTTPException & exception) {
+        std::clog << "INFO: " << exception.what() << std::endl;
     }
 }
 
@@ -389,6 +387,7 @@ HTTPHeader CGICall::parseCGIResponse(std::stringstream & s) {
     std::map<std::string, std::string> vars;
     std::string line;
     while (std::getline(s, line) && !(line.empty() || line == "\r")) {
+        if (line.back() == '\r') line = std::string(line.c_str(), line.size() - 1);
         unsigned long i = line.find(':');
         if (i != std::string::npos) {
             std::string varName = line.substr(0, i);

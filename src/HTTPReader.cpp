@@ -7,6 +7,7 @@
 #include "CGIResponsePost.hpp"
 #include "CGIResponseDelete.hpp"
 #include "CGIResponseError.hpp"
+#include "CGIResponseRedirect.hpp"
 #include "HTTPException.hpp"
 #include "URI.hpp"
 #include "CGICall.hpp"
@@ -24,7 +25,25 @@ HTTPReader::~HTTPReader() {
     if (request != NULL) delete request;
 }
 
-bool HTTPReader::runForFD(int fd, bool hup) {
+std::string HTTPReader::isRedirect(HTTPRequest *request) {
+
+	Configuration &config = Configuration::getInstance();
+	const std::vector<Configuration::loc_inf> &server_location_info = config.get_location_specifier();
+	URI uri(request->getPath());
+	for (std::vector<Configuration::loc_inf>::const_iterator it = server_location_info.begin(); it != server_location_info.end(); it++)
+	{
+        if (it->directory.size() > uri.getOriginal().size()) continue;
+        const std::string & tmp = uri.getOriginal().substr(it->directory.size());
+		if (uri.startsWith((*it).directory) && (tmp.empty() || tmp.front() == '/'))
+		{
+			request->getPath() = request->getPath().substr(1 ,(*it).directory.length());
+			return ((*it).redirect);
+		}
+	}
+	return ("");
+}
+
+bool HTTPReader::runForFD(int, bool hup) {
     bool ret = false;
     if (hup) {
         _socket.close();
@@ -44,7 +63,11 @@ bool HTTPReader::runForFD(int fd, bool hup) {
             request->setPeerAddress(peerAddress);
             request->setPeerName(peerName);
             request->setUsedPort(port);
-            if (request->getURI().isCGIIdentifier() && _isCGIMethod(request->getType())) {
+            request->setServerName(ourName);
+			std::string redirect = isRedirect(request);
+			if (!redirect.empty())
+				response = new CGIResponseRedirect(request, _socket, *this, redirect);
+            else if (request->getURI().isCGIIdentifier() && _isCGIMethod(request->getType())) {
                 response = new CGICall(request, _socket, *this);
                 ret = true;
             } else {
@@ -97,48 +120,6 @@ Cookie HTTPReader::get_cookie(Cookie cookie) {
 	}
 	return *it;
 }
-
-/*bool HTTPReader::run() {
-    try {
-        if (request == NULL) {
-            request = _parse();
-        }
-		if (request->isLoaded()) {
-            debug("Loaded, size " << request->get_payload().size() << " bytes");
-            Cookie cookie = get_cookie(request->parse_cookie());
-            request->set_cookie(cookie);
-            request->setURI(URI(request->getPath()));
-            request->setPeerAddress(peerAddress);
-            request->setPeerName(peerName);
-            request->setUsedPort(port);
-            if (request->getURI().isCGIIdentifier() && _isCGIMethod(request->getType())) {
-                response = new CGICall(request, _socket);
-            } else {
-                switch (request->getType()) {
-                    case HTTPRequest::GET:    response = new CGIResponseGet(request, _socket);    break;
-                    case HTTPRequest::POST:   response = new CGIResponsePost(request, _socket);   break;
-                    case HTTPRequest::DELETE: response = new CGIResponseDelete(request, _socket); break;
-                    default:
-                        throw HTTPException(400);
-                }
-            }
-            response->run(_socket);
-        } else {
-            return false;
-        }
-    }
-	catch (HTTPException & ex) {
-        debug(ex.what());
-		std::cout << ex.what() << std::endl;
-        if (response != NULL) delete response;
-        CGIResponseError * error = new CGIResponseError(_socket);
-        response = error;
-		error->set_error_code(ex.get_error_code());
-        error->set_head_only(errorHead);
-		error->run(_socket);
-    }
-    return true;
-}*/
 
 std::vector<std::string>	split_str_vector(const std::string& tosplit, const std::string& needle) {
 	size_t						cursor	= 0;

@@ -32,7 +32,7 @@ public:
 	std::string		read_file(std::string& file);
 	std::string		get_current_path();
 	void			set_rules_location(std::string &request_path, std::vector<Configuration::loc_inf>::const_iterator it);
-	int				is_request_defined_location(std::string& request_path, std::vector<Configuration::loc_inf> server_location_info);
+	int				is_request_defined_location(std::string& , const std::vector<Configuration::loc_inf> &);
 	void			check_existing_dir(std::string& dir);
 	void			construct_file_path(std::string& file);
 	void			trim_slash_end(std::string& str);
@@ -58,6 +58,7 @@ protected:
 	std::map<int, std::string>	_error_pages;
 	size_t				_upload_size;
 	bool				_upload_size_bool;
+	std::string			_redirect;
     Runnable &          _parent;
     Socket &            _socket;
 };

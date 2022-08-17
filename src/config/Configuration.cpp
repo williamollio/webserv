@@ -492,6 +492,8 @@ Configuration::loc_word		Configuration::loc_inf_token_cmp(const std::string& wor
 		return directory_listing;
 	else if (word == "upload_size" || word == "client_max_body_size" || word == "Upload_Size" || word == "client_body_size" || word == "Client_Body_Size")
 		return upload_size;
+	else if (word == "redirect")
+		return redirect;
 	return l_errortype;
 }
 
@@ -614,6 +616,8 @@ size_t Configuration::parse_loc_info(std::fstream &file, vectorString &line, siz
 						index = parse_sizet(file, line, index, data.upload_size);
 						data.upload_size_bool = true;
 						break;
+					case redirect:
+						index = parse_str(file, line, index, data.redirect);
 					case skip:
 						index = skip_token(file, line, index);
 						break;

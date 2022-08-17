@@ -29,8 +29,9 @@ class HTTPReader: public Runnable {
         void                setOurName(const std::string &);
         unsigned int        getPeerAddress()                 const;
         const std::string & getPeerName()                    const;
-		HTTPRequest *       getRequest()                     const;
+        HTTPRequest *       getRequest()                     const;
         int                 getUsedPort()                    const;
+        std::string         isRedirect(HTTPRequest *);
 
 private:
         Socket        _socket;

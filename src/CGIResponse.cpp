@@ -141,12 +141,12 @@ void CGIResponse::set_rules_location(std::string &request_path, std::vector<Conf
 	_directory_location = (*it).directory;
 	_upload_size = (*it).upload_size;
 	_upload_size_bool = (*it).upload_size_bool;
+	_redirect = (*it).redirect;
 	trim_directory_path(request_path);
 	return;
 }
 
-int CGIResponse::is_request_defined_location(std::string &request_path, std::vector<Configuration::loc_inf> server_location_info)
-{
+int CGIResponse::is_request_defined_location(std::string &request_path, const std::vector<Configuration::loc_inf> &server_location_info) {
 	URI uri(request_path);
 	for (std::vector<Configuration::loc_inf>::const_iterator it = server_location_info.begin(); it != server_location_info.end(); it++)
 	{

@@ -49,6 +49,8 @@ public:
     void                             loadPayload();
     void                             set_cookie(Cookie &cookie);
     static int                       checktype(std::string& word);
+	void                             setServerName(const std::string &name);
+	const std::string &              getServerName(void);
 
 private:
     enum REQ_INFO {
@@ -87,6 +89,7 @@ private:
     vectorString _lang;
     vectorString _encoding;
     vectorString _cookie_vector;
+	std::string  _server_name;
 
 
     void            loadChunkedPayload();

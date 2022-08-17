@@ -20,6 +20,7 @@ public: //Structs
 		size_t		id;
 		size_t		upload_size;
 		bool		upload_size_bool;
+		std::string	redirect;
         location_info();
 	} loc_inf;
 
@@ -32,7 +33,7 @@ private:
 
 	enum word {server, w_errortype};
 	enum server_word {name, port, root, index_file, upload_location_cl, location, location_error, location_log, file_acc, upload_cmbs, cgi_ext, cgi_loc, cgi_methods, cgi_bin, s_errortype};
-	enum loc_word {methods, upload_size, directory_listing, local_root, default_file, skip, l_errortype};
+	enum loc_word {methods, upload_size, directory_listing, local_root, default_file, skip, l_errortype, redirect};
 	size_t			e_line;
 
 	enum word			conf_token_cmp(vectorString& line, size_t index);

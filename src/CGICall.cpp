@@ -44,7 +44,8 @@ CGICall::CGICall(HTTPRequest * request, Socket & socket, Runnable & parent)
           in(),
           out(),
           payloadCounter(),
-          socketCounter() {
+          socketCounter(),
+          error(NULL) {
     Configuration config = Configuration::getInstance();
     _server_root = config.get_server_root_folder();
     _server_location_log = set_absolut_path(_server_root);
@@ -251,12 +252,12 @@ void CGICall::processCGIOutput() {
     pthread_mutex_unlock(&self->runningMutex);
 }*/
 
-void CGICall::sendError(const int errorCode) _NOEXCEPT {
+void CGICall::sendError(const int errorCode) {
     try {
-        CGIResponseError error(socket, *this);
-        error.set_error_code(errorCode);
-        error.run();
-    } catch (std::exception & exception) {
+        error = new CGIResponseError(_socket, *this);
+        error->set_error_code(errorCode);
+        error->run();
+    } catch (IOException & exception) {
         std::clog << "INFO: Socket has been closed" << std::endl
                   << "INFO: " << exception.what()   << std::endl;
     }

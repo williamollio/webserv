@@ -24,12 +24,6 @@ std::string CGICallBuiltin::computeRequestedFile() {
     return ret;
 }
 
-void CGICallBuiltin::waitForExecution() {
-    // TODO
-    //while (isRunning());
-}
-
 void CGICallBuiltin::run() {
     CGICall::run();
-    waitForExecution();
 }

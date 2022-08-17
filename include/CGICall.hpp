@@ -6,6 +6,7 @@
 #define WEBSERV_CGICALL_HPP
 
 #include "CGIResponse.hpp"
+#include "CGIResponseError.hpp"
 
 class CGICall: public CGIResponse {
 public:
@@ -54,9 +55,10 @@ private:
     int                          out[2];
     size_t                       payloadCounter;
     size_t                       socketCounter;
+    CGIResponseError *           error;
 
     void execute(int, int, const std::string &);
-    void sendError(int errorCode) _NOEXCEPT;
+    void sendError(int errorCode);
     void processCGIOutput();
     bool writePayload();
     bool writeSocket();

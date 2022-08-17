@@ -15,14 +15,14 @@ bool CGIResponseGet::is_request_location(std::string path)
 	return (_directory_location == path);
 }
 
-std::string CGIResponseGet::set_file(std::string path, Socket& socket)
+std::string CGIResponseGet::set_file(std::string path)
 {
 	std::string tmp;
 
 	if ((path == "/" || is_request_location(path)) && _dir_listing == true)
 	{
-        CGICallBuiltin cgicall(_request, socket, *this, "cgi/directory_listing.php");
-        cgicall.run();
+        cgicall = new CGICallBuiltin(_request, _socket, *this, "cgi/directory_listing.php");
+        cgicall->run();
         throw HTTPException(100);
 	}
 	else if ((path == "/" || is_request_location(path)) && _dir_listing == false)
@@ -53,7 +53,7 @@ void CGIResponseGet::run() {
 	if (_GET == false)
 		throw HTTPException(405);
     try {
-        file = set_file(_request->getPath(), _socket);
+        file = set_file(_request->getPath());
     } catch (HTTPException &) { return; }
 
     body = read_file(file);
@@ -69,7 +69,8 @@ void CGIResponseGet::run() {
 	//socket.write(header.tostring() + "\r\n\r\n" + body);
 }
 
-CGIResponseGet::CGIResponseGet(HTTPRequest *request, Socket & socket, Runnable & parent): CGIResponse(request, socket, parent), socketCounter(0)
+CGIResponseGet::CGIResponseGet(HTTPRequest *request, Socket & socket, Runnable & parent): CGIResponse(request, socket, parent), socketCounter(0),
+                                                                                          cgicall(NULL)
 {
 
     Configuration config = Configuration::getInstance();

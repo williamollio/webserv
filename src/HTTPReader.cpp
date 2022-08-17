@@ -34,7 +34,7 @@ std::string HTTPReader::isRedirect(HTTPRequest *request) {
 	{
         if (it->directory.size() > uri.getOriginal().size()) continue;
         const std::string & tmp = uri.getOriginal().substr(it->directory.size());
-		if (uri.startsWith((*it).directory) && (tmp.empty() || tmp.front() == '/'))
+		if (uri.startsWith((*it).directory) && (tmp.empty() || tmp.front() == '/') && !it->redirect.empty())
 		{
 			request->getPath() = request->getPath().substr(1 ,(*it).directory.length());
 			return ((*it).redirect);
@@ -95,18 +95,6 @@ bool HTTPReader::runForFD(int, bool hup) {
     }
     return ret;
 }
-
-/*bool HTTPReader::runForFD(int fd) {
-    if (_socket.get_fd() == fd && !request->isLoaded()) {
-        request->loadPayload();
-        if (request->isLoaded()) {
-            run();
-        }
-        return request->isLoaded();
-    } else {
-        return response->runForFD(fd);
-    }
-}*/
 
 Cookie HTTPReader::get_cookie(Cookie cookie) {
 	std::list<Cookie>::iterator it;

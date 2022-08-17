@@ -16,7 +16,7 @@ public:
 	std::string set_file(std::string path);
 	std::string construct_content_type();
 	bool		is_request_location(std::string path);
-    bool        runForFD(int i);
+    bool        runForFD(int i, bool);
 
 private:
     std::string payload;

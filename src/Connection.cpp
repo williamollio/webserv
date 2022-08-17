@@ -154,7 +154,7 @@ void Connection::denyConnection(const int fd, const int errorCode) _NOEXCEPT {
 void Connection::handle(nfds_t i) {
     int fd = _fds[i].fd;
 	try {
-        if (_fd_mapping.find(fd)->second->runForFD(fd)) {
+        if (_fd_mapping.find(fd)->second->runForFD(fd, _fds[i].revents & POLLHUP || _fds[i].revents & POLLERR || _fds[i].revents & POLLNVAL)) {
             remove_fd(fd);
         }
 	}

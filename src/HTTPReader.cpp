@@ -24,7 +24,12 @@ HTTPReader::~HTTPReader() {
     if (request != NULL) delete request;
 }
 
-bool HTTPReader::runForFD(int fd) {
+bool HTTPReader::runForFD(int fd, bool hup) {
+    bool ret = false;
+    if (hup) {
+        _socket.close();
+        return true;
+    }
     try {
         if (request == NULL) {
             request = _parse();
@@ -41,6 +46,7 @@ bool HTTPReader::runForFD(int fd) {
             request->setUsedPort(port);
             if (request->getURI().isCGIIdentifier() && _isCGIMethod(request->getType())) {
                 response = new CGICall(request, _socket, *this);
+                ret = true;
             } else {
                 switch (request->getType()) {
                     case HTTPRequest::GET:    response = new CGIResponseGet(request, _socket, *this);    break;
@@ -63,7 +69,7 @@ bool HTTPReader::runForFD(int fd) {
         error->set_head_only(errorHead);
         error->run();
     }
-    return false;
+    return ret;
 }
 
 /*bool HTTPReader::runForFD(int fd) {

@@ -7,7 +7,7 @@
 
 class Runnable {
 public:
-    virtual bool runForFD(int fd) = 0;
+    virtual bool runForFD(int fd, bool hup) = 0;
     virtual void setMarked(bool) = 0;
 	virtual ~Runnable() {}
 };

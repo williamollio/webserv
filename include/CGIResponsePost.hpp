@@ -33,7 +33,7 @@ private:
 	void get_date(std::string &time);
 
 public:
-    bool runForFD(int i);
+    bool runForFD(int i, bool);
 };
 
 

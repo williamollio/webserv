@@ -45,7 +45,10 @@ CGICall::CGICall(HTTPRequest * request, Socket & socket, Runnable & parent)
           out(),
           payloadCounter(),
           socketCounter(),
-          error(NULL) {
+          error(NULL),
+          timedOut(false),
+          timedOutMutex() {
+    pthread_mutex_init(&timedOutMutex, NULL);
     Configuration config = Configuration::getInstance();
     _server_root = config.get_server_root_folder();
     _server_location_log = set_absolut_path(_server_root);
@@ -58,8 +61,9 @@ CGICall::CGICall(HTTPRequest * request, Socket & socket, Runnable & parent)
 CGICall::~CGICall() {
     if (child > -1) {
         kill(child, SIGTERM);
+        pthread_cancel(threadID);
     }
-    pthread_cancel(threadID);
+    pthread_mutex_destroy(&timedOutMutex);
     pthread_join(threadID, NULL);
 }
 
@@ -82,6 +86,7 @@ bool CGICall::readPayload() {
     ssize_t r;
     char    b;
 
+    // FIXME: Bad!!!
     while ((r = read(out[0], &b, 1)) > 0) {
         buffer += b;
     }
@@ -90,12 +95,20 @@ bool CGICall::readPayload() {
         return false;
     }
     close(out[0]);
-    debug("Processing CGI output (" << buffer.size() << " bytes)");
-    processCGIOutput();
+    if (timedOut) {
+        sendError(408);
+    } else {
+        debug("Processing CGI output (" << buffer.size() << " bytes)");
+        processCGIOutput();
+    }
     return true;
 }
 
-bool CGICall::writeSocket() {
+bool CGICall::writeSocket(bool hup) {
+    if (hup) {
+        _socket.close();
+        return true;
+    }
     try {
         ssize_t ret = socket.write(payload.c_str() + socketCounter, payload.size() - socketCounter < 65536 ? payload.size() - socketCounter : 65536);
         socketCounter += ret;
@@ -112,13 +125,13 @@ bool CGICall::writeSocket() {
     }
 }
 
-bool CGICall::runForFD(int fd) {
+bool CGICall::runForFD(int fd, bool hup) {
     if (fd == in[1]) {
         return writePayload();
     } else if (fd == out[0]) {
         return readPayload();
     } else if (fd == socket.get_fd()) {
-        return writeSocket();
+        return writeSocket(hup);
     } else {
         return true;
     }
@@ -195,12 +208,12 @@ void CGICall::processCGIOutput() {
         }
         header.set_content_length(static_cast<int>(payload.size()));
         payload = header.tostring() + "\r\n\r\n" + payload;
-        if (!writeSocket()) {
+        //if (!writeSocket()) {
             Connection::getInstance().add_fd(socket.get_fd(), this, false);
             cleanUp = false;
-        } else {
-            cleanUp = false;
-        }
+        //} else {
+        //    cleanUp = false;
+        //}
     } catch (HTTPException & ex) {
         sendError(ex.get_error_code());
     } catch (std::exception & ex) {
@@ -329,13 +342,14 @@ void CGICall::waitOrThrow(CGICall * self) {
         ret = waitpid(self->child, &status, WNOHANG);
     } while (ret == 0 && timeElapsed <= (TIMEOUT * 1000));
     if (ret == 0) {
+        pthread_mutex_lock(&self->timedOutMutex);
         kill(self->child, SIGTERM);
         debug("CGI killed");
+        self->timedOut = true;
+        pthread_mutex_unlock(&self->timedOutMutex);
     }
     debug("CGI finished");
     close(self->out[1]);
-    //if (ret == 0) throw HTTPException(408);
-    //else if (status != 0) throw HTTPException(500);
 }
 
 std::string CGICall::computeRequestedFile() {

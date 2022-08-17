@@ -13,7 +13,7 @@ class CGIResponseError : public CGIResponse {
 		void setBody(int error_code, std::string &body);
 		void run();
 
-    bool runForFD(int i);
+    bool runForFD(int i, bool);
 
 private:
 		int  _error_code;

@@ -84,7 +84,11 @@ CGIResponseGet::CGIResponseGet(HTTPRequest *request, Socket & socket, Runnable &
 
 }
 
-bool CGIResponseGet::runForFD(int) {
+bool CGIResponseGet::runForFD(int, bool hup) {
+    if (hup) {
+        _socket.close();
+        return true;
+    }
     try {
         ssize_t ret = _socket.write(payload.c_str() + socketCounter, payload.size() - socketCounter < 65536 ? payload.size() - socketCounter : 65536);
         socketCounter += ret;

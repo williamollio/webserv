@@ -16,7 +16,7 @@ public:
 	void extract_path();
 	void set_up_location();
 
-    bool runForFD(int i);
+    bool runForFD(int i, bool);
 
 private:
 	std::string _sub_path;

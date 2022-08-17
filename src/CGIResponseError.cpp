@@ -39,7 +39,11 @@ void CGIResponseError::run()
     Connection::getInstance().add_fd(_socket.get_fd(), this, false);
 }
 
-bool CGIResponseError::runForFD(int) {
+bool CGIResponseError::runForFD(int, bool hup) {
+    if (hup) {
+        _socket.close();
+        return true;
+    }
     try {
         ssize_t ret = _socket.write(_payload.c_str() + _payloadCounter, _payload.size() - _payloadCounter < 65536 ? _payload.size() - _payloadCounter : 65536);
         _payloadCounter += ret;

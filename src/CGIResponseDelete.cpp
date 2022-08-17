@@ -53,7 +53,11 @@ void CGIResponseDelete::run() {
 		throw HTTPException(403);
 }
 
-bool CGIResponseDelete::runForFD(int) {
+bool CGIResponseDelete::runForFD(int, bool hup) {
+    if (hup) {
+        _socket.close();
+        return true;
+    }
     try {
         ssize_t ret = _socket.write(_payload.c_str() + _payloadCounter, _payload.size() - _payloadCounter < 65536 ? _payload.size() - _payloadCounter : 65536);
         _payloadCounter += ret;

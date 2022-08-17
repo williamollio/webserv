@@ -18,7 +18,7 @@ class HTTPReader: public Runnable {
         explicit HTTPReader(int);
         ~HTTPReader();
 
-        bool                runForFD(int);
+        bool                runForFD(int, bool);
         Socket &            getSocket();
         void                setPeerAddress(unsigned int);
         void                setPeerName(const std::string &);

@@ -14,7 +14,7 @@ public:
     virtual ~CGICall();
 
     void run();
-    bool runForFD(int);
+    bool runForFD(int, bool);
 
 protected:
     virtual std::string computeRequestedFile();
@@ -56,12 +56,14 @@ private:
     size_t                       payloadCounter;
     size_t                       socketCounter;
     CGIResponseError *           error;
+    bool                         timedOut;
+    pthread_mutex_t              timedOutMutex;
 
     void execute(int, int, const std::string &);
     void sendError(int errorCode);
     void processCGIOutput();
     bool writePayload();
-    bool writeSocket();
+    bool writeSocket(bool);
     bool readPayload();
 
     static std::list<int> pipeFds;

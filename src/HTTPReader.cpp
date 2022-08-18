@@ -84,7 +84,6 @@ bool HTTPReader::runForFD(int, bool hup) {
     catch (HTTPException & ex) {
         ret = false;
         debug(ex.what());
-        std::cout << ex.what() << std::endl;
         if (response != NULL) delete response;
         CGIResponseError * error = new CGIResponseError(_socket, *this);
         response = error;
@@ -215,7 +214,6 @@ HTTPRequest* HTTPReader::_parse() throw(std::exception) {
         case HTTPRequest::HEAD:
             errorHead = true;
         default:
-			std::cerr << file[0] << std::endl;
 			throw HTTPException(405);
 	}
 

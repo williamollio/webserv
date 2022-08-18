@@ -67,7 +67,11 @@ CGICall::~CGICall() {
     pthread_join(threadID, NULL);
 }
 
-bool CGICall::writePayload() {
+bool CGICall::writePayload(bool hup) {
+    if (hup) {
+        close(in[1]);
+        return true;
+    }
     ssize_t ret = write(in[1], _request->get_payload().c_str() + payloadCounter, _request->get_payload().size() - payloadCounter < 65536 ? _request->get_payload().size() - payloadCounter : 65536);
     if (ret < 0) {
         throw IOException("Fatal error!");
@@ -125,7 +129,7 @@ bool CGICall::writeSocket(bool hup) {
 
 bool CGICall::runForFD(int fd, bool hup) {
     if (fd == in[1]) {
-        return writePayload();
+        return writePayload(hup);
     } else if (fd == out[0]) {
         return readPayload(hup);
     } else if (fd == socket.get_fd()) {
@@ -184,6 +188,8 @@ void CGICall::run() {
     fcntl(out[0], F_SETFL, O_NONBLOCK);
     Connection::getInstance().add_fd(out[0], this);
     execute(in[0], out[1], requestedFile);
+    close(in[0]);
+    close(out[1]);
     pthread_create(&threadID, NULL, reinterpret_cast<void *(*)(void *)>(CGICall::async), this);
 }
 

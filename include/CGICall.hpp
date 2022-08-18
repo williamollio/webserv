@@ -63,7 +63,7 @@ private:
     void execute(int, int, const std::string &);
     void sendError(int errorCode);
     void processCGIOutput();
-    bool writePayload();
+    bool writePayload(bool);
     bool writeSocket(bool);
     bool readPayload(bool);
 

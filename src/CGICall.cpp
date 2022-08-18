@@ -186,8 +186,7 @@ void CGICall::run() {
     fcntl(out[0], F_SETFL, O_NONBLOCK);
     Connection::getInstance().add_fd(out[0], this);
     execute(in[0], out[1], requestedFile);
-    pthread_create(&threadID, NULL, reinterpret_cast<void *(*)(void *)>(CGICall::waitOrThrow), this);
-    //pthread_create(&threadID, NULL, reinterpret_cast<void *(*)(void *)>(CGICall::async), this);
+    pthread_create(&threadID, NULL, reinterpret_cast<void *(*)(void *)>(CGICall::async), this);
 }
 
 void CGICall::processCGIOutput() {
@@ -221,43 +220,6 @@ void CGICall::processCGIOutput() {
         socket.close();
     }
 }
-
-/*void CGICall::async(CGICall * self) {
-    try {
-        //self->waitOrThrow();
-        waitOrThrow(self);
-        HTTPHeader header = parseCGIResponse(self->out[0]);
-        std::string payload;
-        if (header.getTransferEncoding() == "chunked") {
-            header.setTransferEncoding("");
-            std::string line;
-            while (!(line = nextLine(self->out[0])).empty()) {
-                unsigned long length = strtol(line.c_str(), NULL, 10);
-                line = nextLine(self->out[0]);
-                payload.append(line.c_str(), length);
-            }
-        } else {
-            ssize_t r;
-            char b;
-            while ((r = read(self->out[0], &b, 1)) > 0) payload += b;
-            if (r < 0) throw HTTPException(500);
-        }
-        header.set_content_length(static_cast<int>(payload.size()));
-        self->socket.send(header.tostring());
-        self->socket.send("\r\n\r\n");
-        self->socket.send(payload);
-    } catch (HTTPException & httpException) {
-        self->sendError(httpException.get_error_code());
-    } catch (std::exception & exception) {
-        std::clog << "INFO: Socket has been closed" << std::endl
-                  << "INFO: " << exception.what()   << std::endl;
-    }
-    close(self->out[0]);
-    close(self->socket.get_fd());
-    pthread_mutex_lock(&self->runningMutex);
-    self->running = false;
-    pthread_mutex_unlock(&self->runningMutex);
-}*/
 
 void CGICall::sendError(const int errorCode) {
     try {
@@ -328,7 +290,7 @@ void CGICall::execute(const int in, const int out, const std::string & requested
     }
 }
 
-void CGICall::waitOrThrow(CGICall * self) {
+void CGICall::async(CGICall * self) {
     int status, ret;
     unsigned int timeElapsed;
     struct timeval start, now;
@@ -424,63 +386,6 @@ HTTPHeader CGICall::parseCGIResponse(std::stringstream & s) {
         } else throw HTTPException(500);
     }
     return header;
-}
-
-/*HTTPHeader CGICall::parseCGIResponse(const int fd) {
-    HTTPHeader header;
-    header.setStatusCode(200);
-    header.setStatusMessage(get_message(200));
-    std::map<std::string, std::string> vars;
-    std::string line;
-    while (!(line = nextLine(fd)).empty()) {
-        unsigned long i = line.find(':');
-        if (i != std::string::npos) {
-            std::string varName = line.substr(0, i);
-            i = skipWhitespaces(line, ++i);
-            std::string arg = line.substr(i, line.size());
-            if (vars.find(varName) == vars.end()) {
-                vars[varName] = arg;
-            } else throw HTTPException(500);
-        }
-    }
-    if (vars.empty()) throw HTTPException(500);
-    for (std::map<std::string, std::string>::const_iterator it = vars.begin(); it != vars.end(); ++it) {
-        const std::string & varName = it->first;
-        const std::string & arg = it->second;
-        if (varName == "Content-Type") header.set_content_type(arg);
-        else if (varName == "Status") {
-            const char * const str = arg.c_str();
-            char * pos;
-            long status = strtol(str, &pos, 10);
-            header.setStatusCode(static_cast<int>(status));
-            unsigned long i = pos - str;
-            i = skipWhitespaces(arg, i);
-            header.setStatusMessage(arg.substr(i, arg.size()));
-        } else if (varName == "Content-Length") {
-            header.set_content_length(static_cast<int>(strtol(arg.c_str(), NULL, 10)));
-        } else if (varName == "Connection") {
-            header.setConnection(arg);
-        } else if (varName == "Transfer-Encoding") {
-            header.setTransferEncoding(arg);
-        } else if (varName == "Content-Encoding") {
-            header.setContentEncoding(arg);
-        } else if (varName.compare(0, 6, "X-CGI-") == 0) {
-            // Ignore...
-        } else throw HTTPException(500);
-    }
-    return header;
-}*/
-
-std::string CGICall::nextLine(const int fd) {
-    std::string ret;
-    ssize_t r;
-    char c;
-    while ((r = read(fd, &c, 1)) > 0 && c != '\n') {
-        ret += c;
-    }
-    if (ret.back() == '\r') ret.erase(ret.end() - 1);
-    if (r < 0) throw HTTPException(500);
-    return ret;
 }
 
 unsigned long CGICall::skipWhitespaces(const std::string & str, unsigned long pos) {

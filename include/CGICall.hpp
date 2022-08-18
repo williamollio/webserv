@@ -21,43 +21,43 @@ protected:
     virtual std::string computeScriptDirectory();
 
 private:
-    const URI &                  uri;
-    std::string                  method;
-    std::string                  protocol;
-    std::string                  pathinfo;
-    std::string                  contentLength;
-    std::string                  contentType;
-    std::string                  gatewayInterface;
-    std::string                  queryString;
-    std::string                  scriptName;
-    std::string                  serverName;
-    std::string                  serverPort;
-    std::string                  serverSoftware;
-    std::string                  remoteAddress;
-    std::string                  remoteHost;
-    std::string                  requestUri;
-    std::string                  httpUserAgent;
-    std::string                  httpHost;
-    std::string                  httpLang;
-    std::string                  httpEncoding;
-    std::string                  httpAccept;
-    std::string                  httpConnection;
-    std::string                  httpContentLength;
-    std::string                  httpExpect;
-    std::string                  buffer;
-    std::string                  payload;
-	std::vector<std::string>     x_arguments_name;
-	std::vector<std::string>     x_arguments;
-    Socket &                     socket;
-    pid_t                        child;
-    pthread_t                    threadID;
-    int                          in[2];
-    int                          out[2];
-    size_t                       payloadCounter;
-    size_t                       socketCounter;
-    CGIResponseError *           error;
-    bool                         timedOut;
-    pthread_mutex_t              timedOutMutex;
+    const URI &              uri;
+    std::string              method;
+    std::string              protocol;
+    std::string              pathinfo;
+    std::string              contentLength;
+    std::string              contentType;
+    std::string              gatewayInterface;
+    std::string              queryString;
+    std::string              scriptName;
+    std::string              serverName;
+    std::string              serverPort;
+    std::string              serverSoftware;
+    std::string              remoteAddress;
+    std::string              remoteHost;
+    std::string              requestUri;
+    std::string              httpUserAgent;
+    std::string              httpHost;
+    std::string              httpLang;
+    std::string              httpEncoding;
+    std::string              httpAccept;
+    std::string              httpConnection;
+    std::string              httpContentLength;
+    std::string              httpExpect;
+    std::string              buffer;
+    std::string              payload;
+	std::vector<std::string> x_arguments_name;
+	std::vector<std::string> x_arguments;
+    Socket &                 socket;
+    pid_t                    child;
+    pthread_t                threadID;
+    int                      in[2];
+    int                      out[2];
+    size_t                   payloadCounter;
+    size_t                   socketCounter;
+    CGIResponseError *       error;
+    bool                     timedOut;
+    pthread_mutex_t          timedOutMutex;
 
     void execute(int, int, const std::string &);
     void sendError(int errorCode);
@@ -68,15 +68,12 @@ private:
 
     static std::list<int> pipeFds;
 
+    static void          async(CGICall *);
     static int           close(int);
-    static std::string   vectorToString(const std::vector<std::string> &);
-    static std::string   nextLine(int);
     static bool          isFolder(const std::string &);
-    //static HTTPHeader    parseCGIResponse(int);
-    static HTTPHeader    parseCGIResponse(std::stringstream &);
     static unsigned long skipWhitespaces(const std::string &, unsigned long);
-    static void          waitOrThrow(CGICall *);
-    //static void          async(CGICall *);
+    static std::string   vectorToString(const std::vector<std::string> &);
+    static HTTPHeader    parseCGIResponse(std::stringstream &);
 
     /**
      * The time in seconds after which child processes are killed if they did not finish.

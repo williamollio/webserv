@@ -14,7 +14,7 @@ Socket::~Socket() {
 }
 
 Socket::Socket(int fd) throw (IOException)
-    : _fd(fd), _read_index(0), _buffer_fill(), _poll_again(false), _buffer(), _state(READY), total_read(0), total_written(0) {
+    : _fd(fd), _read_index(0), _buffer_fill(), _buffer(), _state(READY), total_read(0), total_written(0) {
 	if (fd < 0)
 		throw IOException("Invalid socket descriptor!");
 }
@@ -45,13 +45,9 @@ ssize_t Socket::write(const std::string & data) throw(IOException) {
 }
 
 void Socket::read_buffer() throw(IOException) {
-    if (_poll_again) {
-        _poll_again = !_poll_again;
-        throw IOException("Poll again!");
-    }
+    if (_state == POLL_AGAIN) throw IOException("Poll again!");
     _read_index = 0;
     ssize_t tmp = ::read(_fd, _buffer, BUFFER_SIZE);
-    _poll_again = !_poll_again;
     if (tmp < 0) {
         _state = BAD;
         _buffer_fill = 0;
@@ -60,6 +56,8 @@ void Socket::read_buffer() throw(IOException) {
         _state = EOT;
     } else if (_state != READY) {
         _state = READY;
+    } else if (_state != POLL_AGAIN) {
+        _state = POLL_AGAIN;
     }
     total_read += tmp;
     _buffer_fill = tmp;
@@ -116,6 +114,12 @@ bool Socket::closed() const _NOEXCEPT {
 
 bool Socket::ready() const _NOEXCEPT {
     return _state == READY;
+}
+
+void Socket::clear_state() _NOEXCEPT {
+    if (_state != CLOSED) {
+        _state = READY;
+    }
 }
 
 Socket::State Socket::get_state() const _NOEXCEPT {

@@ -49,6 +49,7 @@ bool HTTPReader::runForFD(int, bool hup) {
         _socket.close();
         return true;
     }
+    _socket.clear_state();
     try {
         if (request == NULL) {
             request = _parse();

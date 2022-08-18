@@ -82,26 +82,24 @@ bool CGICall::writePayload() {
     return true;
 }
 
-bool CGICall::readPayload() {
-    ssize_t r;
-    char    b;
-
-    // FIXME: Bad!!!
-    while ((r = read(out[0], &b, 1)) > 0) {
-        buffer += b;
-    }
-    debug("Read with fd " << out[0] << " size " << buffer.size() << ", r: " << r);
-    if (r < 0) {
+bool CGICall::readPayload(bool hup) {
+    if (hup) {
+        close(out[0]);
+        if (timedOut) {
+            sendError(408);
+        } else {
+            debug("Processing CGI output (" << buffer.size() << " bytes)");
+            processCGIOutput();
+        }
+        return true;
+    } else {
+        ssize_t ret = read(out[0], rawBuffer, 65536);
+        if (ret < 0) {
+            throw IOException("Fatal error!");
+        }
+        buffer.append(rawBuffer, ret);
         return false;
     }
-    close(out[0]);
-    if (timedOut) {
-        sendError(408);
-    } else {
-        debug("Processing CGI output (" << buffer.size() << " bytes)");
-        processCGIOutput();
-    }
-    return true;
 }
 
 bool CGICall::writeSocket(bool hup) {
@@ -129,7 +127,7 @@ bool CGICall::runForFD(int fd, bool hup) {
     if (fd == in[1]) {
         return writePayload();
     } else if (fd == out[0]) {
-        return readPayload();
+        return readPayload(hup);
     } else if (fd == socket.get_fd()) {
         return writeSocket(hup);
     } else {

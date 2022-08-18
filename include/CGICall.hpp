@@ -58,13 +58,14 @@ private:
     CGIResponseError *       error;
     bool                     timedOut;
     pthread_mutex_t          timedOutMutex;
+    char                     rawBuffer[65536];
 
     void execute(int, int, const std::string &);
     void sendError(int errorCode);
     void processCGIOutput();
     bool writePayload();
     bool writeSocket(bool);
-    bool readPayload();
+    bool readPayload(bool);
 
     static std::list<int> pipeFds;
 

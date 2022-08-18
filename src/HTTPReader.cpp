@@ -25,7 +25,7 @@ HTTPReader::~HTTPReader() {
     if (request != NULL) delete request;
 }
 
-std::string HTTPReader::isRedirect(HTTPRequest *request) {
+std::string HTTPReader::isRedirect() {
 
 	Configuration &config = Configuration::getInstance();
 	const std::vector<Configuration::loc_inf> &server_location_info = config.get_location_specifier();
@@ -36,7 +36,7 @@ std::string HTTPReader::isRedirect(HTTPRequest *request) {
         const std::string & tmp = uri.getOriginal().substr(it->directory.size());
 		if (uri.startsWith((*it).directory) && (tmp.empty() || tmp.front() == '/') && !it->redirect.empty())
 		{
-			request->getPath() = request->getPath().substr(1 ,(*it).directory.length());
+            request->getPath() = tmp;
 			return ((*it).redirect);
 		}
 	}
@@ -64,7 +64,7 @@ bool HTTPReader::runForFD(int, bool hup) {
             request->setPeerName(peerName);
             request->setUsedPort(port);
             request->setServerName(ourName);
-			std::string redirect = isRedirect(request);
+			std::string redirect = isRedirect();
 			if (!redirect.empty())
 				response = new CGIResponseRedirect(request, _socket, *this, redirect);
             else if (request->getURI().isCGIIdentifier() && _isCGIMethod(request->getType())) {

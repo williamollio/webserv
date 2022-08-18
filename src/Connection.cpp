@@ -125,21 +125,12 @@ void Connection::accept(nfds_t i) {
         socklen_t addrlen;
         getpeername(socketDescriptor, reinterpret_cast<struct sockaddr *>(&address), &addrlen);
         current->setPeerAddress(ntohl(address.sin_addr.s_addr));
-        char * host = new char[50]();
+        char host[50] = {0};
         getnameinfo(reinterpret_cast<struct sockaddr *>(&address), addrlen, host, static_cast<socklen_t>(50), NULL, 0, 0);
         current->setPeerName(host);
-        delete[] host;
         const int our_fd = _server_fds[_connection_pairs[socketDescriptor]];
         bzero(&address, sizeof(address));
         getpeername(_fds[i].fd, reinterpret_cast<struct sockaddr *>(&address), &addrlen);
-        host = new char[50]();
-        struct addrinfo * pointer;
-        (void)getaddrinfo(NULL, NULL, NULL, &pointer);
-        freeaddrinfo(pointer);
-        getnameinfo(reinterpret_cast<struct sockaddr *>(&address), addrlen, host, static_cast<socklen_t>(50), NULL, 0, 0);
-        current->setOurName(int_to_ipv4(ntohl(address.sin_addr.s_addr)));
-        debug(host);
-        delete[] host;
         current->setUsedPort(our_fd);
     }
 }

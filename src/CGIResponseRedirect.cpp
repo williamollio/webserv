@@ -19,10 +19,10 @@ void CGIResponseRedirect::run() {
                + "\r\nLocation: http://"
                + _request->getServerName()
 			   + ":" + int_to_string(_request->getUsedPort())
-			   + "/" + _redirect + _request->getPath()
+               + _redirect + _request->getPath()
 			   + "\r\n\r\n" + body;
 	std::cout << "_payload redirect : " << _payload << std::endl;
-	Connection::getInstance().add_fd(_socket.get_fd(), this);
+	Connection::getInstance().add_fd(_socket.get_fd(), this, false);
 }
 
 bool CGIResponseRedirect::runForFD(int, bool hup) {

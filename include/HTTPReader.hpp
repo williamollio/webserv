@@ -31,7 +31,7 @@ class HTTPReader: public Runnable {
         const std::string & getPeerName()                    const;
         HTTPRequest *       getRequest()                     const;
         int                 getUsedPort()                    const;
-        std::string         isRedirect(HTTPRequest *);
+        std::string         isRedirect();
 
 private:
         Socket        _socket;

@@ -15,14 +15,14 @@ bool CGIResponseGet::is_request_location(std::string path)
 	return (_directory_location == path);
 }
 
-std::string CGIResponseGet::set_file(std::string path, Socket& socket)
+std::string CGIResponseGet::set_file(std::string path)
 {
 	std::string tmp;
 
 	if ((path == "/" || is_request_location(path)) && _dir_listing == true)
 	{
-        CGICallBuiltin cgicall(_request, socket, "cgi/directory_listing.php");
-        cgicall.run(socket);
+        cgicall = new CGICallBuiltin(_request, _socket, *this, "cgi/directory_listing.php");
+        cgicall->run();
         throw HTTPException(100);
 	}
 	else if ((path == "/" || is_request_location(path)) && _dir_listing == false)
@@ -45,7 +45,7 @@ std::string CGIResponseGet::construct_content_type()
 	return (tmp);
 }
 
-void CGIResponseGet::run(Socket & socket) {
+void CGIResponseGet::run() {
 	HTTPHeader header;
 	std::string body;
 	std::string file;
@@ -53,7 +53,7 @@ void CGIResponseGet::run(Socket & socket) {
 	if (_GET == false)
 		throw HTTPException(405);
     try {
-        file = set_file(_request->getPath(), socket);
+        file = set_file(_request->getPath());
     } catch (HTTPException &) { return; }
 
     body = read_file(file);
@@ -63,14 +63,10 @@ void CGIResponseGet::run(Socket & socket) {
     header.setStatusMessage(get_message(200));
 	header.setCookie(_request->get_cookie());
     payload = header.tostring() + "\r\n\r\n" + body;
-    if (!runForFD(0)) {
-        running = true;
-        Connection::getInstance().addFD(socket.get_fd(), false);
-    }
-	//socket.write(header.tostring() + "\r\n\r\n" + body);
+    Connection::getInstance().add_fd(_socket.get_fd(), this, false);
 }
 
-CGIResponseGet::CGIResponseGet(HTTPRequest *request, Socket & socket): CGIResponse(request, socket), socketCounter(0), running(false)
+CGIResponseGet::CGIResponseGet(HTTPRequest *request, Socket & socket, Runnable & parent): CGIResponse(request, socket, parent), socketCounter(0), cgicall(NULL)
 {
 
     Configuration config = Configuration::getInstance();
@@ -88,23 +84,23 @@ CGIResponseGet::CGIResponseGet(HTTPRequest *request, Socket & socket): CGIRespon
 
 }
 
-bool CGIResponseGet::runForFD(int) {
+bool CGIResponseGet::runForFD(int, bool hup) {
+    if (hup) {
+        _socket.close();
+        return true;
+    }
     try {
-        for (; socketCounter < payload.size(); ++socketCounter) {
-            _socket.write(payload[socketCounter]);
+        ssize_t ret = _socket.write(payload.c_str() + socketCounter, payload.size() - socketCounter < 65536 ? payload.size() - socketCounter : 65536);
+        socketCounter += ret;
+        if (socketCounter < payload.size()) {
+            return false;
         }
         debug("Write with socket fd " << _socket.get_fd() << " size " << socketCounter << " real " << payload.size());
         debug("Closing socket fd " << _socket.get_fd());
-        Connection::getInstance().removeFD(_socket.get_fd());
         _socket.close();
-        running = false;
         return true;
     } catch (IOException &) {
         debug("Write with socket fd " << _socket.get_fd() << " size " << socketCounter);
         return false;
     }
-}
-
-bool CGIResponseGet::isRunning() {
-    return running;
 }

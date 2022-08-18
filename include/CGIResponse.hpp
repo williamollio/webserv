@@ -11,29 +11,28 @@
 #include "HTTPHeader.hpp"
 #include "Tool.hpp"
 #include "Configuration.hpp"
+#include "Runnable.hpp"
 #include <dirent.h>
-#include <errno.h>
+#include <cerrno>
 #include <fstream>
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 #include <sys/stat.h>
 #include <sys/types.h>
 
 class CGIResponseError;
-class CGIResponse {
+class CGIResponse: public Runnable {
 public:
-    explicit CGIResponse(HTTPRequest *, Socket &);
+    explicit CGIResponse(HTTPRequest *, Socket &, Runnable &);
     virtual ~CGIResponse();
 
-    virtual void	run(Socket& socket) = 0;
-    virtual bool    runForFD(int);
-    virtual bool    hasFD(int);
-    virtual bool	isRunning();
+    virtual void	run() = 0;
+    virtual void    setMarked(bool);
 	std::string		set_absolut_path(std::string& folder);
 	std::string		read_file(std::string& file);
 	std::string		get_current_path();
 	void			set_rules_location(std::string &request_path, std::vector<Configuration::loc_inf>::const_iterator it);
-	int				is_request_defined_location(std::string& request_path, std::vector<Configuration::loc_inf> server_location_info);
+	int				is_request_defined_location(std::string& , const std::vector<Configuration::loc_inf> &);
 	void			check_existing_dir(std::string& dir);
 	void			construct_file_path(std::string& file);
 	void			trim_slash_end(std::string& str);
@@ -59,6 +58,8 @@ protected:
 	std::map<int, std::string>	_error_pages;
 	size_t				_upload_size;
 	bool				_upload_size_bool;
+	std::string			_redirect;
+    Runnable &          _parent;
     Socket &            _socket;
 };
 

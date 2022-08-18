@@ -5,7 +5,7 @@
 #include "CGIResponseDelete.hpp"
 #include "Connection.hpp"
 
-void CGIResponseDelete::send_response(Socket &socket)
+void CGIResponseDelete::send_response()
 {
 	HTTPHeader header;
 	std::string body("{\"success\":\"true\"}");
@@ -14,11 +14,7 @@ void CGIResponseDelete::send_response(Socket &socket)
 	header.setStatusMessage(get_message(200));
 	header.set_content_length(body.length());
     _payload = header.tostring() + "\r\n\r\n" + body;
-    if (!runForFD(0)) {
-        _running = true;
-        Connection::getInstance().addFD(socket.get_fd(), false);
-    }
-	//socket.write(header.tostring() + "\r\n\r\n" + body);
+    Connection::getInstance().add_fd(_socket.get_fd(), this, false);
 }
 
 void CGIResponseDelete::extract_path() {
@@ -40,7 +36,7 @@ void CGIResponseDelete::set_up_location() {
 	_location_file = location_folder.c_str();
 }
 
-void CGIResponseDelete::run(Socket &socket) {
+void CGIResponseDelete::run() {
 
 	if (_DELETE == false)
 		throw HTTPException(405);
@@ -52,21 +48,25 @@ void CGIResponseDelete::run(Socket &socket) {
 	if (access(_location_file, F_OK) < 0)
 		throw HTTPException(404);
 	if (remove(_location_file) == 0)
-		send_response(socket);
+		send_response();
 	else
 		throw HTTPException(403);
 }
 
-bool CGIResponseDelete::runForFD(int) {
+bool CGIResponseDelete::runForFD(int, bool hup) {
+    if (hup) {
+        _socket.close();
+        return true;
+    }
     try {
-        for (; _payloadCounter < _payload.size(); ++_payloadCounter) {
-            _socket.write(_payload[_payloadCounter]);
+        ssize_t ret = _socket.write(_payload.c_str() + _payloadCounter, _payload.size() - _payloadCounter < 65536 ? _payload.size() - _payloadCounter : 65536);
+        _payloadCounter += ret;
+        if (_payloadCounter < _payload.size()) {
+            return false;
         }
         debug("Write with socket fd " << _socket.get_fd() << " size " << _payloadCounter << " real " << _payload.size());
         debug("Closing socket fd " << _socket.get_fd());
-        Connection::getInstance().removeFD(_socket.get_fd());
         _socket.close();
-        _running = false;
         return true;
     } catch (IOException &) {
         debug("Write with socket fd " << _socket.get_fd() << " size " << _payloadCounter);
@@ -74,11 +74,7 @@ bool CGIResponseDelete::runForFD(int) {
     }
 }
 
-bool CGIResponseDelete::isRunning() {
-    return _running;
-}
-
-CGIResponseDelete::CGIResponseDelete(HTTPRequest *request, Socket & socket):  CGIResponse(request, socket), _payloadCounter(0), _running(false)
+CGIResponseDelete::CGIResponseDelete(HTTPRequest *request, Socket & socket, Runnable & parent):  CGIResponse(request, socket, parent), _payloadCounter(0)
 {
 	Configuration config = Configuration::getInstance();
 

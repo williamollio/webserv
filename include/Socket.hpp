@@ -7,13 +7,13 @@
 #define BUFFER_SIZE 65536
 
 class Socket {
-    enum State { BAD, EOT, CLOSED, READY };
+    enum State { BAD, EOT, CLOSED, POLL_AGAIN, READY };
 
     int    _fd;
     size_t _read_index;
     size_t _buffer_fill;
     char   _buffer[BUFFER_SIZE];
-    State   _state;
+    State  _state;
 
     size_t total_read;
     size_t total_written;
@@ -35,6 +35,7 @@ public:
     void        close()                           throw (IOException);
     void        move(Socket &, bool = true)       throw (IOException);
     ssize_t     read(char *, size_t)              _NOEXCEPT;
+    void        clear_state()                     _NOEXCEPT;
     int         get_fd()                    const _NOEXCEPT;
     bool        bad()                       const _NOEXCEPT;
     bool        eof()                       const _NOEXCEPT;

@@ -9,22 +9,20 @@
 
 class CGIResponseDelete : public CGIResponse {
 public:
-	explicit CGIResponseDelete(HTTPRequest *, Socket &);
+	explicit CGIResponseDelete(HTTPRequest *, Socket &, Runnable &);
 
-	void run(Socket &socket);
-	void send_response(Socket &socket);
+	void run();
+	void send_response();
 	void extract_path();
 	void set_up_location();
 
-    bool runForFD(int i);
-    bool isRunning();
+    bool runForFD(int i, bool);
 
 private:
 	std::string _sub_path;
 	std::string _file;
     std::string _payload;
     unsigned long _payloadCounter;
-    bool        _running;
 	const char *_location_folder;
 	const char *_location_file;
 };

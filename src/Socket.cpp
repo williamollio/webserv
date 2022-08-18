@@ -45,16 +45,19 @@ ssize_t Socket::write(const std::string & data) throw(IOException) {
 }
 
 void Socket::read_buffer() throw(IOException) {
+    if (_state == POLL_AGAIN) throw IOException("Poll again!");
     _read_index = 0;
     ssize_t tmp = ::read(_fd, _buffer, BUFFER_SIZE);
-    //debug(_fd << " read: " << tmp);
     if (tmp < 0) {
         _state = BAD;
+        _buffer_fill = 0;
         throw IOException("Could not read any data!");
     } else if (tmp == 0) {
         _state = EOT;
     } else if (_state != READY) {
         _state = READY;
+    } else if (_state != POLL_AGAIN) {
+        _state = POLL_AGAIN;
     }
     total_read += tmp;
     _buffer_fill = tmp;
@@ -111,6 +114,12 @@ bool Socket::closed() const _NOEXCEPT {
 
 bool Socket::ready() const _NOEXCEPT {
     return _state == READY;
+}
+
+void Socket::clear_state() _NOEXCEPT {
+    if (_state != CLOSED) {
+        _state = READY;
+    }
 }
 
 Socket::State Socket::get_state() const _NOEXCEPT {

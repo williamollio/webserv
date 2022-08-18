@@ -127,7 +127,7 @@ void CGIResponsePost::saveFile(std::string payload) {
 	}
 }
 
-void CGIResponsePost::run(Socket &socket) {
+void CGIResponsePost::run() {
 
 	HTTPHeader	header;
 	int			code;
@@ -141,23 +141,23 @@ void CGIResponsePost::run(Socket &socket) {
 	std::string body = int_to_string(code) + " " + header.getStatusMessage();
 	header.set_content_length(body.length());
     _payload = header.tostring() + "\r\n\r\n" + body;
-    if (!runForFD(0)) {
-        _running = true;
-        Connection::getInstance().addFD(socket.get_fd(), false);
-    }
-	//socket.write(header.tostring() + "\r\n\r\n" + body);
+    Connection::getInstance().add_fd(_socket.get_fd(), this, false);
 }
 
-bool CGIResponsePost::runForFD(int) {
+bool CGIResponsePost::runForFD(int, bool hup) {
+    if (hup) {
+        _socket.close();
+        return true;
+    }
     try {
-        for (; _payloadCounter < _payload.size(); ++_payloadCounter) {
-            _socket.write(_payload[_payloadCounter]);
+        ssize_t ret = _socket.write(_payload.c_str() + _payloadCounter, _payload.size() - _payloadCounter < 65536 ? _payload.size() - _payloadCounter : 65536);
+        _payloadCounter += ret;
+        if (_payloadCounter < _payload.size()) {
+            return false;
         }
         debug("Write with socket fd " << _socket.get_fd() << " size " << _payloadCounter << " real " << _payload.size());
         debug("Closing socket fd " << _socket.get_fd());
-        Connection::getInstance().removeFD(_socket.get_fd());
         _socket.close();
-        _running = false;
         return true;
     } catch (IOException &) {
         debug("Write with socket fd " << _socket.get_fd() << " size " << _payloadCounter);
@@ -165,11 +165,7 @@ bool CGIResponsePost::runForFD(int) {
     }
 }
 
-bool CGIResponsePost::isRunning() {
-    return _running;
-}
-
-CGIResponsePost::CGIResponsePost(HTTPRequest *request, Socket & socket): CGIResponse(request, socket), _payloadCounter(0), _max_size_body(SIZE_MAX), _running(false)
+CGIResponsePost::CGIResponsePost(HTTPRequest *request, Socket & socket, Runnable & parent): CGIResponse(request, socket, parent), _payloadCounter(0), _max_size_body(SIZE_MAX)
 {
 	Configuration config = Configuration::getInstance();
 

@@ -88,7 +88,6 @@ private:
     vectorString _encoding;
     vectorString _cookie_vector;
 
-
     void            loadChunkedPayload();
     void            loadNormalPayload();
     void            isChunkedRequest(const std::string & data);

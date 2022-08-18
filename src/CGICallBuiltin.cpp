@@ -4,8 +4,8 @@
 
 #include "CGICallBuiltin.hpp"
 
-CGICallBuiltin::CGICallBuiltin(HTTPRequest * request, Socket & socket, const std::string & executable)
-    : CGICall(request, socket), executable(executable) {
+CGICallBuiltin::CGICallBuiltin(HTTPRequest * request, Socket & socket, Runnable & parent, const std::string & executable)
+    : CGICall(request, socket, parent), executable(executable) {
 
 }
 
@@ -24,11 +24,6 @@ std::string CGICallBuiltin::computeRequestedFile() {
     return ret;
 }
 
-void CGICallBuiltin::waitForExecution() {
-    while (isRunning());
-}
-
-void CGICallBuiltin::run(Socket & socket) {
-    CGICall::run(socket);
-    waitForExecution();
+void CGICallBuiltin::run() {
+    CGICall::run();
 }

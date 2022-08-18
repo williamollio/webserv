@@ -11,9 +11,7 @@ Configuration & Configuration::getInstance() {
     return instance;
 }
 
-Configuration::Configuration() : e_line(0), _cmbs(0), _accept_file(false), _cmbs_bool(false) {
-	///TODO: initialize standard values
-}
+Configuration::Configuration() : e_line(0), _cmbs(0), _accept_file(false), _cmbs_bool(false) {}
 
 Configuration::Configuration(std::string& location) : e_line(0), _cmbs(0), _accept_file(false), _cmbs_bool(false) {
 		load_config_file(location);
@@ -93,8 +91,8 @@ size_t	Configuration::parse_vec_str(std::fstream& file, vectorString& line, size
 		index++;
 	}
 	bool	del = false;
-//	while (index >= line.size() || ((ob && line[index] != "}") || (!ob && line[index] != ";"))) {
-    do {
+
+	do {
 		if (index >= line.size() || line[index] == "#") {
 			index = 0;
 			gettokens(file, line);
@@ -128,8 +126,8 @@ size_t	Configuration::parse_vec_int(std::fstream& file, vectorString& line, size
 		index++;
 	}
 	bool	del = false;
-//	while (index >= line.size() || ((ob && line[index] != "}") || (!ob && line[index] != ";"))) {
-    do {
+
+	do {
 		if (index >= line.size() || line[index] == "#") {
 			index = 0;
 			gettokens(file, line);
@@ -165,7 +163,6 @@ size_t	Configuration::parse_map_int_str(std::fstream& file, vectorString& line, 
 	bool	del = true;
 	bool	page = true;
 
-//	while (index >= line.size() || ((ob && line[index] != "}") || (!ob && line[index] != ";"))) {
     do {
 		if (index >= line.size() || line[index] == "#") {
 			index = 0;
@@ -216,7 +213,7 @@ size_t	Configuration::parse_str(std::fstream& file, vectorString& line, size_t i
 		ob = true;
 		index++;
 	}
-//	while (index >= line.size() || ((ob && line[index] != "}") || (!ob && line[index] != ";"))) {
+
     do {
 		if (index >= line.size() || line[index] == "#") {
 			index = 0;
@@ -250,7 +247,6 @@ size_t	Configuration::parse_bool(std::fstream& file, vectorString& line, size_t 
 		index++;
 	}
 
-//	while (index >= line.size() || ((ob && line[index] != "}") || (!ob && line[index] != ";"))) {
     do {
 		if (index >= line.size() || line[index] == "#") {
 			index = 0;
@@ -289,7 +285,6 @@ size_t	Configuration::parse_sizet(std::fstream& file, vectorString& line, size_t
 		ob = true;
 		index++;
 	}
-//	while (index >= line.size() || ((ob && line[index] != "}") || (!ob && line[index] != ";"))) {
     do {
 		if (index >= line.size() || line[index] == "#") {
 			index = 0;
@@ -371,7 +366,6 @@ size_t	Configuration::parse_server(std::fstream& file, vectorString& s_line, siz
 		throw UnexpectedToken(e_line, s_line[index]);
 	}
 	index++;
-//	while (s_line[index] != "}") {
     do {
         if (index >= s_line.size() || s_line[index] == "#") {
             index = 0;
@@ -498,6 +492,8 @@ Configuration::loc_word		Configuration::loc_inf_token_cmp(const std::string& wor
 		return directory_listing;
 	else if (word == "upload_size" || word == "client_max_body_size" || word == "Upload_Size" || word == "client_body_size" || word == "Client_Body_Size")
 		return upload_size;
+	else if (word == "redirect")
+		return redirect;
 	return l_errortype;
 }
 
@@ -514,7 +510,6 @@ size_t	Configuration::parse_methods(std::fstream &file, vectorString &line, size
 		index++;
 	}
 	bool	del = false;
-//	while (index >= line.size() || ((ob && line[index] != "}") || (!ob && line[index] != ";"))) {
     do {
 		if (index >= line.size() || line[index] == "#") {
 			index = 0;
@@ -567,7 +562,6 @@ size_t	Configuration::skip_token(std::fstream& file, vectorString& line, size_t 
 		index++;
 	}
 	bool	del = false;
-//	while (index >= line.size() || ((ob && line[index] != "}") || (!ob && line[index] != ";"))) {
     do {
 		if (index >= line.size() || line[index] == "#") {
 			index = 0;
@@ -594,7 +588,6 @@ size_t Configuration::parse_loc_info(std::fstream &file, vectorString &line, siz
 	index++;
 	loc_inf	data;
 	init_data(data, id, _server_locations[id]);
-//	while (line[index] != "}") {
     do {
 		if (index >= line.size() || line[index] == "#") {
 			index = 0;
@@ -623,6 +616,9 @@ size_t Configuration::parse_loc_info(std::fstream &file, vectorString &line, siz
 						index = parse_sizet(file, line, index, data.upload_size);
 						data.upload_size_bool = true;
 						break;
+					case redirect:
+						index = parse_str(file, line, index, data.redirect);
+                        break;
 					case skip:
 						index = skip_token(file, line, index);
 						break;
@@ -643,15 +639,6 @@ bool Configuration::find_n_fill_loc(std::fstream &file, vectorString &line, size
 	for (vectorString::iterator name = _server_locations.begin(); name != _server_locations.end(); name++) {
 		if (line[index] == *name) {
 			index = parse_loc_info(file, line, index, id);
-			// for (std::vector<loc_inf>::iterator i = _server_location_info.begin(); i != _server_location_info.end(); i++) {
-			// 	std::cout << "vector: " << (*i).GET << std::endl
-			// 			  << "	" << (*i).POST << std::endl
-			// 			  << "	" << (*i).DELETE << std::endl
-			// 			  << "	" << (*i).directory << std::endl
-			// 			  << "	" << (*i).def_file << std::endl
-			// 			  << "	" << (*i).dir_listing << std::endl
-			// 			<< "	"<< (*i).id << std::endl;
-			// }
 			return false;
 		}
 		id++;

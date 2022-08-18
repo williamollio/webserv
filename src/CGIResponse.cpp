@@ -112,7 +112,6 @@ std::string CGIResponse::read_file(std::string& file)
 	if (!is.is_open())
 	{
 		is.close();
-        std::cerr << file << std::endl;
 		throw HTTPException(404);
 	}
 	buffer << is.rdbuf();
@@ -141,12 +140,12 @@ void CGIResponse::set_rules_location(std::string &request_path, std::vector<Conf
 	_directory_location = (*it).directory;
 	_upload_size = (*it).upload_size;
 	_upload_size_bool = (*it).upload_size_bool;
+	_redirect = (*it).redirect;
 	trim_directory_path(request_path);
 	return;
 }
 
-int CGIResponse::is_request_defined_location(std::string &request_path, std::vector<Configuration::loc_inf> server_location_info)
-{
+int CGIResponse::is_request_defined_location(std::string &request_path, const std::vector<Configuration::loc_inf> &server_location_info) {
 	URI uri(request_path);
 	for (std::vector<Configuration::loc_inf>::const_iterator it = server_location_info.begin(); it != server_location_info.end(); it++)
 	{
@@ -158,27 +157,16 @@ int CGIResponse::is_request_defined_location(std::string &request_path, std::vec
 			return (1);
 		}
 	}
-    if (request_path != "/") {
-        throw HTTPException(404);
-    }
 	if (is_request_folder(request_path) == true && request_path != "/")
 		throw HTTPException(401);
 	_directory_location = '/';
 	return (0);
 }
 
-CGIResponse::CGIResponse(HTTPRequest *request, Socket & socket): _request(request), _GET(true), _POST(false), _DELETE(false), _dir_listing(false), _directory_location(""), _loc_root(""), _upload_size(SIZE_MAX), _upload_size_bool(false), _socket(socket) {}
+CGIResponse::CGIResponse(HTTPRequest *request, Socket & socket, Runnable & parent): _request(request), _GET(true), _POST(false), _DELETE(false), _dir_listing(false), _directory_location(""), _loc_root(""), _upload_size(SIZE_MAX), _upload_size_bool(false), _parent(parent), _socket(socket) {}
 
 CGIResponse::~CGIResponse() {}
 
-bool CGIResponse::isRunning() {
-    return (false);
-}
-
-bool CGIResponse::runForFD(int) {
-    return true;
-}
-
-bool CGIResponse::hasFD(int) {
-    return false;
+void CGIResponse::setMarked(bool marked) {
+    _parent.setMarked(marked);
 }

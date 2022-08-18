@@ -6,20 +6,18 @@
 
 class CGIResponseError : public CGIResponse {
 	public:
-		explicit CGIResponseError(Socket &);
+		explicit CGIResponseError(Socket &, Runnable &);
 
 		void set_error_code(int error_code);
         void set_head_only(bool);
 		void setBody(int error_code, std::string &body);
-		void run(Socket & socket);
+		void run();
 
-    bool runForFD(int i);
-    bool isRunning();
+    bool runForFD(int i, bool);
 
 private:
 		int  _error_code;
         bool _head;
-        bool _running;
         std::string _payload;
         unsigned long _payloadCounter;
 };

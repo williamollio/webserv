@@ -6,22 +6,22 @@
 #define WEBSERV_CGIRESPONSEGET_HPP
 
 #include "CGIResponse.hpp"
+#include "CGICallBuiltin.hpp"
 
 class CGIResponseGet : public CGIResponse {
 public:
-    explicit CGIResponseGet(HTTPRequest*, Socket &);
+    explicit CGIResponseGet(HTTPRequest*, Socket &, Runnable &);
 
-    void		run(Socket& socket);
-	std::string set_file(std::string path, Socket& socket);
+    void		run();
+	std::string set_file(std::string path);
 	std::string construct_content_type();
 	bool		is_request_location(std::string path);
-    bool        runForFD(int i);
-    bool        isRunning();
+    bool        runForFD(int i, bool);
 
 private:
     std::string payload;
     unsigned long socketCounter;
-    bool running;
+    CGICallBuiltin * cgicall;
 };
 
 

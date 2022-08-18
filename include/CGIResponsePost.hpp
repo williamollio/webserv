@@ -10,9 +10,9 @@
 
 class CGIResponsePost : public CGIResponse {
 public:
-    explicit CGIResponsePost(HTTPRequest *, Socket &);
+    explicit CGIResponsePost(HTTPRequest *, Socket &, Runnable &);
 
-    void run(Socket &socket);
+    void run();
 
 private:
 	std::string _filename;
@@ -21,7 +21,6 @@ private:
     size_t      _payloadCounter;
 	size_t		_max_size_body;
 	bool		_max_size_body_bool;
-    bool        _running;
 
 	void saveFile(std::string payload);
 	std::string setFilename(std::string &payload);
@@ -34,8 +33,7 @@ private:
 	void get_date(std::string &time);
 
 public:
-    bool runForFD(int i);
-    bool isRunning();
+    bool runForFD(int i, bool);
 };
 
 

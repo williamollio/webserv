@@ -18,11 +18,6 @@ bool HTTPRequest::is_payload(size_t index) const {
 
 HTTPRequest::REQ_INFO HTTPRequest::http_token_comp(std::string &word) {
 	if (!word.compare(0, 2, "X-") || !word.compare(0, 2, "x-")) {
-//		for (size_t i = 2; word.size() > i; i++) {
-//			word.at(i) = toupper(word.at(i));
-//			if (word.at(i) == '-')
-//				word.at(i) = '_';
-//		}
 		return X_ARG;
 	}
 	if (word == "user-agent" || word == "User-Agent")
@@ -106,39 +101,25 @@ HTTPRequest::HTTPRequest(HTTPRequest::TYPE type, std::vector<std::string> &file,
 	while (file.size() > index + 2 && !is_payload(index)) {
 		switch(http_token_comp(file[index])) {
 			case USER_AGENT:
-//				std::cerr << "passed USERAGENT" << std::endl;
 				index = load_string(file, index, _user_agent);
-//				std::cerr << "passed USERAGENT" << std::endl;
 				break;
 			case HOSTNAME:
-//				std::cerr << "passed HOSTNAME" << std::endl;
 				index = load_string(file, index, _host);
-//				std::cerr << "passed HOSTNAME" << std::endl;
 				break;
 			case LANG_SUPP:
-//				std::cerr << "passed LANGUAGE" << std::endl;
 				index = load_vec_str(file, index, _lang);
-//				std::cerr << "passed LANGUAGE" << std::endl;
 				break;
 			case ENCODING:
-//				std::cerr << "passed ENCODING" << std::endl;
 				index = load_vec_str(file, index, _encoding);
-//				std::cerr << "passed ENCODING" << std::endl;
 				break;
 			case CON_TYPE:
-//				std::cerr << "passed CONNECTION_TYPE" << std::endl;
 				index = load_connection(file, index, _keep_alive);
-//				std::cerr << "passed CONNECTION_TYPE" << std::endl;
 				break;
 			case CON_LENGTH:
-//				std::cerr << "passed CONTENT_LENGTH" << std::endl;
 				index = load_size(file, index, _content_length);
-//				std::cerr << "passed CONTENT_LENGTH" << std::endl;
 				break;
 			case CONTENT_TYPE:
-//				std::cerr << "passed CONTENT_TYPE" << std::endl;
 				index = load_vec_str(file, index, _content_type);
-//				std::cerr << "passed CONTENT_TYPE" << std::endl;
 				break;
 			case EXPECT :
 				index = load_string(file, index, _expect);

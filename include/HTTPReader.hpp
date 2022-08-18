@@ -10,26 +10,27 @@
 #include "HTTPRequest.hpp"
 #include "CGIResponse.hpp"
 #include "Cookie.hpp"
+#include "Runnable.hpp"
 #include <list>
 
-class HTTPReader {
+class HTTPReader: public Runnable {
     public:
         explicit HTTPReader(int);
         ~HTTPReader();
 
-        bool                run();
-        bool                runForFD(int);
+        bool                runForFD(int, bool);
         Socket &            getSocket();
         void                setPeerAddress(unsigned int);
         void                setPeerName(const std::string &);
         void                setUsedPort(int port);
         Cookie              get_cookie(Cookie cookie);
-        bool                hasFD(int)                       const;
-        bool                isRunning()                      const;
+        void                setMarked(bool);
+        bool                isMarked()                       const;
         unsigned int        getPeerAddress()                 const;
         const std::string & getPeerName()                    const;
-		HTTPRequest *       getRequest()                     const;
+        HTTPRequest *       getRequest()                     const;
         int                 getUsedPort()                    const;
+        std::string         isRedirect();
 
 private:
         Socket        _socket;
@@ -39,7 +40,9 @@ private:
         std::string   peerName;
         int           port;
         bool          errorHead;
+        bool          mark;
 		Cookie        cookie;
+        std::string   head;
 		static std::list<Cookie> session_management;
 
         HTTPRequest * _parse() throw(std::exception);

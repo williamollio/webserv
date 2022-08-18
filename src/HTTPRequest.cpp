@@ -233,14 +233,6 @@ void HTTPRequest::loadNormalPayload() {
     }
 }
 
-void HTTPRequest::setServerName(const std::string &name){
-	_server_name = name;
-}
-
-const std::string & HTTPRequest::getServerName(void) {
-	return _server_name;
-}
-
 void HTTPRequest::loadChunkedPayload() {
     loaded = false;
 

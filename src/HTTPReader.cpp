@@ -13,7 +13,6 @@
 #include "CGICall.hpp"
 #include "HTTPRequest.hpp"
 
-#include <cstdlib>
 #include <iostream>
 
 std::list<Cookie> HTTPReader::session_management;
@@ -64,7 +63,6 @@ bool HTTPReader::runForFD(int, bool hup) {
             request->setPeerAddress(peerAddress);
             request->setPeerName(peerName);
             request->setUsedPort(port);
-            request->setServerName(ourName);
 			std::string redirect = isRedirect();
 			if (!redirect.empty())
 				response = new CGIResponseRedirect(request, _socket, *this, redirect);
@@ -275,8 +273,4 @@ void HTTPReader::setMarked(bool marked) {
 
 bool HTTPReader::isMarked() const {
     return mark;
-}
-
-void HTTPReader::setOurName(const std::string & name) {
-    ourName = name;
 }

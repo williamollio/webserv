@@ -17,7 +17,7 @@ void CGIResponseRedirect::run() {
 	header.set_content_type("text/plain");
     _payload = header.tostring()
                + "\r\nLocation: http://"
-               + _request->getServerName()
+               + Configuration::getInstance().get_server_names().at(0)
 			   + ":" + int_to_string(_request->getUsedPort())
                + _redirect + _request->getPath()
 			   + "\r\n\r\n" + body;

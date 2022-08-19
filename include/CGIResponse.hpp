@@ -30,7 +30,7 @@ public:
     virtual void    setMarked(bool);
 	std::string		set_absolut_path(std::string& folder);
 	std::string		read_file(std::string& file);
-	std::string		get_current_path();
+	static std::string		get_current_path();
 	void			set_rules_location(std::string &request_path, std::vector<Configuration::loc_inf>::const_iterator it);
 	int				is_request_defined_location(std::string& , const std::vector<Configuration::loc_inf> &);
 	void			check_existing_dir(std::string& dir);

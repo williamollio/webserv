@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <cstdio>
 #include "Configuration.hpp"
+#include "CGIResponse.hpp"
 
 Configuration Configuration::instance = Configuration();
 
@@ -11,7 +12,7 @@ Configuration & Configuration::getInstance() {
     return instance;
 }
 
-Configuration::Configuration() : e_line(0), _cmbs(0), _accept_file(false), _cmbs_bool(false) {}
+Configuration::Configuration() : e_line(0), _cmbs(0), _accept_file(false), _cmbs_bool(false), _original_dir(CGIResponse::get_current_path()) {}
 
 Configuration::Configuration(std::string& location) : e_line(0), _cmbs(0), _accept_file(false), _cmbs_bool(false) {
 		load_config_file(location);
@@ -753,6 +754,10 @@ void Configuration::checkCGIExtensions(Configuration::vectorString &s_line, size
 
 const std::map<std::string, std::string> & Configuration::get_cgi_bin_map() const {
     return _cgi_bin_map;
+}
+
+const std::string & Configuration::get_original_directory() const {
+    return _original_dir;
 }
 
 Configuration::UnexpectedToken::UnexpectedToken(size_t _in_line, std::string tok) _NOEXCEPT : _line(_in_line){

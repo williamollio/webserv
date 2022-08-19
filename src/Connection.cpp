@@ -81,6 +81,7 @@ void Connection::establishConnection() {
     bool clean = false;
     while (!end_server && (rc = poll(_fds, _nfds, _timeout)) > 0) {
         debug("total Connection count: " << connections);
+        printPollArray();
         nfds_t currentSize = _nfds;
         for (nfds_t i = 0; i < currentSize; ++i) {
             if (_fds[i].revents == 0) {

@@ -57,6 +57,7 @@ private:
 	size_t					_cmbs;
 	bool					_accept_file;					///standard OFF
 	bool					_cmbs_bool;
+    const std::string       _original_dir;
 
 	void	check_portnum();
 	size_t	parse_server(std::fstream& file, vectorString& s_line, size_t index);
@@ -96,6 +97,7 @@ public:
 	const vectorString &                       get_server_location()             const;
 	const intMapString &                       get_server_error_page_location()  const;
 	const std::string &                        get_server_log_location()         const;
+    const std::string &                        get_original_directory()          const;
 	bool                                       get_server_file_acceptance()      const;
     const vectorString &                       get_cgi_extensions()              const;
     const vectorString &                       get_cgi_methods()                 const;

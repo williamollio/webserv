@@ -110,14 +110,13 @@ void CGIResponsePost::saveFile(std::string payload) {
 		throw HTTPException(413);
 
 	const char *upload = _upload.c_str();
-	const char *server_location_log = _server_location_log.c_str();
 	dir = opendir(upload);
 	if (dir) {
 		if (chdir(upload) != 0)
 			throw HTTPException(404);
 
 		createFile(payload);
-		if (chdir(server_location_log) != 0)
+		if (chdir(Configuration::getInstance().get_original_directory().c_str()) != 0)
 			throw HTTPException(404);
 		closedir(dir);
 	}

@@ -26,14 +26,11 @@ void CGIResponseDelete::extract_path() {
 }
 
 void CGIResponseDelete::set_up_location() {
-	std::string location_folder;
-	std::string location_file;
-
-	location_file = _server_location_log + _sub_path + _file;
-	location_folder = _server_location_log + _sub_path ;
-
-	_location_folder = location_file.c_str();
-	_location_file = location_folder.c_str();
+	if (_file.front() != '/' && _sub_path.back() != '/')
+		_location_file = _server_location_log + _sub_path + "/" + _file;
+	else
+		_location_file = _server_location_log + _sub_path + _file;
+	_location_folder = _server_location_log + _sub_path ;
 }
 
 void CGIResponseDelete::run() {
@@ -42,12 +39,11 @@ void CGIResponseDelete::run() {
 		throw HTTPException(405);
 	extract_path();
 	set_up_location();
-	if (access(_location_folder, X_OK) < 0
-	|| access(_location_folder, R_OK) < 0)
-		throw HTTPException(401);
-	if (access(_location_file, F_OK) < 0)
+	if (access(_location_file.c_str(), F_OK) < 0)
 		throw HTTPException(404);
-	if (remove(_location_file) == 0)
+	if (access(_location_file.c_str(), W_OK) < 0)
+		throw HTTPException(401);
+	if (remove(_location_file.c_str()) == 0)
 		send_response();
 	else
 		throw HTTPException(403);

@@ -23,8 +23,8 @@ private:
 	std::string _file;
     std::string _payload;
     unsigned long _payloadCounter;
-	const char *_location_folder;
-	const char *_location_file;
+	std::string _location_folder;
+	std::string _location_file;
 };
 
 

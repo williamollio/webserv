@@ -227,10 +227,15 @@ void HTTPRequest::loadPayload() {
 }
 
 void HTTPRequest::loadNormalPayload() {
+    loaded = false;
     while (_payload.size() < _content_length) {
-        if (!readLine(true)) return;
-        _payload += line;
+        try {
+            _payload += _chunked_socket.read();
+        } catch (IOException &) {
+            return; // Poll again...
+        }
     }
+    loaded = true;
 }
 
 void HTTPRequest::loadChunkedPayload() {

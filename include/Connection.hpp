@@ -16,7 +16,7 @@ class Connection {
     /// First: client fd --- Second: server fd
     std::map<int, int>         _connection_pairs;
     /// The list with all allocated HTTPReader instances for the garbage collector.
-    std::list<HTTPReader *>    _readers;
+    std::list<HTTPReader>      _readers;
     /// The timeout in milliseconds.
     int                        _timeout;
     /// The number of file descriptors inside of the polling array.
@@ -25,6 +25,7 @@ class Connection {
     struct pollfd              _fds[NUM_FDS];
     /// The currently active connection.
     static Connection *        currentInstance;
+    /// The total count of handled connections.
     unsigned long              connections;
 
     /// Compresses the polling array. Upon return, all removable contents are removed.

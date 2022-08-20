@@ -84,7 +84,7 @@ ssize_t Socket::read(char * buffer, size_t size) _NOEXCEPT {
     return ret;
 }
 
-void Socket::move(Socket & other, bool shouldClose) throw(IOException) {
+void Socket::move(const Socket & other, bool shouldClose) throw(IOException) {
     if (shouldClose) {
         close();
     }
@@ -94,10 +94,17 @@ void Socket::move(Socket & other, bool shouldClose) throw(IOException) {
     _state = other._state;
     total_read = other.total_read;
     total_written = other.total_written;
-    for (unsigned long i = 0; i < BUFFER_SIZE; ++i) {
-        _buffer[i] = other._buffer[i];
-    }
-    other._state = CLOSED;
+    std::memcpy(_buffer, other._buffer, BUFFER_SIZE);
+}
+
+void Socket::move(Socket & other, bool shouldClose) throw(IOException) {
+    const Socket & constOther = other;
+    move(constOther, shouldClose);
+    other.invalidate();
+}
+
+void Socket::invalidate() _NOEXCEPT {
+    _state = CLOSED;
 }
 
 bool Socket::bad() const _NOEXCEPT {

@@ -19,6 +19,20 @@ std::list<Cookie> HTTPReader::session_management;
 
 HTTPReader::HTTPReader(int fd): _socket(fd), response(NULL), request(NULL), errorHead(false) {}
 
+HTTPReader::HTTPReader(const HTTPReader & other)
+    : _socket(other.getSocket().get_fd()),
+      response(other.response),
+      request(other.request),
+      peerAddress(other.peerAddress),
+      peerName(other.peerName),
+      port(other.port),
+      errorHead(other.errorHead),
+      mark(other.mark),
+      cookie(other.cookie),
+      head(other.head) {
+    _socket.move(other.getSocket(), false);
+}
+
 HTTPReader::~HTTPReader() {
     if (response != NULL) delete response;
     if (request != NULL) delete request;
@@ -236,6 +250,10 @@ void HTTPReader::setPeerName(const std::string & peerName) {
 }
 
 Socket & HTTPReader::getSocket() {
+    return _socket;
+}
+
+const Socket & HTTPReader::getSocket() const {
     return _socket;
 }
 

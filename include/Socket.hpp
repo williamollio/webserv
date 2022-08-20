@@ -34,8 +34,10 @@ public:
     ssize_t     write(char)                       throw (IOException);
     void        close()                           throw (IOException);
     void        move(Socket &, bool = true)       throw (IOException);
+    void        move(const Socket &, bool = true) throw (IOException);
     ssize_t     read(char *, size_t)              _NOEXCEPT;
     void        clear_state()                     _NOEXCEPT;
+    void        invalidate()                      _NOEXCEPT;
     int         get_fd()                    const _NOEXCEPT;
     bool        bad()                       const _NOEXCEPT;
     bool        eof()                       const _NOEXCEPT;

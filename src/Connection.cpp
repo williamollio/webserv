@@ -46,9 +46,6 @@ Connection::Connection()
 }
 
 Connection::~Connection() {
-    for (std::list<HTTPReader *>::const_iterator it = _readers.begin(); it != _readers.end(); ++it) {
-        delete *it;
-    }
     currentInstance = NULL;
 }
 
@@ -114,9 +111,10 @@ void Connection::accept(nfds_t i) {
     int socketDescriptor;
 
     while ((socketDescriptor = ::accept(_fds[i].fd, NULL, NULL)) >= 0) {
-        HTTPReader * current = new HTTPReader(socketDescriptor);
-        _readers.push_back(current);
-        if (!add_fd(socketDescriptor, current)) {
+        HTTPReader current(socketDescriptor);
+        std::list<HTTPReader>::iterator it = _readers.insert(_readers.end(), current);
+        current.getSocket().invalidate();
+        if (!add_fd(socketDescriptor, &(*it))) {
             denyConnection(socketDescriptor);
             continue;
         }
@@ -125,14 +123,14 @@ void Connection::accept(nfds_t i) {
         bzero(&address, sizeof(address));
         socklen_t addrlen;
         getpeername(socketDescriptor, reinterpret_cast<struct sockaddr *>(&address), &addrlen);
-        current->setPeerAddress(ntohl(address.sin_addr.s_addr));
+        current.setPeerAddress(ntohl(address.sin_addr.s_addr));
         char host[50] = {0};
         getnameinfo(reinterpret_cast<struct sockaddr *>(&address), addrlen, host, static_cast<socklen_t>(50), NULL, 0, 0);
-        current->setPeerName(host);
+        current.setPeerName(host);
         const int our_fd = _server_fds[_connection_pairs[socketDescriptor]];
         bzero(&address, sizeof(address));
         getpeername(_fds[i].fd, reinterpret_cast<struct sockaddr *>(&address), &addrlen);
-        current->setUsedPort(our_fd);
+        current.setUsedPort(our_fd);
     }
 }
 
@@ -213,7 +211,6 @@ void Connection::printPollArray() _NOEXCEPT {
     for (unsigned long i = 0; i < _nfds; ++i) {
         std::cout << "fd:      " << _fds[i].fd     << std::endl
                   << "events:  " << _fds[i].events << std::endl
-                  << "fd_mapping[fd]:  " << reinterpret_cast<unsigned long>(_fd_mapping[_fds[i].fd]) << std::endl
                   << "revents: ";
         switch (_fds[i].revents) {
             case POLLIN:     std::cout << "POLLIN";     break;
@@ -235,20 +232,16 @@ void Connection::printPollArray() _NOEXCEPT {
 #endif
 }
 
+static bool notMarked(const HTTPReader & reader) {
+    return !reader.isMarked();
+}
+
 void Connection::_clean_readers() {
-    for (std::list<HTTPReader *>::iterator it = _readers.begin(); it != _readers.end(); ++it) {
-        (*it)->setMarked(false);
+    for (std::list<HTTPReader>::iterator it = _readers.begin(); it != _readers.end(); ++it) {
+        it->setMarked(false);
     }
     for (std::map<int, Runnable *>::iterator it = _fd_mapping.begin(); it != _fd_mapping.end(); ++it) {
-        //if (it->second != NULL) {
-            it->second->setMarked(true);
-        //}
+        it->second->setMarked(true);
     }
-    for (std::list<HTTPReader *>::iterator it = _readers.begin(); it != _readers.end(); ++it) {
-        if (!(*it)->isMarked()) {
-            delete *it;
-            *it = NULL;
-        }
-    }
-    _readers.remove(NULL);
+    _readers.remove_if(notMarked);
 }

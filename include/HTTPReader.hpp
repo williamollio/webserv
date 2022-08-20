@@ -14,39 +14,42 @@
 #include <list>
 
 class HTTPReader: public Runnable {
-    public:
-        explicit HTTPReader(int);
-        ~HTTPReader();
+public:
+    explicit HTTPReader(int);
+    HTTPReader(const HTTPReader &);
+    ~HTTPReader();
 
-        bool                runForFD(int, bool);
-        Socket &            getSocket();
-        void                setPeerAddress(unsigned int);
-        void                setPeerName(const std::string &);
-        void                setUsedPort(int port);
-        Cookie              get_cookie(Cookie cookie);
-        void                setMarked(bool);
-        bool                isMarked()                       const;
-        unsigned int        getPeerAddress()                 const;
-        const std::string & getPeerName()                    const;
-        HTTPRequest *       getRequest()                     const;
-        int                 getUsedPort()                    const;
-        std::string         isRedirect();
+    bool                runForFD(int, bool);
+    void                setPeerAddress(unsigned int);
+    void                setPeerName(const std::string &);
+    void                setUsedPort(int port);
+    void                setMarked(bool);
+    Cookie              get_cookie(Cookie cookie);
+    std::string         isRedirect();
+    Socket &            getSocket();
+    bool                isMarked()                       const;
+    int                 getUsedPort()                    const;
+    unsigned int        getPeerAddress()                 const;
+    HTTPRequest *       getRequest()                     const;
+    const std::string & getPeerName()                    const;
+    const Socket &      getSocket()                      const;
 
 private:
-        Socket        _socket;
-        CGIResponse * response;
-        HTTPRequest * request;
-        unsigned int  peerAddress;
-        std::string   peerName;
-        int           port;
-        bool          errorHead;
-        bool          mark;
-		Cookie        cookie;
-        std::string   head;
-		static std::list<Cookie> session_management;
+    Socket        _socket;
+    CGIResponse * response;
+    HTTPRequest * request;
+    unsigned int  peerAddress;
+    std::string   peerName;
+    int           port;
+    bool          errorHead;
+    bool          mark;
+    Cookie        cookie;
+    std::string   head;
 
-        HTTPRequest * _parse() throw(std::exception);
-        bool          _isCGIMethod(HTTPRequest::TYPE);
+    static std::list<Cookie> session_management;
+
+    HTTPRequest * _parse() throw(std::exception);
+    bool          _isCGIMethod(HTTPRequest::TYPE);
 };
 
 

@@ -240,9 +240,9 @@ void Connection::_clean_readers() {
         (*it)->setMarked(false);
     }
     for (std::map<int, Runnable *>::iterator it = _fd_mapping.begin(); it != _fd_mapping.end(); ++it) {
-        if (it->second != NULL) {
+        //if (it->second != NULL) {
             it->second->setMarked(true);
-        }
+        //}
     }
     for (std::list<HTTPReader *>::iterator it = _readers.begin(); it != _readers.end(); ++it) {
         if (!(*it)->isMarked()) {

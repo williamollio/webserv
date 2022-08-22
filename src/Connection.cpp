@@ -137,6 +137,7 @@ void Connection::accept(nfds_t i) {
 
 void Connection::denyConnection(const int fd, const int errorCode) _NOEXCEPT {
     try {
+        remove_fd(fd);
         Socket socket(fd);
         HTTPHeader h;
         h.setStatusCode(errorCode);
@@ -145,7 +146,6 @@ void Connection::denyConnection(const int fd, const int errorCode) _NOEXCEPT {
         std::string body = "Fatal error! Try again later!";
         h.set_content_length(static_cast<int>(body.size()));
         socket.write(h.tostring() + "\r\n\r\n" + body);
-        remove_fd(fd);
     } catch (std::exception & ex) {
         std::cerr << "Could not send error " << errorCode << "!" << std::endl
                   << "Exception: " << ex.what()                  << std::endl;

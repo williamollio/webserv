@@ -31,6 +31,13 @@ void CGIResponsePost::get_date(std::string &time) {
 	info = localtime(&t);
 	char *tmp = asctime (info);
 	time = tmp;
+	for (std::string::iterator it = time.begin(); it != time.end() ; it++)
+	{
+		if (*(it) == '\n' || *(it) == ' ')
+			(*it) = '_';
+		else if (*(it) == ':')
+			(*it) = '-';
+	}
 }
 
 std::string CGIResponsePost::setFilenameUnknown(std::string extension)

@@ -32,7 +32,7 @@ Connection::Connection()
         if (bind(server_fd, reinterpret_cast<struct sockaddr *>(&address), sizeof(address)) < 0) {
             throw IOException("Could not bind file descriptor to the address!");
         }
-        if (listen(server_fd, 10) < 0) {
+        if (listen(server_fd, 128) < 0) {
             throw IOException("Cannot listen on the socket descriptor!");
         }
         _fds[i].fd = server_fd;

@@ -1,7 +1,5 @@
 # Webserv
 
-This is when we finally understood why a URL starts with HTTP.
-
 [Subject PDF](https://github.com/williamollio/webserv/blob/master/subject.pdf)
 
 # How does it work?

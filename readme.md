@@ -42,7 +42,7 @@ The server can be configured with a configuration-file. This file is either spec
 - whitespaces and newline are handled the same
 - missing any delimiter results in undefined behaviour
 
-The config file can be changed in the [Makefile](https://github.com/williamollio/webserv/blob/master/Makefile)
+The config file can be changed in the [Makefile](https://github.com/williamollio/webserv/blob/master/Makefile) or should be set as an argument.
 
 [Example configuration file](https://github.com/williamollio/webserv/blob/master/server.conf)
 

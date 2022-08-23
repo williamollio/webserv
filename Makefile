@@ -28,7 +28,7 @@ OBJ		= $(MAIN_OBJ:.cpp=.o) $(CONF_OBJ:.cpp=.o)
 
 NAME	= webserv
 
-FLAGS	= -Wall -Wextra -Werror -pedantic -std=c++98 -Ofast -DDEBUG=2
+FLAGS	= -Wall -Wextra -Werror -pedantic -std=c++98 -Ofast
 
 INC		= -Iinclude
 

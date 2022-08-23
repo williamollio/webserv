@@ -42,5 +42,6 @@ The server can be configured with a configuration-file. This file is either spec
 - whitespaces and newline are handled the same
 - missing any delimiter results in undefined behaviour
 
-You should have PHP installed to access the directory listing and set the link to the php into the directory_listing.php (default is /usr/bin/php)
 [Example configuration file](https://github.com/williamollio/webserv/blob/master/server.conf)
+
+PHP should be installed if you want to access the directory listing, indeed the path to it should be set up in directory_listing.php (default path : /usr/bin/php).
